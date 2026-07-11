@@ -115,6 +115,31 @@ function handle_state(): void
         ], $r, $users, 'updated_by');
     }
 
+    $itemsByBundle = [];
+    foreach ($pdo->query('SELECT * FROM bundle_items ORDER BY sort, id') as $r) {
+        $bid = (int) $r['bundle_id'];
+        $itemsByBundle[$bid][] = with_attr([
+            'id' => (int) $r['id'],
+            'label' => $r['label'],
+            'cost' => num_out($r['cost']),
+        ], $r, $users, 'updated_by');
+    }
+    $bundles = [];
+    foreach ($pdo->query('SELECT * FROM bundles ORDER BY sort, id') as $r) {
+        $bid = (int) $r['id'];
+        $items = $itemsByBundle[$bid] ?? [];
+        $forecast = 0.0;
+        foreach ($items as $it) {
+            $forecast += (float) ($it['cost'] === '' ? 0 : $it['cost']);
+        }
+        $bundles[] = with_attr([
+            'id' => $bid,
+            'name' => $r['name'],
+            'items' => $items,
+            'forecast' => num_out((string) $forecast),
+        ], $r, $users, 'updated_by');
+    }
+
     json_out([
         'me' => user_public($u),
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
@@ -127,6 +152,9 @@ function handle_state(): void
         'catalog' => $catalog,
         'notes' => $notes,
         'dates' => $dates,
+        'bundles' => $bundles,
+        'budgetMin' => 1000,
+        'budgetMax' => 1200,
         'rev' => $rev,
     ]);
 }

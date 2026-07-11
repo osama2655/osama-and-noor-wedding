@@ -40,5 +40,9 @@ export const api = {
   noteDelete: (id) => req('note_delete', 'POST', { id }),
   importantDate: (d) => req('important_date', 'POST', d),
   importantDateDelete: (id) => req('important_date_delete', 'POST', { id }),
+  bundle: (b) => req('bundle', 'POST', b),
+  bundleDelete: (id) => req('bundle_delete', 'POST', { id }),
+  bundleItem: (i) => req('bundle_item', 'POST', i),
+  bundleItemDelete: (id) => req('bundle_item_delete', 'POST', { id }),
   setting: (k, v) => req('setting', 'POST', { k, v }),
 }

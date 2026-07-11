@@ -57,6 +57,10 @@ try {
         case 'note_delete': handle_note_delete(); break;
         case 'important_date': handle_important_date(); break;
         case 'important_date_delete': handle_important_date_delete(); break;
+        case 'bundle':   handle_bundle(); break;
+        case 'bundle_delete': handle_bundle_delete(); break;
+        case 'bundle_item': handle_bundle_item(); break;
+        case 'bundle_item_delete': handle_bundle_item_delete(); break;
         case 'setting':  handle_setting(); break;
         default:         json_out(['error' => 'unknown action'], 404);
     }

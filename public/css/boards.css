@@ -1,0 +1,24 @@
+.bundles { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 14px; margin-top: 12px; }
+.bundle { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.bundle-head { display: flex; align-items: center; gap: 8px; }
+.bundle-name { flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--line); color: var(--txt); font-weight: 700; font-size: 15px; padding: 4px 0; font-family: inherit; }
+.bundle-name:focus { outline: none; border-color: var(--gold); }
+.bi-list { display: flex; flex-direction: column; gap: 6px; margin: 12px 0; }
+.bi-row { display: flex; align-items: center; gap: 8px; }
+.bi-label { flex: 1; background: var(--card); border: 1px solid var(--line); color: var(--txt); border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13px; }
+.bi-cost { width: 82px; background: var(--card); border: 1px solid var(--line); color: var(--txt); border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13px; text-align: right; }
+.bi-label:focus, .bi-cost:focus { border-color: var(--line2); outline: none; }
+.add-item { margin-bottom: 12px; }
+.bd-forecast { margin-top: 8px; }
+.bd-bar { height: 10px; border-radius: 999px; background: var(--bg2); border: 1px solid var(--line); overflow: hidden; }
+.bd-bar > span { display: block; height: 100%; border-radius: 999px; transition: width .4s ease; }
+.bd-bar.ok > span { background: linear-gradient(90deg, var(--emerald2), var(--emerald)); }
+.bd-bar.room > span { background: linear-gradient(90deg, var(--gold2), var(--gold)); }
+.bd-bar.over > span { background: linear-gradient(90deg, #c0432f, var(--red)); }
+.bd-line { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
+.bd-total { font-size: 16px; font-weight: 800; color: var(--txt); }
+.bd-status { font-size: 12px; font-weight: 700; }
+.bd-status.ok { color: var(--emerald); }
+.bd-status.room { color: var(--gold); }
+.bd-status.over { color: var(--red); }
+.bundle-foot { margin-top: 10px; border-top: 1px solid var(--line); padding-top: 8px; }

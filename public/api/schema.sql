@@ -121,3 +121,22 @@ CREATE TABLE IF NOT EXISTS important_dates (
   updated_by INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS bundles (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  name       VARCHAR(191) NOT NULL DEFAULT '',
+  sort       INT NOT NULL DEFAULT 100,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS bundle_items (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  bundle_id  INT NOT NULL,
+  label      VARCHAR(191) NOT NULL DEFAULT '',
+  cost       DECIMAL(10,3) NULL,
+  sort       INT NOT NULL DEFAULT 100,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL,
+  KEY idx_bundle_items_bundle (bundle_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
