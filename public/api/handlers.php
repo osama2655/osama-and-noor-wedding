@@ -351,6 +351,50 @@ function handle_invite_info(): void
     json_out(['label' => $inv['label'], 'active' => (bool) $inv['active'], 'wedDate' => setting_get('wedDate') ?: '2026-08-14']);
 }
 
+const OWNERS = ['you', 'men', 'her', 'hall'];
+
+function handle_check_item(): void
+{
+    $u = require_user();
+    $b = body();
+    $owner = in_array($b['owner'] ?? '', OWNERS, true) ? $b['owner'] : 'you';
+    $args = [(string) ($b['phase'] ?? ''), (string) ($b['text'] ?? ''), $owner, (int) ($b['sort'] ?? 100), $u['id']];
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare('UPDATE check_items SET phase=?, text=?, owner=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare('INSERT INTO check_items (phase, text, owner, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, NOW())')->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_check_item_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM check_items WHERE id = ?')->execute([$id]);
+    db()->prepare('DELETE FROM checks WHERE item_key = ?')->execute(["ci-{$id}"]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_hide_check(): void
+{
+    $u = require_user();
+    $b = body();
+    $key = trim((string) ($b['key'] ?? ''));
+    if ($key === '') {
+        json_out(['error' => 'missing key'], 400);
+    }
+    if (!empty($b['hidden'])) {
+        db()->prepare('INSERT INTO hidden_checks (item_key, updated_by, updated_at) VALUES(?, ?, NOW()) ON DUPLICATE KEY UPDATE updated_by = VALUES(updated_by), updated_at = NOW()')->execute([$key, $u['id']]);
+    } else {
+        db()->prepare('DELETE FROM hidden_checks WHERE item_key = ?')->execute([$key]);
+    }
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
 function handle_setting(): void
 {
     $u = require_user();

@@ -75,6 +75,9 @@ try {
         case 'bundle_item_delete': handle_bundle_item_delete(); break;
         case 'invite':   handle_invite(); break;
         case 'invite_delete': handle_invite_delete(); break;
+        case 'check_item': handle_check_item(); break;
+        case 'check_item_delete': handle_check_item_delete(); break;
+        case 'hide_check': handle_hide_check(); break;
         case 'setting':  handle_setting(); break;
         default:         json_out(['error' => 'unknown action'], 404);
     }

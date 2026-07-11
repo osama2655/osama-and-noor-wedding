@@ -161,3 +161,19 @@ CREATE TABLE IF NOT EXISTS rsvps (
   created_at TIMESTAMP NULL DEFAULT NULL,
   KEY idx_rsvps_invite (invite_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS check_items (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  phase      VARCHAR(16) NOT NULL DEFAULT '',
+  text       VARCHAR(500) NOT NULL DEFAULT '',
+  owner      VARCHAR(8) NOT NULL DEFAULT 'you',
+  sort       INT NOT NULL DEFAULT 100,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS hidden_checks (
+  item_key   VARCHAR(64) PRIMARY KEY,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

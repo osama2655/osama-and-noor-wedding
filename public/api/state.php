@@ -80,6 +80,21 @@ function handle_state(): void
         $decisions[(int) $r['idx']] = with_attr(['answer' => $r['answer']], $r, $users, 'updated_by');
     }
 
+    $checkItems = [];
+    foreach ($pdo->query('SELECT * FROM check_items ORDER BY phase, sort, id') as $r) {
+        $checkItems[] = with_attr([
+            'id' => (int) $r['id'],
+            'phase' => $r['phase'],
+            'text' => $r['text'],
+            'owner' => $r['owner'],
+        ], $r, $users, 'updated_by');
+    }
+
+    $hiddenChecks = [];
+    foreach ($pdo->query('SELECT item_key FROM hidden_checks') as $r) {
+        $hiddenChecks[$r['item_key']] = true;
+    }
+
     $vendors = [];
     foreach ($pdo->query('SELECT * FROM vendors ORDER BY sort, id') as $r) {
         $vendors[] = vendor_row($r, $users);
@@ -171,6 +186,8 @@ function handle_state(): void
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
         'theme' => setting_get('theme') ?: 'gold',
         'checks' => $checks,
+        'checkItems' => $checkItems,
+        'hiddenChecks' => $hiddenChecks,
         'decisions' => $decisions,
         'vendors' => $vendors,
         'guests' => $guests,

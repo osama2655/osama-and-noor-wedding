@@ -28,6 +28,9 @@ export const api = {
   state: (rev) =>
     req(`state${rev != null ? `&rev=${encodeURIComponent(rev)}` : ''}`, 'GET'),
   check: (key, done) => req('check', 'POST', { key, done }),
+  checkItem: (c) => req('check_item', 'POST', c),
+  checkItemDelete: (id) => req('check_item_delete', 'POST', { id }),
+  hideCheck: (key, hidden) => req('hide_check', 'POST', { key, hidden }),
   decision: (idx, answer) => req('decision', 'POST', { idx, answer }),
   vendor: (v) => req('vendor', 'POST', v),
   vendorDelete: (id) => req('vendor_delete', 'POST', { id }),

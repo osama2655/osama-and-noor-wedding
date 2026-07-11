@@ -23,3 +23,12 @@ ul.checks li.done .txt{color:var(--faint);text-decoration:line-through}
 .badge{font-size:11px;padding:3px 9px;border-radius:999px;background:var(--card2);border:1px solid var(--line);color:var(--muted)}
 .gate{border:1px solid var(--gold);background:linear-gradient(135deg,rgba(216,176,114,.10),rgba(216,176,114,.02))}
 .gate h2{color:var(--gold)}
+
+.row-x{margin-left:6px;background:none;border:none;color:var(--faint);cursor:pointer;font-size:16px;line-height:1;opacity:.45;transition:.15s;flex:0 0 auto}
+.row-x:hover{opacity:1;color:var(--red)}
+.check-tools{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+li.ci .txt{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.ci-text{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:8px;padding:5px 9px;font:inherit;font-size:14px;flex:1;min-width:160px}
+.ci-text:focus{border-color:var(--line2);outline:none}
+.ci-owner{background:var(--card2);border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:4px 6px;font:inherit;font-size:11px}
+.empty-li{color:var(--faint);font-size:13px;justify-content:center;border-bottom:none}

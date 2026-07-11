@@ -3,24 +3,34 @@ import { store } from './store.js'
 
 const data = () => store.data || {}
 
+const isHidden = (key) => !!data().hiddenChecks?.[key]
+const customFor = (phaseId) =>
+  (data().checkItems || []).filter((c) => c.phase === phaseId)
+
+// The keys that count toward a phase: visible static items plus custom items.
+export function phaseKeys(w) {
+  const staticKeys = w.items
+    .map((_, i) => `${w.id}-${i}`)
+    .filter((k) => !isHidden(k))
+  const customKeys = customFor(w.id).map((c) => `ci-${c.id}`)
+  return [...staticKeys, ...customKeys]
+}
+
 export function allCheckItems() {
-  const arr = []
-  CHECKLIST.forEach((w) => w.items.forEach((_, i) => arr.push(`${w.id}-${i}`)))
-  return arr
+  return CHECKLIST.flatMap(phaseKeys)
 }
 
 export const isChecked = (key) => !!data().checks?.[key]?.done
 
 export function checkStats() {
   const all = allCheckItems()
-  const done = all.filter((k) => isChecked(k)).length
+  const done = all.filter(isChecked).length
   return { done, total: all.length }
 }
 
 export function weekStats(w) {
-  const total = w.items.length
-  const done = w.items.filter((_, i) => isChecked(`${w.id}-${i}`)).length
-  return { done, total }
+  const keys = phaseKeys(w)
+  return { done: keys.filter(isChecked).length, total: keys.length }
 }
 
 export function overallPercent() {
