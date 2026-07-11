@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0e0c0a" />
+<title>Osama &amp; Noor — Wedding Planner</title>
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="stylesheet" href="css/base.css" />
+<link rel="stylesheet" href="css/layout.css" />
+<link rel="stylesheet" href="css/dashboard.css" />
+<link rel="stylesheet" href="css/decisions.css" />
+<link rel="stylesheet" href="css/checklist.css" />
+<link rel="stylesheet" href="css/vendors.css" />
+<link rel="stylesheet" href="css/guests.css" />
+<link rel="stylesheet" href="css/shortlist.css" />
+<link rel="stylesheet" href="css/attribution.css" />
+<link rel="stylesheet" href="css/login.css" />
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-overlay" id="login" hidden>
+  <div class="login-card">
+    <div class="eyebrow">Bahrain Wedding · The Battle Plan</div>
+    <h1>Osama <span class="amp">&amp;</span> Noor</h1>
+    <p class="sub">Sign in to your shared planner.</p>
+    <form id="loginForm">
+      <div class="login-who" id="loginWho">
+        <button type="button" data-name="osama">Osama</button>
+        <button type="button" data-name="noor">Noor</button>
+      </div>
+      <input type="password" id="loginPass" placeholder="Password" autocomplete="current-password" />
+      <button type="submit" class="btn">Enter</button>
+      <div class="login-err" id="loginErr"></div>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" hidden>
+  <header class="top">
+    <div class="topbar">
+      <span class="whoami"><span id="whoami"></span></span>
+      <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
+      <button class="icon-btn" id="logoutBtn" title="Sign out">Sign out</button>
+    </div>
+    <div class="eyebrow">Bahrain Wedding · The Battle Plan</div>
+    <h1 class="title" id="names">Osama <span class="amp">&amp;</span> Noor</h1>
+    <div class="subtitle">Everything locked &amp; paid by Day −10. The final stretch is calm.</div>
+    <div class="countdown" id="countdown"></div>
+    <div class="datechip">Wedding day: <span id="wedDateLabel"></span> <button id="editDate">edit</button></div>
+  </header>
+
+  <div class="wrap">
+    <div class="overall">
+      <div class="row">
+        <div><strong style="font-size:15px">Overall progress</strong>
+          <div style="color:var(--muted);font-size:12.5px" id="overallSub"></div></div>
+        <div class="pct" id="overallPct">0%</div>
+      </div>
+      <div class="bar"><span id="overallBar"></span></div>
+    </div>
+
+    <nav class="tabs" id="tabs">
+      <button data-tab="dash" class="active">Dashboard</button>
+      <button data-tab="decisions">8 Decisions</button>
+      <button data-tab="checklist">Checklist</button>
+      <button data-tab="lanes">Who owns what</button>
+      <button data-tab="vendors">Vendors &amp; £</button>
+      <button data-tab="guests">Guests</button>
+      <button data-tab="resources">Resources</button>
+    </nav>
+
+    <section class="panel active" id="tab-dash"></section>
+
+    <section class="panel" id="tab-decisions">
+      <div class="card">
+        <h2>Lock these 8 decisions first</h2>
+        <p class="hint">Sit with Noor, 30 minutes. Everything downstream depends on these — don't move until they're answered. Type the answer to mark each done.</p>
+        <div id="decisionsList"></div>
+      </div>
+      <div class="note">The families' expectations (mixed/segregated, who pays, how traditional) cause more last-minute stress than any vendor. Get these explicit with both sides early and you remove ~80% of the friction.</div>
+    </section>
+
+    <section class="panel" id="tab-checklist"></section>
+    <section class="panel" id="tab-lanes"></section>
+
+    <section class="panel" id="tab-vendors">
+      <div class="card">
+        <h2>Vendor &amp; payments tracker</h2>
+        <p class="hint">The single most useful thing you can do: hold the master list and deposit deadlines. Everything saves to your shared planner.</p>
+        <div class="money-row" id="moneyRow"></div>
+        <div class="toolbar" style="margin-top:14px">
+          <button class="btn sm" id="addVendor">+ Add vendor row</button>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th style="min-width:120px">Category</th><th style="min-width:130px">Vendor</th>
+              <th style="min-width:120px">Contact</th><th>Status</th>
+              <th style="width:90px">Quote</th><th style="width:90px">Deposit</th>
+              <th style="width:90px">Balance</th><th style="min-width:120px">Balance due</th>
+              <th style="min-width:90px">Updated</th><th></th>
+            </tr></thead>
+            <tbody id="vendorBody"></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Vendor shortlist (Bahrain)</h2>
+        <p class="hint">Message 3 per category today, compare quotes, book the strongest by end of Week 1. Popular vendors book out fast. Tap ☆ to shortlist together.</p>
+        <div id="shortlist"></div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-guests">
+      <div class="card">
+        <h2>Guest list &amp; RSVPs</h2>
+        <p class="hint">You chase your side, Noor chases hers. Give the venue a firm headcount by their deadline.</p>
+        <div class="money-row" id="guestStats"></div>
+        <div class="toolbar" style="margin-top:14px">
+          <button class="btn sm" id="addGuest">+ Add guest / party</button>
+        </div>
+        <div class="tablewrap">
+          <table>
+            <thead><tr>
+              <th style="min-width:160px">Name / party</th><th style="width:120px">Side</th>
+              <th style="width:70px">Seats</th><th style="width:130px">RSVP</th>
+              <th style="min-width:140px">Notes</th><th style="min-width:90px">Updated</th><th></th>
+            </tr></thead>
+            <tbody id="guestBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="tab-resources"></section>
+
+    <div class="foot">Shared planner for Osama &amp; Noor · saved to your wedding database · <a id="exportBtn" href="#">export backup</a></div>
+  </div>
+  <div class="savebar">Shared &amp; synced · <b id="saveTick">✓ live</b></div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+  }
+</script>
+</body>
+</html>

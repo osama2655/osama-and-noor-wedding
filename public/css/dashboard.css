@@ -1,0 +1,4 @@
+/* Dashboard reuses .card, .money-row, and .mini-progress from layout.css.
+   Dashboard-specific tweaks live here. */
+#dashBars .mini-progress:last-child{margin-bottom:0}
+#dashBars .mini-progress > div:first-child{min-width:120px;font-size:13px}

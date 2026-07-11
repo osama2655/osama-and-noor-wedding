@@ -1,0 +1,3 @@
+/* Guests reuse the shared table primitives in vendors.css.
+   Guest-specific tweaks live here. */
+#guestStats .money .v small{color:var(--muted)}

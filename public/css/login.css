@@ -1,0 +1,17 @@
+.login-overlay{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:radial-gradient(1000px 500px at 50% -150px,var(--bg2),var(--bg))}
+.login-card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);
+  width:100%;max-width:360px;padding:28px 24px;text-align:center}
+.login-card .eyebrow{margin-bottom:6px}
+.login-card h1{font-family:Georgia,"Times New Roman",serif;font-weight:400;margin:0 0 4px;font-size:34px}
+.login-card h1 .amp{color:var(--gold);font-style:italic;padding:0 .1em}
+.login-card .sub{color:var(--muted);font-size:13px;margin:0 0 20px}
+.login-who{display:flex;gap:8px;margin:0 0 14px}
+.login-who button{flex:1;border:1px solid var(--line);background:var(--card2);color:var(--muted);
+  border-radius:12px;padding:12px;cursor:pointer;font-weight:700;font-size:14px;transition:.15s}
+.login-who button.on{background:var(--gold);color:#1a1206;border-color:var(--gold)}
+.login-card input{width:100%;background:var(--card2);border:1px solid var(--line);color:var(--txt);
+  border-radius:12px;padding:12px 14px;font:inherit;font-size:15px;margin-bottom:12px}
+.login-card input:focus{border-color:var(--gold);outline:none}
+.login-card .btn{width:100%;padding:12px;font-size:15px}
+.login-err{color:var(--red);font-size:13px;min-height:18px;margin-top:10px}

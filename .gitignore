@@ -1,0 +1,14 @@
+# Environment / credentials
+.env
+.env.*
+*.local
+config.local.php
+config.php
+db.local.php
+secrets.php
+
+# OS / editor cruft
+.DS_Store
+
+# Dependencies (none currently, but keep ignored)
+node_modules/

@@ -1,0 +1,9 @@
+/* "by You / Noor" attribution shown on marked items and edited rows. */
+.by{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;
+  letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:999px;
+  margin-left:6px;vertical-align:middle;white-space:nowrap}
+.by.me{background:rgba(63,174,130,.16);color:var(--emerald)}
+.by.them{background:rgba(216,176,114,.16);color:var(--gold)}
+.by .dot{width:5px;height:5px;border-radius:999px;background:currentColor;display:inline-block}
+td .by{margin-left:0;margin-top:3px}
+.by-when{color:var(--faint);font-weight:600}

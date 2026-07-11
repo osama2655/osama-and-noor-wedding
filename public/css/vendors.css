@@ -1,0 +1,15 @@
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:13px}
+th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+td input,td select{width:100%;background:transparent;border:1px solid transparent;color:var(--txt);
+  border-radius:7px;padding:5px 6px;font:inherit;font-size:13px}
+td input:focus,td select:focus{border-color:var(--line2);background:var(--card2);outline:none}
+td select option{background:var(--card)}
+.status-pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;display:inline-block}
+.s-todo{background:rgba(138,123,100,.18);color:var(--faint)}
+.s-contacted{background:rgba(127,180,216,.16);color:var(--blue)}
+.s-quoted{background:rgba(224,169,74,.16);color:var(--amber)}
+.s-booked{background:rgba(63,174,130,.16);color:var(--emerald)}
+.s-paid{background:rgba(63,174,130,.28);color:var(--emerald)}
+.del{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1}

@@ -1,56 +1,71 @@
-# Osama & Noor — Wedding Planner 💍
+# Osama & Noor: Wedding Planner
 
-A single-file, offline wedding-planning app for a Bahrain wedding in ~34 days.
-Open it, and everything you need to lock, book, and pay is in one place — with a
-live progress bar so nothing gets missed.
+A small shared wedding-planner web app for two people (Osama and Noor) planning a
+Bahrain wedding. It is a plain PHP + MySQL app with a vanilla JavaScript
+(ES modules) frontend. No framework, no build step.
 
-**Wedding day:** Friday, 14 August 2026 (Day 0).
-**Goal:** everything booked & paid by **Day −10**, so the last 10 days are calm.
+The plan text itself (the 8 decisions, the checklist, the ownership lanes, the
+vendor shortlist, the resource links) is fixed and lives in the frontend
+(`public/js/content.js`). Only the *state* you change (checkmarks, decision
+answers, vendor rows and prices, guests, the wedding date) is stored in the
+database and shared between both accounts.
 
-## How to use it
+## How login works
 
-Just open **`index.html`** in any browser — phone or laptop. No install, no server,
-no account.
+There are exactly two accounts, Osama and Noor, each with their own password.
+Passwords are verified server-side with PHP `password_verify` against a hash
+stored in the `users` table, and a session is issued on success. Both accounts
+read and write the same shared MySQL database, so whatever one person changes,
+the other sees. Every stored change records who made it, which drives the
+"by You / by Noor" attribution shown throughout the UI.
 
-- Everything you type or tick **auto-saves to that browser** (localStorage).
-- Use **export backup** (bottom of the page) to save a JSON file, and **import**
-  to restore it — handy for moving between your phone and laptop, or as a backup.
-- Tap the **◐** button (top-right) to switch light/dark.
+## Tabs
 
-> Because data is stored per-browser, use the **same device/browser** to keep your
-> progress, and export a backup now and then.
+- **Dashboard**: countdown to the wedding date, overall progress, and a summary
+  of where things stand.
+- **8 Decisions**: the eight big early calls (Milcha/Nikah status, mixed vs
+  segregated, one night vs a sequence, guest count, who pays what, budget
+  ceiling, style/theme, honeymoon). Each holds a shared answer.
+- **Checklist**: the week-by-week task list from Day 34 down to Day 0,
+  including the Day -10 gate. Items are tagged you / her / shared and are checked
+  off in the shared state.
+- **Who owns what**: the ownership lanes: what Osama owns fully, what is shared
+  and decided together, and what is Noor's to lead with support.
+- **Vendors & £**: the vendor tracker: rows per vendor with status (not started,
+  contacted, quoted, booked, paid in full) and prices, plus a shortlist of
+  suggested Bahrain vendors you can star as favourites.
+- **Guests**: the shared guest list with RSVP tracking.
+- **Resources**: directories, local guides, and Instagram accounts to follow.
 
-### View it online (optional, free)
+## Live sync and attribution
 
-Turn on **GitHub Pages** for this repo to get a private link you can open on your
-phone: repo **Settings → Pages → Branch: `main` / root → Save**. Your planner
-will be live at `https://osama2655.github.io/osama-and-noor-wedding/`.
+The page keeps itself in sync by polling the backend roughly every 5 seconds
+(and again whenever the tab regains focus). The server keeps a monotonic global
+revision that is bumped on every mutation, so a poll that carries the current
+revision can early-out cheaply when nothing has changed. When the revision has
+moved, the client pulls fresh state and re-renders, taking care not to clobber a
+field you are actively editing (it defers that field's update until you blur it).
+Each state row carries who last changed it and when, so the UI can attribute
+every change to You or to the other person.
 
-## What's inside
+## Local development
 
-| Tab | What it does |
-|-----|--------------|
-| **Dashboard** | Countdown, overall progress, progress-by-phase bars, money at a glance, Day −10 gate status |
-| **8 Decisions** | The 8 things to lock first (mixed/segregated, who pays, guest count, budget…). Type an answer to mark each done |
-| **Checklist** | The full T-minus plan: Week 1 → Week 3, the 🚩 Day −10 gate, calm mode, and Day 0. Every item is a checkbox, tagged You / Noor / Both |
-| **Who owns what** | Your lanes, shared decisions, and Noor's lanes |
-| **Vendors & £** | Master vendor + payments tracker — status, quote, deposit, balance, due date. Totals compute automatically. Plus the Bahrain vendor shortlist with Instagram links |
-| **Guests** | Guest/RSVP tracker with seat counts and per-side totals |
-| **Resources** | Directories and Instagram accounts to follow, all clickable |
+This is plain PHP + MySQL with no build step. Serve the `public/` directory with
+php-fpm (or `php -S` behind a web server) so the API under `public/api/` runs.
 
-## The plan in short
+1. Create a MySQL database and load the schema from `public/api/schema.sql`.
+2. Set the database connection via environment variables (defaults shown):
+   - `DB_HOST` (default `127.0.0.1`)
+   - `DB_PORT` (default `3306`)
+   - `DB_NAME` (default `wedding`)
+   - `DB_USER` (default `root`)
+   - `DB_PASS` (default empty)
+3. Serve `public/` and open it in a browser. Log in as Osama or Noor.
 
-1. **Lock the 8 decisions** with Noor first — everything downstream depends on them.
-2. **Week 1:** venue, planner, photo/video, HMUA, henna, attire, mahr, tracker.
-3. **Week 2:** décor, menu, cake, entertainment, invites, car, honeymoon.
-4. **Week 3:** trials, fittings, RSVPs, runsheet, balances, point men.
-5. **Day −10 gate:** everything booked, deposits paid, times confirmed in writing.
-6. **−10 → 0:** reconfirm, pack, rest, be present.
+The API is a single router at `public/api/index.php`; requests come in as
+`api/index.php?action=...`. There is no frontend tooling to install, so editing a
+file under `public/` and reloading is the full dev loop.
 
-> The families' expectations cause more last-minute stress than any vendor.
-> Get them explicit with both sides early and you remove ~80% of the friction.
-> Your highest-value move all month is being the calm one holding the tracker.
+## Deployment
 
----
-
-*Everything here lives in your browser only. Nothing is uploaded anywhere.*
+Deployed on Dilmune Cloud at https://wedding.dilmune.app.

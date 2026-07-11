@@ -1,0 +1,13 @@
+.vcat{margin-bottom:8px}
+.vcat .vh{font-weight:700;font-size:14px;color:var(--txt);margin:14px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--card2);border:1px solid var(--line);border-radius:999px;padding:5px 11px;font-size:12.5px;color:var(--muted)}
+.chip a{color:var(--gold)}
+
+.sl-toolbar{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin:2px 0 16px}
+.sl-count{font-size:13px;color:var(--muted);font-weight:600}
+.chip.pick{display:inline-flex;align-items:center;gap:7px}
+.chip .star{background:none;border:none;cursor:pointer;color:var(--faint);font-size:15px;line-height:1;padding:0;transition:.15s}
+.chip .star:hover{color:var(--gold);transform:scale(1.15)}
+.chip.picked{background:rgba(216,176,114,.16);border-color:var(--gold);color:var(--txt)}
+.chip.picked .star{color:var(--gold)}
