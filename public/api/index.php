@@ -51,6 +51,8 @@ try {
         case 'guest':    handle_guest(); break;
         case 'guest_delete':  handle_guest_delete(); break;
         case 'pick':     handle_pick(); break;
+        case 'catalog':  handle_catalog(); break;
+        case 'catalog_delete': handle_catalog_delete(); break;
         case 'setting':  handle_setting(); break;
         default:         json_out(['error' => 'unknown action'], 404);
     }

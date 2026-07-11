@@ -139,6 +139,56 @@ function handle_pick(): void
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
+function handle_catalog(): void
+{
+    $u = require_user();
+    $b = body();
+    $status = in_array($b['status'] ?? '', VENDOR_STATUSES, true) ? $b['status'] : 'todo';
+    $cap = ($b['capacity'] ?? '') === '' || ($b['capacity'] ?? null) === null ? null : (int) $b['capacity'];
+    $args = [
+        (string) ($b['category'] ?? 'venue'),
+        (string) ($b['name'] ?? ''),
+        (string) ($b['area'] ?? ''),
+        (string) ($b['phone'] ?? ''),
+        (string) ($b['instagram'] ?? ''),
+        (string) ($b['mapsQuery'] ?? ''),
+        $cap,
+        !empty($b['segregated']) ? 1 : 0,
+        !empty($b['femaleCrew']) ? 1 : 0,
+        !empty($b['featured']) ? 1 : 0,
+        $status,
+        (string) ($b['note'] ?? ''),
+        (string) ($b['verify'] ?? ''),
+        (int) ($b['sort'] ?? 100),
+        $u['id'],
+    ];
+
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare(
+            'UPDATE catalog SET category=?, name=?, area=?, phone=?, instagram=?, maps_query=?, capacity=?,
+             segregated=?, female_crew=?, featured=?, status=?, note=?, verify=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?'
+        )->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare(
+            'INSERT INTO catalog (category, name, area, phone, instagram, maps_query, capacity, segregated,
+             female_crew, featured, status, note, verify, sort, updated_by, updated_at)
+             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+        )->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_catalog_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM catalog WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
 function handle_setting(): void
 {
     $u = require_user();

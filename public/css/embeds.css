@@ -1,0 +1,8 @@
+.gmap { width: 100%; height: 260px; border: 0; border-radius: 14px; display: block; }
+.ig-card { display: flex; align-items: center; gap: 12px; text-decoration: none; background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 14px; }
+.ig-card:hover { border-color: var(--line2); }
+.ig-glyph { flex: 0 0 auto; width: 40px; height: 40px; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-weight: 800; color: #fff; background: linear-gradient(45deg, #f09433, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888); }
+.ig-body { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.ig-handle { font-weight: 700; font-size: 14px; color: var(--txt); }
+.ig-sub { font-size: 12px; color: var(--muted); }
+.ig-arrow { color: var(--gold); font-size: 18px; }

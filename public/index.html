@@ -13,7 +13,9 @@
 <link rel="stylesheet" href="css/checklist.css" />
 <link rel="stylesheet" href="css/vendors.css" />
 <link rel="stylesheet" href="css/guests.css" />
-<link rel="stylesheet" href="css/shortlist.css" />
+<link rel="stylesheet" href="css/catalog.css" />
+<link rel="stylesheet" href="css/drawer.css" />
+<link rel="stylesheet" href="css/embeds.css" />
 <link rel="stylesheet" href="css/attribution.css" />
 <link rel="stylesheet" href="css/login.css" />
 <link rel="stylesheet" href="css/themes.css" />
@@ -69,7 +71,9 @@
       <button data-tab="facts">The Plan</button>
       <button data-tab="checklist">Checklist</button>
       <button data-tab="lanes">Who owns what</button>
-      <button data-tab="vendors">Halls &amp; £</button>
+      <button data-tab="venues">Venues</button>
+      <button data-tab="photo">Photo &amp; Video</button>
+      <button data-tab="vendors">Payments</button>
       <button data-tab="guests">Guests</button>
       <button data-tab="resources">Resources</button>
       <button data-tab="themes">Themes</button>
@@ -81,6 +85,8 @@
 
     <section class="panel" id="tab-checklist"></section>
     <section class="panel" id="tab-lanes"></section>
+    <section class="panel" id="tab-venues"></section>
+    <section class="panel" id="tab-photo"></section>
 
     <section class="panel" id="tab-vendors">
       <div class="card">
@@ -102,11 +108,6 @@
             <tbody id="vendorBody"></tbody>
           </table>
         </div>
-      </div>
-      <div class="card">
-        <h2>Halls to call</h2>
-        <p class="hint">Call all three tomorrow, compare the all-inclusive quotes, book the strongest with a deposit. Tap the star to save a hall together.</p>
-        <div id="shortlist"></div>
       </div>
     </section>
 
@@ -138,6 +139,7 @@
   </div>
   <div class="savebar">Shared &amp; synced · <b id="saveTick">✓ live</b></div>
 </div>
+<div id="drawer-root"></div>
 
 <script type="module" src="js/main.js"></script>
 <script>

@@ -37,6 +37,26 @@ function guest_row(array $r, array $users): array
     ], $r, $users, 'updated_by');
 }
 
+function catalog_row(array $r, array $users): array
+{
+    return with_attr([
+        'id' => (int) $r['id'],
+        'category' => $r['category'],
+        'name' => $r['name'],
+        'area' => $r['area'],
+        'phone' => $r['phone'],
+        'instagram' => $r['instagram'],
+        'mapsQuery' => $r['maps_query'],
+        'capacity' => $r['capacity'] !== null ? (int) $r['capacity'] : null,
+        'segregated' => (bool) $r['segregated'],
+        'femaleCrew' => (bool) $r['female_crew'],
+        'featured' => (bool) $r['featured'],
+        'status' => $r['status'],
+        'note' => $r['note'],
+        'verify' => $r['verify'],
+    ], $r, $users, 'updated_by');
+}
+
 function handle_state(): void
 {
     $u = require_user();
@@ -75,6 +95,11 @@ function handle_state(): void
         $picks[$r['vendor_key']] = with_attr([], $r, $users, 'picked_by');
     }
 
+    $catalog = [];
+    foreach ($pdo->query('SELECT * FROM catalog ORDER BY category, sort, id') as $r) {
+        $catalog[] = catalog_row($r, $users);
+    }
+
     json_out([
         'me' => user_public($u),
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
@@ -84,6 +109,7 @@ function handle_state(): void
         'vendors' => $vendors,
         'guests' => $guests,
         'picks' => $picks,
+        'catalog' => $catalog,
         'rev' => $rev,
     ]);
 }

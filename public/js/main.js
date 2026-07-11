@@ -1,5 +1,6 @@
 import { api } from './api.js'
 import { initAuth, initLogout, showLogin } from './auth.js'
+import { renderPhotoVideo, renderVenues } from './catalog.js'
 import { renderChecklist } from './checklist.js'
 import { renderCountdown } from './countdown.js'
 import { renderDash, renderOverall } from './dashboard.js'
@@ -7,7 +8,6 @@ import { renderFacts } from './facts.js'
 import { initGuestControls, renderGuests } from './guests.js'
 import { renderLanes } from './lanes.js'
 import { renderResources } from './resources.js'
-import { renderShortlist } from './shortlist.js'
 import { bumpRev, setData, store } from './store.js'
 import { startSync } from './sync.js'
 import { hydrateTheme, initTheme } from './theme.js'
@@ -29,9 +29,10 @@ function renderAll() {
   renderFacts()
   renderChecklist()
   renderLanes()
+  renderVenues()
+  renderPhotoVideo()
   renderVendors()
   renderGuests()
-  renderShortlist()
   renderResources()
   renderThemes()
 }

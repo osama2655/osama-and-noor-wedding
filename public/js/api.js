@@ -34,5 +34,7 @@ export const api = {
   guest: (g) => req('guest', 'POST', g),
   guestDelete: (id) => req('guest_delete', 'POST', { id }),
   pick: (key, picked) => req('pick', 'POST', { key, picked }),
+  catalog: (c) => req('catalog', 'POST', c),
+  catalogDelete: (id) => req('catalog_delete', 'POST', { id }),
   setting: (k, v) => req('setting', 'POST', { k, v }),
 }

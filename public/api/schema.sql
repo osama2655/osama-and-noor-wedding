@@ -83,3 +83,23 @@ SELECT c, 'todo', o FROM (
   UNION ALL SELECT 'Honeymoon', 13
 ) seed
 WHERE (SELECT COUNT(*) FROM vendors) = 0;
+
+CREATE TABLE IF NOT EXISTS catalog (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  category    VARCHAR(32)  NOT NULL DEFAULT 'venue',
+  name        VARCHAR(191) NOT NULL DEFAULT '',
+  area        VARCHAR(128) NOT NULL DEFAULT '',
+  phone       VARCHAR(64)  NOT NULL DEFAULT '',
+  instagram   VARCHAR(128) NOT NULL DEFAULT '',
+  maps_query  VARCHAR(191) NOT NULL DEFAULT '',
+  capacity    INT NULL,
+  segregated  TINYINT NOT NULL DEFAULT 0,
+  female_crew TINYINT NOT NULL DEFAULT 0,
+  featured    TINYINT NOT NULL DEFAULT 0,
+  status      VARCHAR(16)  NOT NULL DEFAULT 'todo',
+  note        TEXT,
+  verify      VARCHAR(255) NOT NULL DEFAULT '',
+  sort        INT NOT NULL DEFAULT 100,
+  updated_by  INT NULL,
+  updated_at  TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

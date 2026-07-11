@@ -1,0 +1,28 @@
+#drawer-root { position: fixed; inset: 0; z-index: 100; display: none; }
+#drawer-root.open { display: block; }
+.dw-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); animation: dw-fade .2s ease; }
+.dw-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--bg); border-left: 1px solid var(--line); overflow-y: auto; animation: dw-slide .25s ease; }
+@keyframes dw-fade { from { opacity: 0 } to { opacity: 1 } }
+@keyframes dw-slide { from { transform: translateX(30px); opacity: .4 } to { transform: none; opacity: 1 } }
+.dw-hero { position: relative; height: 150px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--gold2), var(--gold)); }
+.dw-monogram { font-family: Georgia, serif; font-size: 54px; color: var(--bg); opacity: .9; }
+.dw-x, .dw-star { position: absolute; top: 12px; background: rgba(0, 0, 0, .28); color: #fff; border: none; border-radius: 999px; width: 34px; height: 34px; cursor: pointer; }
+.dw-x { left: 12px; font-size: 20px; }
+.dw-star { right: 12px; font-size: 18px; }
+.dw-star.on { color: var(--gold); }
+.dw-body { padding: 18px 20px 44px; }
+.dw-titlerow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.dw-titlerow h2 { margin: 0; font-size: 22px; }
+.dw-badge { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--gold); color: var(--bg); }
+.dw-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
+.dw-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; background: var(--card2); border: 1px solid var(--line); color: var(--muted); }
+.dw-chip.ok { background: rgba(63, 174, 130, .16); color: var(--emerald); border-color: transparent; }
+.dw-chip.warn { background: rgba(224, 169, 74, .16); color: var(--amber); border-color: transparent; }
+.dw-note { font-size: 14px; color: var(--muted); line-height: 1.5; }
+.dw-verify { font-size: 12.5px; color: var(--muted); background: rgba(224, 169, 74, .10); border: 1px solid rgba(224, 169, 74, .3); border-radius: 10px; padding: 10px 12px; margin: 12px 0; }
+.dw-verify b { color: var(--amber); text-transform: uppercase; font-size: 10px; letter-spacing: .06em; margin-right: 6px; }
+.dw-map, .dw-ig { margin: 14px 0; }
+.dw-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.dw-btn { background: var(--gold); color: var(--bg); border: none; border-radius: 12px; padding: 11px 16px; font-weight: 700; font-size: 13.5px; cursor: pointer; text-decoration: none; }
+.dw-btn.ghost { background: var(--card); color: var(--txt); border: 1px solid var(--line); }
+@media (prefers-reduced-motion: reduce) { .dw-backdrop, .dw-panel { animation: none; } }
