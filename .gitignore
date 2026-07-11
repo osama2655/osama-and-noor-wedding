@@ -12,3 +12,6 @@ secrets.php
 
 # Dependencies (none currently, but keep ignored)
 node_modules/
+
+# server-side DB credentials (never commit)
+.db-secret.php
