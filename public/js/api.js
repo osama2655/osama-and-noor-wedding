@@ -44,5 +44,7 @@ export const api = {
   bundleDelete: (id) => req('bundle_delete', 'POST', { id }),
   bundleItem: (i) => req('bundle_item', 'POST', i),
   bundleItemDelete: (id) => req('bundle_item_delete', 'POST', { id }),
+  invite: (i) => req('invite', 'POST', i),
+  inviteDelete: (id) => req('invite_delete', 'POST', { id }),
   setting: (k, v) => req('setting', 'POST', { k, v }),
 }

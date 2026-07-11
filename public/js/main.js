@@ -9,6 +9,7 @@ import { renderDates } from './dates.js'
 import { renderFacts } from './facts.js'
 import { renderSaved } from './favorites.js'
 import { initGuestControls, renderGuests } from './guests.js'
+import { renderInvite } from './invite.js'
 import { renderLanes } from './lanes.js'
 import { renderNotes } from './notes.js'
 import { renderResources } from './resources.js'
@@ -37,6 +38,7 @@ function renderAll() {
   renderPhotoVideo()
   renderSaved()
   renderBoards()
+  renderInvite()
   renderDates()
   renderNotes()
   renderVendors()

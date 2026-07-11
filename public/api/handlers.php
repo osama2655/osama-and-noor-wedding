@@ -287,6 +287,70 @@ function handle_bundle_item_delete(): void
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
+function handle_invite(): void
+{
+    $u = require_user();
+    $b = body();
+    $active = !empty($b['active']) || !isset($b['active']) ? 1 : 0;
+    if (!empty($b['id'])) {
+        $id = (int) $b['id'];
+        db()->prepare('UPDATE invites SET label=?, active=?, updated_by=?, updated_at=NOW() WHERE id=?')
+            ->execute([(string) ($b['label'] ?? ''), $active, $u['id'], $id]);
+        $st = db()->prepare('SELECT token FROM invites WHERE id=?');
+        $st->execute([$id]);
+        $token = (string) ($st->fetchColumn() ?: '');
+    } else {
+        $token = bin2hex(random_bytes(16));
+        db()->prepare('INSERT INTO invites (token, label, active, updated_by, updated_at) VALUES(?, ?, 1, ?, NOW())')
+            ->execute([$token, (string) ($b['label'] ?? ''), $u['id']]);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'token' => $token, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_invite_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM rsvps WHERE invite_id = ?')->execute([$id]);
+    db()->prepare('DELETE FROM invites WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+// PUBLIC. Guests submit an RSVP by invite token. No session; the token is the authorization.
+function handle_rsvp_submit(): void
+{
+    usleep(250000);
+    $token = (string) ($_GET['token'] ?? '');
+    $st = db()->prepare('SELECT id FROM invites WHERE token = ? AND active = 1');
+    $st->execute([$token]);
+    $inv = $st->fetch();
+    if (!$inv) {
+        json_out(['error' => 'not found'], 404);
+    }
+    $b = body();
+    $side = in_array($b['side'] ?? '', GUEST_SIDES, true) ? $b['side'] : 'both';
+    $attending = in_array($b['attending'] ?? '', ['yes', 'no'], true) ? $b['attending'] : 'yes';
+    $head = max(1, min(20, (int) ($b['headcount'] ?? 1)));
+    db()->prepare('INSERT INTO rsvps (invite_id, name, side, headcount, attending, message, created_at) VALUES(?, ?, ?, ?, ?, ?, NOW())')
+        ->execute([(int) $inv['id'], mb_substr((string) ($b['name'] ?? ''), 0, 191), $side, $head, $attending, mb_substr((string) ($b['message'] ?? ''), 0, 500)]);
+    bump_rev(0);
+    json_out(['ok' => true]);
+}
+
+// PUBLIC. Minimal invite info for the guest RSVP page.
+function handle_invite_info(): void
+{
+    $token = (string) ($_GET['token'] ?? '');
+    $st = db()->prepare('SELECT label, active FROM invites WHERE token = ?');
+    $st->execute([$token]);
+    $inv = $st->fetch();
+    if (!$inv || !$inv['active']) {
+        json_out(['error' => 'not found'], 404);
+    }
+    json_out(['label' => $inv['label'], 'active' => (bool) $inv['active'], 'wedDate' => setting_get('wedDate') ?: '2026-08-14']);
+}
+
 function handle_setting(): void
 {
     $u = require_user();

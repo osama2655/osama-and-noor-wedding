@@ -1,0 +1,35 @@
+/* Invite tab */
+.inv-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 14px; margin-top: 14px; }
+.inv { background: var(--card2); border: 1px solid var(--line); border-radius: 14px; padding: 14px; }
+.inv-head { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
+.inv-label { flex: 1; background: transparent; border: none; border-bottom: 1px solid var(--line); color: var(--txt); font-weight: 700; font-size: 14.5px; padding: 4px 0; font-family: inherit; }
+.inv-label:focus { outline: none; border-color: var(--gold); }
+.inv-qr { display: flex; justify-content: center; background: #fff; border-radius: 12px; padding: 12px; }
+.qr-canvas { width: 180px; height: 180px; image-rendering: pixelated; }
+.inv-link { display: flex; gap: 6px; margin-top: 12px; }
+.inv-link input { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 7px 9px; font-size: 12px; font-family: inherit; }
+.inv-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 10px; }
+.inv-count { font-size: 12px; color: var(--faint); font-weight: 600; }
+.inv-rsvps { margin-top: 12px; border-top: 1px solid var(--line); padding-top: 10px; display: flex; flex-direction: column; gap: 8px; }
+.rsvp-row { display: flex; flex-direction: column; gap: 2px; }
+.rsvp-row.no { opacity: .6; }
+.rsvp-name { font-weight: 600; font-size: 13.5px; color: var(--txt); }
+.rsvp-meta { font-size: 12px; color: var(--muted); }
+.rsvp-msg { font-size: 12.5px; color: var(--faint); font-style: italic; }
+
+/* Public RSVP page */
+.rsvp-wrap { min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 24px; }
+.rsvp-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); width: 100%; max-width: 400px; padding: 30px 26px; text-align: center; }
+.rsvp-card .eyebrow { letter-spacing: .28em; text-transform: uppercase; font-size: 11px; color: var(--gold); font-weight: 700; }
+.rsvp-card h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; margin: 8px 0 2px; font-size: 40px; }
+.rsvp-card h1 .amp { color: var(--gold); font-style: italic; padding: 0 .12em; }
+.rsvp-date { color: var(--muted); font-size: 14px; margin: 0 0 22px; }
+#rsvpForm { display: flex; flex-direction: column; gap: 12px; text-align: left; }
+#rsvpForm input, #rsvpForm select, #rsvpForm textarea { background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px; }
+#rsvpForm input:focus, #rsvpForm select:focus, #rsvpForm textarea:focus { border-color: var(--gold); outline: none; }
+#rsvpForm textarea { resize: vertical; min-height: 70px; }
+.rsvp-att { display: flex; gap: 16px; justify-content: center; padding: 4px 0; }
+.rsvp-att label { display: flex; align-items: center; gap: 6px; font-size: 14px; color: var(--txt); }
+.rsvp-lbl { font-size: 12px; color: var(--muted); margin-bottom: -6px; }
+#rsvpForm .btn { width: 100%; padding: 13px; font-size: 15px; margin-top: 4px; }
+.rsvp-err { color: var(--red); font-size: 13px; min-height: 16px; text-align: center; }

@@ -140,3 +140,24 @@ CREATE TABLE IF NOT EXISTS bundle_items (
   updated_at TIMESTAMP NULL DEFAULT NULL,
   KEY idx_bundle_items_bundle (bundle_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS invites (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  token      VARCHAR(32) NOT NULL UNIQUE,
+  label      VARCHAR(191) NOT NULL DEFAULT '',
+  active     TINYINT NOT NULL DEFAULT 1,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS rsvps (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  invite_id  INT NOT NULL,
+  name       VARCHAR(191) NOT NULL DEFAULT '',
+  side       ENUM('you','her','both') NOT NULL DEFAULT 'both',
+  headcount  INT NOT NULL DEFAULT 1,
+  attending  ENUM('yes','no') NOT NULL DEFAULT 'yes',
+  message    VARCHAR(500) NOT NULL DEFAULT '',
+  created_at TIMESTAMP NULL DEFAULT NULL,
+  KEY idx_rsvps_invite (invite_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

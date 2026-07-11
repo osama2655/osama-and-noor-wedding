@@ -140,6 +140,32 @@ function handle_state(): void
         ], $r, $users, 'updated_by');
     }
 
+    $rsvpsByInvite = [];
+    foreach ($pdo->query('SELECT * FROM rsvps ORDER BY id DESC') as $r) {
+        $rsvpsByInvite[(int) $r['invite_id']][] = [
+            'id' => (int) $r['id'],
+            'name' => $r['name'],
+            'side' => $r['side'],
+            'headcount' => (int) $r['headcount'],
+            'attending' => $r['attending'],
+            'message' => $r['message'],
+            'at' => $r['created_at'],
+        ];
+    }
+    $invites = [];
+    foreach ($pdo->query('SELECT * FROM invites ORDER BY id') as $r) {
+        $iid = (int) $r['id'];
+        $rs = $rsvpsByInvite[$iid] ?? [];
+        $invites[] = with_attr([
+            'id' => $iid,
+            'token' => $r['token'],
+            'label' => $r['label'],
+            'active' => (bool) $r['active'],
+            'rsvps' => $rs,
+            'rsvpCount' => count($rs),
+        ], $r, $users, 'updated_by');
+    }
+
     json_out([
         'me' => user_public($u),
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
@@ -153,6 +179,7 @@ function handle_state(): void
         'notes' => $notes,
         'dates' => $dates,
         'bundles' => $bundles,
+        'invites' => $invites,
         'budgetMin' => 1000,
         'budgetMax' => 1200,
         'rev' => $rev,

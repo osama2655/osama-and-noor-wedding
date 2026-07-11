@@ -38,6 +38,18 @@ session_start();
 
 $action = $_GET['action'] ?? '';
 
+// The only unauthenticated surface: guests submit RSVPs and read invite info by token.
+$publicActions = ['rsvp' => 'handle_rsvp_submit', 'invite_info' => 'handle_invite_info'];
+if (isset($publicActions[$action])) {
+    try {
+        $publicActions[$action]();
+    } catch (Throwable $e) {
+        error_log('[wedding-api] ' . $e->getMessage());
+        json_out(['error' => 'server error'], 500);
+    }
+    exit;
+}
+
 try {
     switch ($action) {
         case 'login':    handle_login(); break;
@@ -61,6 +73,8 @@ try {
         case 'bundle_delete': handle_bundle_delete(); break;
         case 'bundle_item': handle_bundle_item(); break;
         case 'bundle_item_delete': handle_bundle_item_delete(); break;
+        case 'invite':   handle_invite(); break;
+        case 'invite_delete': handle_invite_delete(); break;
         case 'setting':  handle_setting(); break;
         default:         json_out(['error' => 'unknown action'], 404);
     }
