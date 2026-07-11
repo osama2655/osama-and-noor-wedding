@@ -1,49 +1,51 @@
 import { api } from './api.js'
-import { SHORTLIST } from './content.js'
+import { ASK_EVERY_HALL, PHOTOVIDEO, VENUE_BACKUPS, VENUES } from './content.js'
 import { bumpRev, meId, store } from './store.js'
 import { byTag } from './util.js'
 
-let picksOnly = false
+const tel = (phone) => phone.replace(/\s+/g, '')
 
 export function renderShortlist() {
   const host = document.getElementById('shortlist')
   if (!host) return
   const picks = store.data.picks || (store.data.picks = {})
-  const total = Object.keys(picks).length
 
-  const cats = SHORTLIST.map((c, ci) => {
-    const chips = c.v
-      .map((v, vi) => {
-        const key = `${ci}:${vi}`
-        const p = picks[key]
-        const picked = !!p
-        if (picksOnly && !picked) return ''
-        const label =
-          v.n + (v.h ? ` · ${v.h}` : '') + (v.extra ? ` · ${v.extra}` : '')
-        const inner = v.u
-          ? `<a href="${v.u}" target="_blank" rel="noopener">${label}</a>`
-          : `<span>${label}</span>`
-        const who = picked ? byTag(p, meId()) : ''
-        return `<span class="chip pick ${picked ? 'picked' : ''}"><button class="star" data-pick="${key}" title="${picked ? 'Remove from shortlist' : 'Add to shortlist'}">${picked ? '★' : '☆'}</button>${inner}${who}</span>`
-      })
-      .join('')
-    if (picksOnly && !chips) return ''
-    return `<div class="vcat">
-      <div class="vh">${c.cat}</div>
-      ${!picksOnly && c.note ? `<div class="hint" style="margin:0 0 8px">${c.note}</div>` : ''}
-      <div class="chips">${chips}</div>
+  const venueCard = (v, i) => {
+    const key = `venue:${i}`
+    const p = picks[key]
+    const picked = !!p
+    const who = picked ? byTag(p, meId()) : ''
+    return `<div class="hall ${picked ? 'picked' : ''} ${v.startHere ? 'start' : ''}">
+      <button class="star" data-pick="${key}" title="${picked ? 'Remove from saved' : 'Save this hall'}">${picked ? '★' : '☆'}</button>
+      <div class="hall-body">
+        <div class="hall-top">
+          <span class="hall-name">${v.n}</span>
+          ${v.startHere ? '<span class="hall-badge">Start here</span>' : ''}
+        </div>
+        <div class="hall-area">${v.area}</div>
+        <div class="hall-note">${v.note}</div>
+        ${who}
+      </div>
+      <a class="hall-call" href="tel:${tel(v.phone)}">Call ${v.phone}</a>
     </div>`
-  }).join('')
+  }
 
   host.innerHTML = `
-    <div class="sl-toolbar">
-      <div class="sl-count">${total ? `★ ${total} vendor${total > 1 ? 's' : ''} shortlisted` : 'Tap ☆ on any vendor to add it to your shortlist'}</div>
-      <div style="display:flex;gap:8px">
-        ${total ? `<button class="btn ghost sm" id="picksOnlyBtn">${picksOnly ? 'Show all' : 'Show my picks'}</button>` : ''}
-        ${total ? '<button class="btn ghost sm" id="clearPicksBtn">Clear</button>' : ''}
-      </div>
+    <div class="halls">${VENUES.map(venueCard).join('')}</div>
+    <div class="backups">
+      <span class="backups-label">Backups</span>
+      ${VENUE_BACKUPS.map((b) => `<a class="chip" href="tel:${tel(b.phone)}">${b.n} · ${b.phone}</a>`).join('')}
     </div>
-    ${cats || '<div class="empty">Nothing shortlisted yet — tap "Show all".</div>'}`
+    <div class="pv">
+      <div class="vh">Photo and video</div>
+      <div class="pv-req">${PHOTOVIDEO.requirement}</div>
+      <div class="chips">${PHOTOVIDEO.days.map((d) => `<span class="chip">${d}</span>`).join('')}</div>
+      <div class="hint" style="margin-top:8px">Sourced via ${PHOTOVIDEO.sourcedVia}.</div>
+    </div>
+    <div class="ask">
+      <div class="vh">Ask every hall</div>
+      <ol class="ask-list">${ASK_EVERY_HALL.map((q) => `<li>${q}</li>`).join('')}</ol>
+    </div>`
 
   host.querySelectorAll('.star').forEach((b) =>
     b.addEventListener('click', async (e) => {
@@ -64,28 +66,4 @@ export function renderShortlist() {
       }
     }),
   )
-
-  const po = document.getElementById('picksOnlyBtn')
-  if (po)
-    po.addEventListener('click', () => {
-      picksOnly = !picksOnly
-      renderShortlist()
-    })
-
-  const cp = document.getElementById('clearPicksBtn')
-  if (cp)
-    cp.addEventListener('click', async () => {
-      if (!confirm('Clear all shortlisted vendors?')) return
-      const keys = Object.keys(store.data.picks)
-      store.data.picks = {}
-      picksOnly = false
-      renderShortlist()
-      for (const k of keys) {
-        try {
-          bumpRev(await api.pick(k, false))
-        } catch (_) {
-          /* ignore */
-        }
-      }
-    })
 }

@@ -3,7 +3,7 @@ import { setData, store } from './store.js'
 
 let started = false
 
-// Re-render, but never clobber a field the user is actively editing — defer to its blur.
+// Re-render, but never clobber a field the user is actively editing. Defer to its blur.
 function safeRender(renderAll) {
   const a = document.activeElement
   const editing =

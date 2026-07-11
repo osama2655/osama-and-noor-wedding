@@ -4,12 +4,12 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0e0c0a" />
-<title>Osama &amp; Noor — Wedding Planner</title>
+<title>Osama and Noor, Wedding Planner</title>
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/layout.css" />
 <link rel="stylesheet" href="css/dashboard.css" />
-<link rel="stylesheet" href="css/decisions.css" />
+<link rel="stylesheet" href="css/facts.css" />
 <link rel="stylesheet" href="css/checklist.css" />
 <link rel="stylesheet" href="css/vendors.css" />
 <link rel="stylesheet" href="css/guests.css" />
@@ -47,7 +47,7 @@
     </div>
     <div class="eyebrow">Bahrain Wedding · The Battle Plan</div>
     <h1 class="title" id="names">Osama <span class="amp">&amp;</span> Noor</h1>
-    <div class="subtitle">Everything locked &amp; paid by Day −10. The final stretch is calm.</div>
+    <div class="subtitle">Everything locked and paid by the Day 10 gate. The final stretch is calm.</div>
     <div class="countdown" id="countdown"></div>
     <div class="datechip">Wedding day: <span id="wedDateLabel"></span> <button id="editDate">edit</button></div>
   </header>
@@ -64,32 +64,25 @@
 
     <nav class="tabs" id="tabs">
       <button data-tab="dash" class="active">Dashboard</button>
-      <button data-tab="decisions">8 Decisions</button>
+      <button data-tab="facts">The Plan</button>
       <button data-tab="checklist">Checklist</button>
       <button data-tab="lanes">Who owns what</button>
-      <button data-tab="vendors">Vendors &amp; £</button>
+      <button data-tab="vendors">Halls &amp; £</button>
       <button data-tab="guests">Guests</button>
       <button data-tab="resources">Resources</button>
     </nav>
 
     <section class="panel active" id="tab-dash"></section>
 
-    <section class="panel" id="tab-decisions">
-      <div class="card">
-        <h2>Lock these 8 decisions first</h2>
-        <p class="hint">Sit with Noor, 30 minutes. Everything downstream depends on these — don't move until they're answered. Type the answer to mark each done.</p>
-        <div id="decisionsList"></div>
-      </div>
-      <div class="note">The families' expectations (mixed/segregated, who pays, how traditional) cause more last-minute stress than any vendor. Get these explicit with both sides early and you remove ~80% of the friction.</div>
-    </section>
+    <section class="panel" id="tab-facts"></section>
 
     <section class="panel" id="tab-checklist"></section>
     <section class="panel" id="tab-lanes"></section>
 
     <section class="panel" id="tab-vendors">
       <div class="card">
-        <h2>Vendor &amp; payments tracker</h2>
-        <p class="hint">The single most useful thing you can do: hold the master list and deposit deadlines. Everything saves to your shared planner.</p>
+        <h2>Payments tracker</h2>
+        <p class="hint">Hold the master list and the deposit deadlines. Everything saves to your shared planner.</p>
         <div class="money-row" id="moneyRow"></div>
         <div class="toolbar" style="margin-top:14px">
           <button class="btn sm" id="addVendor">+ Add vendor row</button>
@@ -108,8 +101,8 @@
         </div>
       </div>
       <div class="card">
-        <h2>Vendor shortlist (Bahrain)</h2>
-        <p class="hint">Message 3 per category today, compare quotes, book the strongest by end of Week 1. Popular vendors book out fast. Tap ☆ to shortlist together.</p>
+        <h2>Halls to call</h2>
+        <p class="hint">Call all three tomorrow, compare the all-inclusive quotes, book the strongest with a deposit. Tap the star to save a hall together.</p>
         <div id="shortlist"></div>
       </div>
     </section>

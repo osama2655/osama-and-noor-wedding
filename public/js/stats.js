@@ -1,4 +1,4 @@
-import { CHECKLIST, DECISIONS } from './content.js'
+import { CHECKLIST } from './content.js'
 import { store } from './store.js'
 
 const data = () => store.data || {}
@@ -23,15 +23,9 @@ export function weekStats(w) {
   return { done, total }
 }
 
-export const decisionAnswer = (i) => data().decisions?.[i]?.answer || ''
-export const decisionsDone = () =>
-  DECISIONS.filter((_, i) => decisionAnswer(i).trim()).length
-
 export function overallPercent() {
   const c = checkStats()
-  const total = c.total + DECISIONS.length
-  const done = c.done + decisionsDone()
-  return total ? Math.round((done / total) * 100) : 0
+  return c.total ? Math.round((c.done / c.total) * 100) : 0
 }
 
 export function moneyTotals() {

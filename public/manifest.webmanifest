@@ -1,7 +1,7 @@
 {
-  "name": "Osama & Noor — Wedding Planner",
+  "name": "Osama and Noor, Wedding Planner",
   "short_name": "O&N Wedding",
-  "description": "Shared Bahrain wedding planner: countdown, checklist, vendors, guests.",
+  "description": "Shared Bahrain wedding planner: countdown, checklist, halls, guests.",
   "start_url": ".",
   "scope": ".",
   "display": "standalone",

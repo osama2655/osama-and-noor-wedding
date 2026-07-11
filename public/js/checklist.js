@@ -1,12 +1,13 @@
 import { api } from './api.js'
-import { CHECKLIST } from './content.js'
+import { CHECKLIST, OWNERS } from './content.js'
 import { renderDash, renderOverall } from './dashboard.js'
 import { weekStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
 import { byTag } from './util.js'
 
-const ownerLabel = (o) => (o === 'you' ? 'You' : o === 'her' ? 'Noor' : 'Both')
-const ownerClass = (o) => (o === 'you' ? 'you' : o === 'her' ? 'her' : 'shared')
+const ownerLabel = (o) => OWNERS[o] || ''
+const ownerClass = (o) =>
+  o === 'you' ? 'you' : o === 'her' ? 'her' : o === 'men' ? 'men' : 'hall'
 
 export function renderChecklist() {
   const el = document.getElementById('tab-checklist')

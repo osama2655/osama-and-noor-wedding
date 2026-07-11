@@ -1,7 +1,8 @@
-import { LANES } from './content.js'
+import { LANES, OWNERS } from './content.js'
 
-const label = (t) => (t === 'you' ? 'You' : t === 'her' ? 'Noor' : 'Both')
-const cls = (t) => (t === 'you' ? 'you' : t === 'her' ? 'her' : 'shared')
+const label = (t) => OWNERS[t] || ''
+const cls = (t) =>
+  t === 'you' ? 'you' : t === 'her' ? 'her' : t === 'men' ? 'men' : 'hall'
 
 export function renderLanes() {
   const el = document.getElementById('tab-lanes')

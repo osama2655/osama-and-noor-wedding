@@ -15,6 +15,8 @@ ul.checks li.done .txt{color:var(--faint);text-decoration:line-through}
   padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
 .t-you{background:rgba(216,176,114,.16);color:var(--gold)}
 .t-her{background:rgba(217,138,134,.16);color:var(--rose)}
+.t-men{background:rgba(127,180,216,.16);color:var(--blue)}
+.t-hall{background:rgba(63,174,130,.16);color:var(--emerald)}
 .t-shared{background:rgba(127,180,216,.16);color:var(--blue)}
 
 .week-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}

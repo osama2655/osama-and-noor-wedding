@@ -1,391 +1,298 @@
-// Static content — the plan text itself. Only *state* (checks, answers, vendor rows…) lives in
-// the database; this structure is fixed and shared by both users.
+// Static content. The plan text itself (Groom's Battle Plan v2). Only state
+// (checks, vendor rows, payments) lives in the database; this structure is
+// fixed and shared by both users.
 
 export const WED_DEFAULT = '2026-08-14'
 
-export const DECISIONS = [
-  {
-    q: 'Milcha / Nikah done, or part of this event?',
-    d: 'In Bahrain the contract is often signed separately/earlier. If not done, this is priority #1.',
-  },
-  {
-    q: 'Mixed or segregated?',
-    d: "Decides the whole floor plan, entertainment, and whether you need two spaces. Both families' comfort, not just you two.",
-  },
-  {
-    q: 'One night or a sequence?',
-    d: "Henna night + main reception is the common combo. Sometimes a separate men's majlis/walima.",
-  },
-  {
-    q: 'Guest count — firm number?',
-    d: 'Venues price per head, so this drives budget more than anything.',
-  },
-  {
-    q: 'Who pays what?',
-    d: "Groom's side traditionally carries the walima + a large share; many Manama couples split. Get it explicit with both families now, in writing.",
-  },
-  { q: 'Budget ceiling?', d: 'Total, and per-head for the venue.' },
-  {
-    q: 'Style / theme?',
-    d: "Noor almost certainly has this — your job is to know it so you don't buy off-brand.",
-  },
-  {
-    q: 'Honeymoon: yes / now / later?',
-    d: 'Affects passports, leave from Citi, and booking timing.',
-  },
+// Owner tags used across CHECKLIST and LANES.
+// you  = the groom
+// men  = groom + brother + Hashim (men's side, both days)
+// her  = the bride's side
+// hall = the all-inclusive venue
+export const OWNERS = {
+  you: 'You',
+  men: 'You + brother + Hashim',
+  her: 'Her side',
+  hall: 'The hall',
+}
+
+// Hard facts. Nothing here is up for debate.
+export const FACTS = [
+  ['Format', 'Segregated, traditional. About 200 guests, hard cap.'],
+  [
+    'Venue',
+    'One all-inclusive hall. It handles theme, decor, flowers, stage, DJ, catering, and on-site coordination.',
+  ],
+  ['Event budget', 'BD 1000 to 1200 total.'],
+  ['Gold', 'BD 2000, separate from the event budget. You buy it.'],
+  [
+    'Mahr',
+    'The two mothers set the figure. Stay out of it. You just need the final number before the Milcha.',
+  ],
+  [
+    'Structure',
+    "Two days. Day A: Milcha in the day, Henna night at night. Day B: the reception, women's reception plus men's majlis.",
+  ],
 ]
 
 export const CHECKLIST = [
   {
-    id: 'w1',
-    title: 'Week 1 — Days 34→28',
+    id: 'p1',
+    title: 'NOW to Day 28',
     sub: 'Lock the big rocks',
     items: [
-      ['Complete the 8 decisions (Section: 8 Decisions)', 'shared'],
       [
-        "Confirm Milcha/Nikah status; if not done, book the ma'thoon/court date + gather docs (IDs/passports, certificates — confirm list with MoJ/Islamic Affairs or your ma'thoon)",
+        'Call the 3 halls, compare all-inclusive quotes, book one with a deposit. Confirm segregated layout and both dates in writing.',
         'you',
       ],
       [
-        'Confirm venue, date, guest count, per-head price + what package includes (menu, décor, tables, sound, parking, honeymoon suite)',
-        'shared',
-      ],
-      ['Hire a planner/coordinator (or assign yourself as lead)', 'you'],
-      ['Book photographer + videographer (deposit)', 'shared'],
-      ['Book HMUA (bridal hair & makeup) + trial date', 'her'],
-      ['Book henna artist + confirm henna night date/venue', 'her'],
-      ['Order your thobe/bisht or suit — start tailoring now', 'you'],
-      ['Confirm mahr + gold plan with her family', 'you'],
-      ['Draft guest list (both sides) in one shared sheet', 'shared'],
-      ['Set up the master vendor + payments tracker', 'you'],
-    ],
-  },
-  {
-    id: 'w2',
-    title: 'Week 2 — Days 27→20',
-    sub: 'Design + book the rest',
-    items: [
-      ['Finalize décor, flowers, and kosha/stage design', 'shared'],
-      [
-        'Finalize catering menu + tasting (ghouzi/roast lamb, machboos, buffet, dessert)',
-        'shared',
-      ],
-      ['Order the cake', 'shared'],
-      [
-        'Book entertainment: DJ/band and/or ardha/tabl drummers (respect mixed-vs-segregated)',
-        'shared',
-      ],
-      [
-        'Send invitations — digital invite + WhatsApp broadcast is standard; printed cards only if she wants',
-        'shared',
-      ],
-      ['Book wedding car / transport', 'you'],
-      ['Her dress: confirm final fitting dates', 'her'],
-      [
-        'Book honeymoon (flights + hotel); file leave at Citi; check passport validity (6+ months)',
+        "Confirm the Milcha date, the ma'thoon, and the exact document list.",
         'you',
       ],
-      ['Confirm accommodation for out-of-town guests / honeymoon suite', 'you'],
-    ],
-  },
-  {
-    id: 'w3',
-    title: 'Week 3 — Days 19→11',
-    sub: 'Confirm + fit + rehearse',
-    items: [
-      ['HMUA trial done — lock the look', 'her'],
-      ['Your attire fitting #1 done; alterations underway', 'you'],
       [
-        'Collect RSVPs; give venue a firm headcount by their deadline',
-        'shared',
-      ],
-      [
-        'Build the day-of runsheet; share with planner, photographer, DJ, venue',
+        'Lock photo and video through Ahmed, with female coverage confirmed.',
         'you',
       ],
-      ['Confirm seating plan / any VIP or family seating', 'shared'],
-      ['Pay vendor balances that are due; schedule the rest', 'you'],
+      ['Book the HMUA and the trial.', 'her'],
       [
-        'Buy: rings if not already, gifts for each other, guest favors if custom',
-        'shared',
-      ],
-      ['Assign 2–3 point men for the night (family / vendors / you)', 'you'],
-      [
-        "Confirm henna night details (venue, women's guest list, artist arrival time)",
+        'Confirm the henna artist and where the henna night happens, hall or home.',
         'her',
       ],
+      ['Order the thobe and bisht, or the suit. Tailoring starts now.', 'you'],
+      ['Buy the gold, BD 2000. Let the mothers settle the mahr.', 'you'],
+      ['Stand up the RSVP website. Collect both guest lists, cap 200.', 'you'],
+      ['Open the payments tracker.', 'you'],
+    ],
+  },
+  {
+    id: 'p2',
+    title: 'Day 27 to 20',
+    sub: 'Hand the design to the hall, book the rest',
+    items: [
+      [
+        'With the hall, set theme and colour, menu (the buffet tier drives the budget), kosha, DJ, and timing for both days.',
+        'hall',
+      ],
+      ['Order the cake.', 'you'],
+      [
+        "Confirm the men's side plan with brother and Hashim: gahwa and dates supplier, seating, greeting order.",
+        'men',
+      ],
+      [
+        'Send invites, digital plus WhatsApp, with the RSVP link to the site.',
+        'you',
+      ],
+      ['Wedding car and transport (reminder Day 18).', 'you'],
+      [
+        'Honeymoon: check Citi leave, book if movable, otherwise leave pending.',
+        'you',
+      ],
+      ['Passports valid 6 or more months if the honeymoon is on.', 'you'],
+    ],
+  },
+  {
+    id: 'p3',
+    title: 'Day 19 to 11',
+    sub: 'Confirm, fit, build the runsheet',
+    items: [
+      ['HMUA trial done, the look locked.', 'her'],
+      ['Your attire fitted and collected.', 'you'],
+      ['Firm headcount to the hall by their deadline.', 'you'],
+      [
+        'Build the two-day runsheet and share it with the hall, photographer, and DJ.',
+        'you',
+      ],
+      ['Pay the balances due, schedule the rest.', 'you'],
+      ["Confirm men's side supplies: gahwa, dates, seating.", 'men'],
     ],
   },
   {
     id: 'gate',
-    title: '🚩 DAY −10 GATE',
-    sub: 'Everything below must be TRUE',
+    title: 'DAY 10 GATE',
+    sub: 'Ten days out, everything below must be TRUE',
     gate: true,
     items: [
       [
-        'Venue, caterer, photo/video, HMUA, henna, décor, cake, car, entertainment: all booked, deposits paid, times confirmed in writing',
-        'shared',
-      ],
-      [
-        'Your attire fitted & collected (or pickup date set inside final 10 days)',
+        'Hall, photo and video, HMUA, henna, and cake all booked, paid, and timed in writing.',
         'you',
       ],
-      [
-        'Marriage contract done or firmly scheduled with documents ready',
-        'you',
-      ],
-      ['Final headcount given to venue', 'shared'],
-      ['Day-of runsheet shared with every vendor', 'you'],
-      ['Honeymoon booked, leave approved, passports valid', 'you'],
-      ['Master tracker shows no open urgent items', 'you'],
+      ['Attire collected.', 'you'],
+      ['Milcha date confirmed and documents in hand.', 'you'],
+      ['Final headcount given, 200 or under.', 'you'],
+      ['Two-day runsheet shared with every vendor.', 'you'],
+      ['Honeymoon resolved, booked or deferred.', 'you'],
+      ['Tracker at zero urgent open items.', 'you'],
     ],
   },
   {
-    id: 'final',
-    title: 'Days −10 → −1',
-    sub: "Calm mode — confirm, don't build",
+    id: 'p5',
+    title: 'Last 10 days',
+    sub: 'Calm mode, confirm and be present',
     items: [
+      ['Reconfirm every vendor 48 to 72 hours ahead.', 'you'],
       [
-        'Reconfirm every vendor 48–72h ahead (arrival time, contact, deliverable)',
+        'Cash tips in labeled envelopes. Assign someone to carry the rings, gold, and documents.',
         'you',
       ],
-      ['Pay remaining balances; prep cash tips in labeled envelopes', 'you'],
+      ['Haircut about 3 days before.', 'you'],
       [
-        'Pack: honeymoon bag, wedding-night bag, attire + backup, chargers, documents, rings',
-        'shared',
+        'Pack the honeymoon and wedding-night bags, attire plus a backup, chargers, and docs.',
+        'you',
       ],
-      ['Grooming: haircut ~3 days before (not day-of)', 'you'],
-      ['Assign someone to carry rings, mahr, and documents on the day', 'you'],
-      ['Charge phones/cameras; download the runsheet offline', 'you'],
-      ['Protect your sleep and routine', 'shared'],
+      ["Brief brother and Hashim on their men's side duties.", 'men'],
+      ['Protect your sleep and routine.', 'you'],
     ],
   },
-  {
-    id: 'day0',
-    title: 'Day 0 — the day',
-    sub: 'Be in it',
-    items: [
-      ['Eat and hydrate before the event', 'you'],
-      ['Point men briefed and on duty', 'you'],
-      [
-        'Hand off logistics to planner/point men and actually be present',
-        'shared',
-      ],
-    ],
-  },
+]
+
+// Still-open items that ride alongside the checklist.
+export const OPEN_ITEMS = [
+  ['Honeymoon', 'Gated on Citi leave. Decide by Day 20.', 'you'],
+  ['Wedding car', 'Reminder at Day 18.', 'you'],
+  [
+    'Mahr',
+    'The mothers decide. You need the final figure before the Milcha.',
+    'you',
+  ],
 ]
 
 export const LANES = [
   {
-    title: 'YOUR lanes — own fully',
+    title: 'YOU, fully',
     tag: 'you',
-    note: "Report progress; don't ask her to manage these.",
+    note: 'You own these end to end. Report progress, do not hand them off.',
     items: [
-      'Your attire — thobe + gutra/bisht or bisht, or a suit if Western-style. Start tailoring Week 1.',
-      "The mahr + gold — coordinate with her family on what's expected and when it's presented.",
-      "Men's side coordination — seating, greeting line, who receives guests, ardha/tabl or DJ.",
-      'Wedding car / transport — for you both + family logistics on the night.',
-      'Honeymoon — flights, hotel, leave at Citi, travel docs.',
-      'Your guest list + RSVPs — you chase your side.',
-      'Vendor chasing / payments tracker — hold the master list + deposit deadlines.',
-      'Day-of logistics + the minute-by-minute runsheet.',
+      'Venue selection and contract.',
+      "Milcha logistics and documents (ma'thoon, IDs, the full list).",
+      'Your attire: thobe and bisht, or a suit.',
+      'The gold, BD 2000.',
+      'The payments tracker.',
+      'Honeymoon, pending leave from Citi.',
+      'The day-of runsheet.',
+      'Being the calm coordinator.',
     ],
   },
   {
-    title: 'SHARED — decide together, one executes',
-    tag: 'shared',
-    note: '',
+    title: "MEN'S SIDE, both days",
+    tag: 'men',
+    note: 'You, your brother, and Hashim run this together.',
     items: [
-      'Venue details',
-      'Décor & flowers',
-      'The kosha / stage',
-      'Catering menu',
-      'Cake',
-      'Invitations',
-      'Photography style',
-      'Entertainment',
-      'Guest list master',
+      "The men's majlis on Day B: gahwa, dates, lighter food.",
+      'Seating and the greeting order.',
+      'Receiving and looking after the men both days.',
+      'Gahwa and dates supplier.',
     ],
   },
   {
-    title: "HER lanes — support, don't take over",
+    title: 'HER SIDE',
     tag: 'her',
-    note: 'Your role: pay deposits on time, drive her to fittings/trials, remove admin friction.',
+    note: 'Support it, do not take it over. Pay deposits on time and clear the admin.',
     items: [
-      'Bridal dress + fittings',
-      'Hair & makeup (HMUA)',
-      'Henna night',
-      'Bridal beauty prep',
-      'Her guest list',
+      'The dress.',
+      'HMUA (hair and makeup) and the trial.',
+      "The henna night (women-led, bride's side).",
+      'Her guest list.',
+      'Bridal prep.',
+    ],
+  },
+  {
+    title: 'THE HALL',
+    tag: 'hall',
+    note: 'All-inclusive. This absorbs roughly 60 percent of the work once booked.',
+    items: [
+      'Theme and decor.',
+      'Flowers.',
+      'The stage and kosha.',
+      'Sound and DJ.',
+      'Catering.',
+      'On-site coordination.',
     ],
   },
 ]
 
-export const SHORTLIST = [
+export const VENUES = [
   {
-    cat: 'Wedding planners / coordinators',
-    note: 'Worth it at 34 days — they compress weeks of work.',
-    v: [
-      {
-        n: 'The Arch Events',
-        h: '@thearchevents',
-        u: 'https://instagram.com/thearchevents',
-        extra: 'WhatsApp +973 33608868',
-      },
-      {
-        n: 'Weddings & Events Co (Aseel Al-Ansari)',
-        h: '@weddingsandeventsco',
-        u: 'https://instagram.com/weddingsandeventsco',
-      },
-      {
-        n: 'Directory (Divine, LalaBella, Leaves…)',
-        u: 'https://bahrainislandwedding.com/en/wedding-planners',
-        h: 'bahrainislandwedding.com',
-      },
-    ],
+    n: 'The Heaven',
+    area: 'Dumistan',
+    phone: '+973 3909 0080',
+    note: 'Best all-inclusive fit. Start here.',
+    startHere: true,
   },
   {
-    cat: 'Venues',
-    note: 'Hotel packages ~BD 12–25 net/person. If not booked, call first & ask for cancellations.',
-    v: [
-      { n: 'Gulf Hotel — Al Dana (~800) / Awal (100–300) / GCC terrace' },
-      {
-        n: 'Diplomat Radisson Blu — Grand Ambassador (~900) / Al Fanar Sea View (~200)',
-      },
-      { n: 'Four Seasons Bahrain Bay — ballrooms + private lawn' },
-      { n: 'Ritz-Carlton — Al Ghazal (~500) + Masaya Pavilion' },
-      { n: 'Sofitel Zallaq — Al Nakheel (~800), beachfront' },
-      { n: 'InterContinental Regency — Al Rifaa (~500)' },
-      { n: 'Crowne Plaza — renovated ballroom ~1,000 + LED wall' },
-      {
-        n: 'Also: Jumeirah, ART Rotana (Amwaj), Raffles Al Areen (~200), Mövenpick',
-      },
-    ],
+    n: 'Al Dana Hall',
+    area: 'Maqabah',
+    phone: '+973 1769 5005',
+    note: 'Two halls, so you can run men and women in parallel. Best on budget.',
+    startHere: false,
   },
   {
-    cat: 'Photography + videography',
-    v: [
-      {
-        n: 'Studio Classic',
-        h: '@scweddingbh',
-        u: 'https://instagram.com/scweddingbh',
-        extra: '+973 33024042',
-      },
-      {
-        n: 'Bader & Khatoon',
-        h: '@bkweddings',
-        u: 'https://instagram.com/bkweddings',
-      },
-      {
-        n: 'Junaid Moazzam',
-        h: '@junaidmoazzamstudio',
-        u: 'https://instagram.com/junaidmoazzamstudio',
-      },
-      {
-        n: 'Nawal Photography',
-        h: '@nawalphotography',
-        u: 'https://instagram.com/nawalphotography',
-      },
-      { n: 'Zynnah', h: '@zynnah', u: 'https://instagram.com/zynnah' },
-      {
-        n: 'FM Videography',
-        h: '@fm.videography',
-        u: 'https://instagram.com/fm.videography',
-      },
-      {
-        n: 'Glenn Dulay',
-        h: '@glenndulay',
-        u: 'https://instagram.com/glenndulay',
-      },
-      {
-        n: 'Safiya Aloraibi',
-        h: '@safiyaaloraibi',
-        u: 'https://instagram.com/safiyaaloraibi',
-      },
-    ],
-  },
-  {
-    cat: 'Décor · Cake · Entertainment · HMUA · Henna',
-    note: 'Book the HMUA trial early — hardest slot to get.',
-    v: [
-      {
-        n: 'Official vendor directory',
-        u: 'https://bahrainislandwedding.com',
-        h: 'bahrainislandwedding.com',
-      },
-      {
-        n: 'Regional directory',
-        u: 'https://arabiaweddings.com',
-        h: 'arabiaweddings.com',
-      },
-      { n: 'IG search', h: "'Bahrain bridal makeup' · 'Bahrain henna artist'" },
-    ],
+    n: 'New Seasons Hall',
+    area: 'Adhari',
+    phone: '+973 1740 4141',
+    note: 'Around 200 capacity, native split between the two sides.',
+    startHere: false,
   },
 ]
+
+export const VENUE_BACKUPS = [
+  { n: 'Alnaseej', phone: '+973 3331 2881' },
+  { n: 'Nayyara (Amwaj)', phone: '+973 3382 0333' },
+]
+
+export const ASK_EVERY_HALL = [
+  'Is the price all-inclusive, and what exactly does it cover (theme, decor, flowers, stage and kosha, sound and DJ, catering, coordination)?',
+  "Can you hold a fully segregated layout, and can you run the women's reception and the men's majlis at the same time?",
+  'Are both of our dates available, and will you put them in writing on the deposit?',
+  'What is the per-head cost, and which buffet tier keeps us inside BD 1000 to 1200 total?',
+  'What is the real capacity, and can you seat about 200 without crowding?',
+  'What deposit do you need, and what is the payment and cancellation schedule?',
+  'Who is our on-site coordinator on the day, and what do they handle?',
+  "Can outside photo and video teams (including a female crew for the women's side) work in the hall?",
+]
+
+export const PHOTOVIDEO = {
+  requirement:
+    "Segregated event means a female photo and video team is a hard requirement, either a female crew or a company that fields a female crew for the women's events plus a male crew for the men's majlis. Coverage must span both days. Do not book until female coverage is confirmed.",
+  sourcedVia: 'Ahmed',
+  days: [
+    'Day A: Milcha and Henna night',
+    "Day B: women's reception and men's majlis",
+  ],
+}
 
 export const RESOURCES = [
   {
-    h: 'Directories & guides',
+    h: 'Directories and guides',
     items: [
       [
-        'bahrainislandwedding.com — official (Bahrain Tourism), vendors by category',
+        'bahrainislandwedding.com, official Bahrain Tourism directory',
         'https://bahrainislandwedding.com',
       ],
       [
-        'arabiaweddings.com — regional directory, strong Bahrain sections',
+        'arabiaweddings.com, regional directory with strong Bahrain sections',
         'https://arabiaweddings.com',
       ],
       [
-        'weddingsinbahrain.com — local venue/vendor guide',
+        'weddingsinbahrain.com, local venue and vendor guide',
         'https://weddingsinbahrain.com',
       ],
-      ['bahrainweddings.com — local guide', 'https://bahrainweddings.com'],
       [
-        'localbh.com — crowd-sourced local recommendations',
+        'localbh.com, crowd-sourced local recommendations',
         'https://localbh.com',
-      ],
-      [
-        'ohlala-magazine.com — venue write-ups with package details',
-        'https://ohlala-magazine.com',
-      ],
-    ],
-  },
-  {
-    h: 'Instagram to follow now',
-    items: [
-      ['Planners: @thearchevents', 'https://instagram.com/thearchevents'],
-      [
-        'Planners: @weddingsandeventsco',
-        'https://instagram.com/weddingsandeventsco',
-      ],
-      ['Official: @bahrainwedding', 'https://instagram.com/bahrainwedding'],
-      ['Photo/video: @scweddingbh', 'https://instagram.com/scweddingbh'],
-      ['Photo/video: @bkweddings', 'https://instagram.com/bkweddings'],
-      [
-        'Photo/video: @junaidmoazzamstudio',
-        'https://instagram.com/junaidmoazzamstudio',
-      ],
-      [
-        'Search tags: #bahrainwedding #bahrainbride #عروس_البحرين',
-        'https://instagram.com/explore/tags/bahrainwedding/',
       ],
     ],
   },
 ]
 
 export const STARTER_VENDORS = [
-  'Planner',
-  'Venue',
-  'Photo + video',
-  'HMUA (hair & makeup)',
+  'Venue (all-inclusive hall)',
+  'Photo and video (female coverage confirmed)',
+  'HMUA (hair and makeup)',
   'Henna artist',
-  'Décor / flowers / kosha',
-  'Catering / menu',
   'Cake',
-  'Entertainment (DJ / ardha)',
-  'Wedding car / transport',
-  'Invitations',
-  'Your attire (thobe/bisht)',
+  "Gahwa and dates supplier (men's majlis)",
+  'Wedding car and transport',
+  'Your attire (thobe and bisht)',
   'Honeymoon',
 ]
 

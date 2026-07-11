@@ -1,5 +1,5 @@
 // Single in-memory snapshot of the shared server state. Shape:
-// { me:{id,name,display}, wedDate, checks:{key:{done,by,byId,at}}, decisions:{idx:{answer,by,byId,at}},
+// { me:{id,name,display}, wedDate, checks:{key:{done,by,byId,at}},
 //   vendors:[{id,...,by,byId,at}], guests:[{id,...,by,byId,at}], picks:{key:{by,byId,at}}, rev }
 export const store = { data: null }
 

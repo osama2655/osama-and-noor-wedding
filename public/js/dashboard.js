@@ -1,11 +1,5 @@
-import { CHECKLIST, DECISIONS } from './content.js'
-import {
-  checkStats,
-  decisionsDone,
-  moneyTotals,
-  overallPercent,
-  weekStats,
-} from './stats.js'
+import { CHECKLIST } from './content.js'
+import { checkStats, moneyTotals, overallPercent, weekStats } from './stats.js'
 import { store } from './store.js'
 import { fmt } from './util.js'
 
@@ -18,7 +12,7 @@ export function renderOverall() {
   const c = checkStats()
   const sub = document.getElementById('overallSub')
   if (sub)
-    sub.textContent = `${c.done + decisionsDone()} of ${c.total + DECISIONS.length} items · Day −10 hard gate ahead`
+    sub.textContent = `${c.done} of ${c.total} tasks done, the Day 10 gate ahead`
 }
 
 export function renderDash() {
@@ -35,9 +29,8 @@ export function renderDash() {
       <h2>Where things stand</h2>
       <div class="money-row">
         <div class="money"><div class="l">Tasks done</div><div class="v">${c.done}<small>/${c.total}</small></div></div>
-        <div class="money"><div class="l">8 Decisions</div><div class="v">${decisionsDone()}<small>/8</small></div></div>
         <div class="money"><div class="l">Vendors booked</div><div class="v">${money.booked}<small>/${vendorCount}</small></div></div>
-        <div class="money"><div class="l">Day −10 gate</div><div class="v" style="color:${gs.done === gs.total ? 'var(--emerald)' : 'var(--amber)'}">${gs.done}<small>/${gs.total}</small></div></div>
+        <div class="money"><div class="l">Day 10 gate</div><div class="v" style="color:${gs.done === gs.total ? 'var(--emerald)' : 'var(--amber)'}">${gs.done}<small>/${gs.total}</small></div></div>
       </div>
     </div>
     <div class="card">
@@ -55,20 +48,10 @@ export function renderDash() {
     </div>`
 
   const bars = document.getElementById('dashBars')
-  bars.innerHTML = [
-    { lab: '8 Decisions', done: decisionsDone(), total: 8, gold: true },
-    ...CHECKLIST.map((w) => {
-      const s = weekStats(w)
-      return {
-        lab:
-          w.title.replace('🚩 ', '').replace(/ —.*/, '') +
-          (w.id === 'gate' ? ' gate' : ''),
-        done: s.done,
-        total: s.total,
-        gold: w.id === 'gate',
-      }
-    }),
-  ]
+  bars.innerHTML = CHECKLIST.map((w) => {
+    const s = weekStats(w)
+    return { lab: w.title, done: s.done, total: s.total, gold: w.id === 'gate' }
+  })
     .map((r) => {
       const p = r.total ? Math.round((r.done / r.total) * 100) : 0
       return `<div class="mini-progress">

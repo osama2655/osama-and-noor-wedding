@@ -3,7 +3,7 @@ import { initAuth, initLogout, showLogin } from './auth.js'
 import { renderChecklist } from './checklist.js'
 import { renderCountdown } from './countdown.js'
 import { renderDash, renderOverall } from './dashboard.js'
-import { renderDecisions } from './decisions.js'
+import { renderFacts } from './facts.js'
 import { initGuestControls, renderGuests } from './guests.js'
 import { renderLanes } from './lanes.js'
 import { renderResources } from './resources.js'
@@ -24,7 +24,7 @@ function renderAll() {
   renderCountdown()
   renderOverall()
   renderDash()
-  renderDecisions()
+  renderFacts()
   renderChecklist()
   renderLanes()
   renderVendors()

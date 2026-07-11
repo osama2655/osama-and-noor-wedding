@@ -55,7 +55,7 @@ function get_rev(): int
     return (int) (setting_get('rev') ?? 0);
 }
 
-// Monotonic global revision — bumped on every mutation so cheap polls can early-out.
+// Monotonic global revision, bumped on every mutation so cheap polls can early-out.
 function bump_rev(int $uid): int
 {
     db()->prepare(
