@@ -53,6 +53,10 @@ try {
         case 'pick':     handle_pick(); break;
         case 'catalog':  handle_catalog(); break;
         case 'catalog_delete': handle_catalog_delete(); break;
+        case 'note':     handle_note(); break;
+        case 'note_delete': handle_note_delete(); break;
+        case 'important_date': handle_important_date(); break;
+        case 'important_date_delete': handle_important_date_delete(); break;
         case 'setting':  handle_setting(); break;
         default:         json_out(['error' => 'unknown action'], 404);
     }

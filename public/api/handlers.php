@@ -189,6 +189,55 @@ function handle_catalog_delete(): void
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
+function handle_note(): void
+{
+    $u = require_user();
+    $b = body();
+    $args = [(string) ($b['title'] ?? ''), (string) ($b['body'] ?? ''), $u['id']];
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare('UPDATE notes SET title=?, body=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare('INSERT INTO notes (title, body, updated_by, updated_at) VALUES(?, ?, ?, NOW())')->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_note_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM notes WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_important_date(): void
+{
+    $u = require_user();
+    $b = body();
+    $date = num_in($b['date'] ?? '');
+    $args = [(string) ($b['label'] ?? ''), $date, (string) ($b['note'] ?? ''), (int) ($b['sort'] ?? 100), $u['id']];
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare('UPDATE important_dates SET label=?, on_date=?, note=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare('INSERT INTO important_dates (label, on_date, note, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, NOW())')->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_important_date_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM important_dates WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
 function handle_setting(): void
 {
     $u = require_user();

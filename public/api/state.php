@@ -100,6 +100,21 @@ function handle_state(): void
         $catalog[] = catalog_row($r, $users);
     }
 
+    $notes = [];
+    foreach ($pdo->query('SELECT * FROM notes ORDER BY updated_at DESC, id DESC') as $r) {
+        $notes[] = with_attr(['id' => (int) $r['id'], 'title' => $r['title'], 'body' => $r['body']], $r, $users, 'updated_by');
+    }
+
+    $dates = [];
+    foreach ($pdo->query('SELECT * FROM important_dates ORDER BY on_date IS NULL, on_date, sort, id') as $r) {
+        $dates[] = with_attr([
+            'id' => (int) $r['id'],
+            'label' => $r['label'],
+            'date' => $r['on_date'] ?? '',
+            'note' => $r['note'],
+        ], $r, $users, 'updated_by');
+    }
+
     json_out([
         'me' => user_public($u),
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
@@ -110,6 +125,8 @@ function handle_state(): void
         'guests' => $guests,
         'picks' => $picks,
         'catalog' => $catalog,
+        'notes' => $notes,
+        'dates' => $dates,
         'rev' => $rev,
     ]);
 }

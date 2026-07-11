@@ -4,9 +4,12 @@ import { renderPhotoVideo, renderVenues } from './catalog.js'
 import { renderChecklist } from './checklist.js'
 import { renderCountdown } from './countdown.js'
 import { renderDash, renderOverall } from './dashboard.js'
+import { renderDates } from './dates.js'
 import { renderFacts } from './facts.js'
+import { renderSaved } from './favorites.js'
 import { initGuestControls, renderGuests } from './guests.js'
 import { renderLanes } from './lanes.js'
+import { renderNotes } from './notes.js'
 import { renderResources } from './resources.js'
 import { bumpRev, setData, store } from './store.js'
 import { startSync } from './sync.js'
@@ -31,6 +34,9 @@ function renderAll() {
   renderLanes()
   renderVenues()
   renderPhotoVideo()
+  renderSaved()
+  renderDates()
+  renderNotes()
   renderVendors()
   renderGuests()
   renderResources()

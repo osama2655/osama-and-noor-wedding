@@ -36,5 +36,9 @@ export const api = {
   pick: (key, picked) => req('pick', 'POST', { key, picked }),
   catalog: (c) => req('catalog', 'POST', c),
   catalogDelete: (id) => req('catalog_delete', 'POST', { id }),
+  note: (n) => req('note', 'POST', n),
+  noteDelete: (id) => req('note_delete', 'POST', { id }),
+  importantDate: (d) => req('important_date', 'POST', d),
+  importantDateDelete: (id) => req('important_date_delete', 'POST', { id }),
   setting: (k, v) => req('setting', 'POST', { k, v }),
 }
