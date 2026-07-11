@@ -78,6 +78,7 @@ function handle_state(): void
     json_out([
         'me' => user_public($u),
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
+        'theme' => setting_get('theme') ?: 'gold',
         'checks' => $checks,
         'decisions' => $decisions,
         'vendors' => $vendors,

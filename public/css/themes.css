@@ -1,0 +1,188 @@
+/* The 8 themes. Each block overrides the base tokens from base.css. The animated
+   background lives on #theme-bg, a fixed layer behind all content. Preview cards on
+   the Themes page reuse the same [data-theme] blocks locally with a static .tc-bg. */
+
+#theme-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+/* 1. Layl w Dhahab, warm gold heritage (the default look) */
+[data-theme='gold'] {
+  --bg: #0e0c0a; --bg2: #171310; --card: #1e1813; --card2: #241d16;
+  --line: #3a2f24; --line2: #4a3c2c; --txt: #f4ece0; --muted: #b7a88f; --faint: #8a7b64;
+  --gold: #d8b072; --gold2: #c99a4e; --shadow: 0 10px 30px rgba(0, 0, 0, .4);
+}
+[data-theme='gold'] #theme-bg {
+  background:
+    radial-gradient(60vmax 60vmax at 15% 0%, rgba(216, 176, 114, .16), transparent 60%),
+    radial-gradient(50vmax 50vmax at 100% 100%, rgba(140, 74, 47, .20), transparent 55%),
+    linear-gradient(160deg, #0e0c0a, #171310);
+  animation: gold-breathe 14s ease-in-out infinite;
+}
+@keyframes gold-breathe { 0%, 100% { opacity: .85 } 50% { opacity: 1 } }
+
+/* 2. Sadu Nocturne, midnight and gold foil */
+[data-theme='nocturne'] {
+  --bg: #0b0b10; --bg2: #12121c; --card: #16161f; --card2: #1c1c28;
+  --line: #2a2a38; --line2: #3a3a4c; --txt: #ececf2; --muted: #8b8b9c; --faint: #6f6f80;
+  --gold: #d4af37; --gold2: #b08d2e; --shadow: 0 12px 34px rgba(0, 0, 0, .5);
+}
+[data-theme='nocturne'] #theme-bg {
+  background: radial-gradient(120vmax 90vmax at 50% -10%, #14141f, #0b0b10 70%);
+}
+[data-theme='nocturne'] h1.title {
+  background: linear-gradient(100deg, #8a6d1f, #f4e39b 30%, #d4af37 50%, #fff6cf 60%, #d4af37 72%, #8a6d1f);
+  background-size: 200% auto;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: foil-shine 7s linear infinite;
+}
+@keyframes foil-shine { to { background-position: -200% center } }
+
+/* 3. Ward Ateeq, blush modern romance */
+[data-theme='rose'] {
+  --bg: #fbf3f1; --bg2: #f6e7e3; --card: #ffffff; --card2: #faf3f1;
+  --line: #ead3cd; --line2: #dcc0b9; --txt: #3d2b2b; --muted: #8a6e6c; --faint: #a98f8c;
+  --gold: #c46a78; --gold2: #a9505f; --shadow: 0 8px 24px rgba(150, 90, 90, .14);
+}
+[data-theme='rose'] #theme-bg {
+  background:
+    radial-gradient(45vmax 45vmax at 12% 18%, #fadce0, transparent 60%),
+    radial-gradient(40vmax 40vmax at 88% 12%, #f5e6c8, transparent 60%),
+    radial-gradient(50vmax 50vmax at 70% 95%, #f3d9de, transparent 60%),
+    #fbf3f1;
+  background-size: 200% 200%;
+  animation: mesh-drift 22s ease-in-out infinite alternate;
+}
+@keyframes mesh-drift {
+  from { background-position: 0 0, 100% 0, 50% 100%, 0 0 }
+  to { background-position: 20% 10%, 80% 20%, 40% 80%, 0 0 }
+}
+
+/* 4. Zumurrud w Qeshta, emerald and cream */
+[data-theme='emerald'] {
+  --bg: #f4f1e8; --bg2: #eae6d6; --card: #fbfaf4; --card2: #f3f0e4;
+  --line: #d6d0bc; --line2: #c7c0a8; --txt: #1e3a30; --muted: #5c6f63; --faint: #89928a;
+  --gold: #0f5c42; --gold2: #0c4835; --shadow: 0 8px 24px rgba(30, 58, 48, .12);
+}
+[data-theme='emerald'] #theme-bg {
+  background:
+    radial-gradient(50vmax 50vmax at 100% 0%, rgba(15, 92, 66, .14), transparent 55%),
+    linear-gradient(180deg, #f4f1e8, #eae6d6);
+}
+
+/* 5. Ghuroub Aurora, desert dusk */
+[data-theme='aurora'] {
+  --bg: #1b1024; --bg2: #2a1533; --card: #241a33; --card2: #2c2040;
+  --line: #43304f; --line2: #574066; --txt: #f6e9f2; --muted: #b49cc7; --faint: #8f7aa5;
+  --gold: #ff8c6b; --gold2: #e0714f; --shadow: 0 12px 34px rgba(0, 0, 0, .45);
+}
+[data-theme='aurora'] #theme-bg {
+  background:
+    radial-gradient(60vmax 40vmax at 20% 100%, rgba(255, 140, 107, .35), transparent 60%),
+    radial-gradient(55vmax 45vmax at 80% 90%, rgba(138, 92, 240, .35), transparent 60%),
+    radial-gradient(50vmax 60vmax at 60% 20%, rgba(240, 168, 92, .18), transparent 60%),
+    linear-gradient(180deg, #1b1024, #2a1533);
+  background-size: 160% 160%;
+  animation: aurora-drift 24s ease-in-out infinite alternate;
+}
+@keyframes aurora-drift {
+  from { background-position: 0% 100%, 100% 100%, 50% 0%, 0 0 }
+  to { background-position: 30% 80%, 70% 90%, 40% 20%, 0 0 }
+}
+
+/* 6. Nujoom Handasiya, geometric stars on navy */
+[data-theme='geometric'] {
+  --bg: #0c1a2b; --bg2: #102237; --card: #14263c; --card2: #183048;
+  --line: #274056; --line2: #365470; --txt: #e7eef6; --muted: #8fa6bc; --faint: #6f88a0;
+  --gold: #c7a24b; --gold2: #a8863a; --shadow: 0 12px 34px rgba(0, 0, 0, .45);
+}
+[data-theme='geometric'] #theme-bg {
+  background-color: #0c1a2b;
+  background-image:
+    repeating-linear-gradient(45deg, rgba(199, 162, 75, .06) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(-45deg, rgba(199, 162, 75, .06) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(0deg, rgba(62, 124, 177, .05) 0 2px, transparent 2px 28px),
+    repeating-linear-gradient(90deg, rgba(62, 124, 177, .05) 0 2px, transparent 2px 28px);
+  background-size: 56px 56px;
+  animation: lattice-pan 40s linear infinite;
+}
+@keyframes lattice-pan { to { background-position: 56px 56px, 56px -56px, 56px 0, 0 56px } }
+
+/* 7. Habab, glassmorphism over soft mesh */
+[data-theme='glass'] {
+  --bg: #eef1f8; --bg2: #e6ecf6; --card: rgba(255, 255, 255, .6); --card2: rgba(255, 255, 255, .45);
+  --line: rgba(255, 255, 255, .7); --line2: rgba(120, 130, 160, .3);
+  --txt: #2b3145; --muted: #6b7386; --faint: #8b93a5;
+  --gold: #7c6cf0; --gold2: #5f4fd0; --shadow: 0 8px 32px rgba(43, 49, 69, .12);
+}
+[data-theme='glass'] #theme-bg {
+  background:
+    radial-gradient(40vmax 40vmax at 15% 20%, #cfe0ff, transparent 60%),
+    radial-gradient(45vmax 45vmax at 85% 15%, #f3d4e6, transparent 60%),
+    radial-gradient(50vmax 50vmax at 60% 100%, #d6f0e6, transparent 60%),
+    #eef1f8;
+  background-size: 180% 180%;
+  animation: mesh-drift 26s ease-in-out infinite alternate;
+}
+[data-theme='glass'] .card {
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+/* 8. Waraq Ivory, minimal editorial */
+[data-theme='ivory'] {
+  --bg: #fcfbf7; --bg2: #f4f1e9; --card: #ffffff; --card2: #f7f4ec;
+  --line: #e4dfd2; --line2: #d5cebd; --txt: #1c1a17; --muted: #7a756b; --faint: #9a938a;
+  --gold: #a88433; --gold2: #8a6c28; --shadow: 0 8px 24px rgba(120, 95, 50, .10);
+}
+[data-theme='ivory'] #theme-bg { background: linear-gradient(180deg, #fcfbf7, #f7f4ec); }
+
+@media (prefers-reduced-motion: reduce) {
+  #theme-bg, [data-theme] h1.title { animation: none !important; }
+}
+
+/* Themes page grid */
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+  margin-top: 14px;
+}
+.theme-card {
+  position: relative;
+  text-align: left;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+  cursor: pointer;
+  padding: 0;
+  background: var(--bg);
+  transition: transform .15s, box-shadow .15s;
+}
+.theme-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+.theme-card.on { outline: 2px solid var(--gold); outline-offset: 2px; }
+.theme-card .tc-bg { position: absolute; inset: 0; z-index: 0; opacity: .9; }
+.theme-card[data-theme='gold'] .tc-bg { background: radial-gradient(80% 80% at 20% 0%, rgba(216, 176, 114, .25), transparent 60%), linear-gradient(160deg, #0e0c0a, #171310); }
+.theme-card[data-theme='nocturne'] .tc-bg { background: radial-gradient(120% 90% at 50% -10%, #16161f, #0b0b10 70%); }
+.theme-card[data-theme='rose'] .tc-bg { background: radial-gradient(70% 70% at 15% 15%, #fadce0, transparent 60%), radial-gradient(70% 70% at 90% 100%, #f3d9de, transparent 60%), #fbf3f1; }
+.theme-card[data-theme='emerald'] .tc-bg { background: radial-gradient(80% 80% at 100% 0%, rgba(15, 92, 66, .22), transparent 55%), linear-gradient(180deg, #f4f1e8, #eae6d6); }
+.theme-card[data-theme='aurora'] .tc-bg { background: radial-gradient(80% 60% at 20% 100%, rgba(255, 140, 107, .5), transparent 60%), radial-gradient(80% 60% at 85% 90%, rgba(138, 92, 240, .5), transparent 60%), linear-gradient(180deg, #1b1024, #2a1533); }
+.theme-card[data-theme='geometric'] .tc-bg { background-color: #0c1a2b; background-image: repeating-linear-gradient(45deg, rgba(199, 162, 75, .1) 0 2px, transparent 2px 22px), repeating-linear-gradient(-45deg, rgba(199, 162, 75, .1) 0 2px, transparent 2px 22px); background-size: 44px 44px; }
+.theme-card[data-theme='glass'] .tc-bg { background: radial-gradient(70% 70% at 15% 20%, #cfe0ff, transparent 60%), radial-gradient(70% 70% at 85% 15%, #f3d4e6, transparent 60%), #eef1f8; }
+.theme-card[data-theme='ivory'] .tc-bg { background: linear-gradient(180deg, #fcfbf7, #f2eee2); }
+
+.tc-mock { position: relative; z-index: 1; padding: 18px 16px 14px; }
+.tc-title { font-family: Georgia, 'Times New Roman', serif; font-size: 22px; color: var(--txt); }
+.tc-amp { color: var(--gold); font-style: italic; }
+.tc-bar { height: 8px; border-radius: 999px; background: var(--card2); border: 1px solid var(--line); overflow: hidden; margin: 12px 0; }
+.tc-bar > span { display: block; height: 100%; width: 62%; background: linear-gradient(90deg, var(--gold2), var(--gold)); }
+.tc-row { display: flex; align-items: center; gap: 8px; }
+.tc-chip { font-size: 11px; padding: 4px 10px; border-radius: 999px; background: var(--card2); border: 1px solid var(--line); color: var(--muted); }
+.tc-btn { font-size: 11px; font-weight: 700; padding: 4px 12px; border-radius: 999px; background: var(--gold); color: var(--bg); }
+.tc-foot { position: relative; z-index: 1; padding: 12px 16px 14px; border-top: 1px solid var(--line); background: var(--card); }
+.tc-name { font-weight: 700; font-size: 14px; color: var(--txt); }
+.tc-check { font-size: 10px; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-left: 4px; }
+.tc-mood { font-size: 12px; color: var(--muted); margin-top: 2px; }

@@ -10,7 +10,8 @@ import { renderResources } from './resources.js'
 import { renderShortlist } from './shortlist.js'
 import { bumpRev, setData, store } from './store.js'
 import { startSync } from './sync.js'
-import { initTheme } from './theme.js'
+import { hydrateTheme, initTheme } from './theme.js'
+import { renderThemes } from './themes.js'
 import { initVendorControls, renderVendors } from './vendors.js'
 
 function renderWhoami() {
@@ -20,6 +21,7 @@ function renderWhoami() {
 }
 
 function renderAll() {
+  hydrateTheme()
   renderWhoami()
   renderCountdown()
   renderOverall()
@@ -31,6 +33,7 @@ function renderAll() {
   renderGuests()
   renderShortlist()
   renderResources()
+  renderThemes()
 }
 
 function initTabs() {
@@ -89,6 +92,7 @@ async function boot() {
       return
     }
     setData(data)
+    hydrateTheme()
     showLogin(false)
     renderAll()
     startSync(renderAll)

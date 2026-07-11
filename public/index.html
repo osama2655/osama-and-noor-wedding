@@ -16,8 +16,10 @@
 <link rel="stylesheet" href="css/shortlist.css" />
 <link rel="stylesheet" href="css/attribution.css" />
 <link rel="stylesheet" href="css/login.css" />
+<link rel="stylesheet" href="css/themes.css" />
 </head>
 <body>
+<div id="theme-bg"></div>
 
 <!-- LOGIN -->
 <div class="login-overlay" id="login" hidden>
@@ -42,7 +44,7 @@
   <header class="top">
     <div class="topbar">
       <span class="whoami"><span id="whoami"></span></span>
-      <button class="icon-btn" id="themeBtn" title="Toggle theme">◐</button>
+      <button class="icon-btn" id="themeBtn" title="Themes">◐</button>
       <button class="icon-btn" id="logoutBtn" title="Sign out">Sign out</button>
     </div>
     <div class="eyebrow">Bahrain Wedding · The Battle Plan</div>
@@ -70,6 +72,7 @@
       <button data-tab="vendors">Halls &amp; £</button>
       <button data-tab="guests">Guests</button>
       <button data-tab="resources">Resources</button>
+      <button data-tab="themes">Themes</button>
     </nav>
 
     <section class="panel active" id="tab-dash"></section>
@@ -129,6 +132,7 @@
     </section>
 
     <section class="panel" id="tab-resources"></section>
+    <section class="panel" id="tab-themes"></section>
 
     <div class="foot">Shared planner for Osama &amp; Noor · saved to your wedding database · <a id="exportBtn" href="#">export backup</a></div>
   </div>
