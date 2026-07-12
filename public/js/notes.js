@@ -1,5 +1,6 @@
 import { api } from './api.js'
 import { bumpRev, meId, store } from './store.js'
+import { confirmDelete, undoToast } from './ui.js'
 import { byTag, debounce, escapeAttr, escapeHtml } from './util.js'
 
 const notes = () => store.data.notes || (store.data.notes = [])
@@ -67,8 +68,17 @@ export function renderNotes() {
   el.querySelectorAll('[data-del]').forEach((b) =>
     b.addEventListener('click', async (e) => {
       const id = e.target.dataset.del
+      const snap = find(id)
+      if (!snap || !(await confirmDelete('this note'))) return
+      const data = { ...snap }
       store.data.notes = notes().filter((n) => String(n.id) !== String(id))
       renderNotes()
+      undoToast('Note deleted', async () => {
+        const r = await api.note(data)
+        bumpRev(r)
+        notes().unshift({ ...data, id: r.id })
+        renderNotes()
+      })
       try {
         bumpRev(await api.noteDelete(id))
       } catch (_) {

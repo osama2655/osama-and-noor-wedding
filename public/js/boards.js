@@ -1,5 +1,6 @@
 import { api } from './api.js'
 import { bumpRev, meId, store } from './store.js'
+import { confirmDelete, undoToast } from './ui.js'
 import { byTag, debounce, escapeAttr, fmt } from './util.js'
 
 const bundles = () => store.data.bundles || (store.data.bundles = [])
@@ -120,8 +121,47 @@ function wire(el) {
   el.querySelectorAll('[data-delb]').forEach((btn) =>
     btn.addEventListener('click', async (e) => {
       const id = e.target.dataset.delb
+      const snap = findB(id)
+      if (!snap || !(await confirmDelete('this plan'))) return
+      const data = {
+        name: snap.name,
+        items: (snap.items || []).map((i) => ({ ...i })),
+      }
       store.data.bundles = bundles().filter((b) => String(b.id) !== String(id))
       renderBoards()
+      undoToast('Plan deleted', async () => {
+        const r = await api.bundle({
+          name: data.name,
+          sort: bundles().length + 1,
+        })
+        bumpRev(r)
+        const nb = {
+          id: r.id,
+          name: data.name,
+          items: [],
+          by: 'You',
+          byId: meId(),
+          at: new Date().toISOString(),
+        }
+        for (const it of data.items) {
+          const ir = await api.bundleItem({
+            bundleId: r.id,
+            label: it.label,
+            cost: it.cost,
+          })
+          bumpRev(ir)
+          nb.items.push({
+            id: ir.id,
+            label: it.label,
+            cost: it.cost,
+            by: 'You',
+            byId: meId(),
+            at: new Date().toISOString(),
+          })
+        }
+        bundles().push(nb)
+        renderBoards()
+      })
       try {
         bumpRev(await api.bundleDelete(id))
       } catch (_) {
@@ -179,10 +219,30 @@ function wire(el) {
   el.querySelectorAll('.bi-row [data-del]').forEach((btn) =>
     btn.addEventListener('click', async (e) => {
       const iid = e.target.dataset.del
-      const b = findB(e.target.closest('.bundle').dataset.id)
-      if (b)
-        b.items = (b.items || []).filter((i) => String(i.id) !== String(iid))
+      const bid = e.target.closest('.bundle').dataset.id
+      const b = findB(bid)
+      const snap = b && findI(b, iid)
+      if (!snap) return
+      const data = { label: snap.label, cost: snap.cost }
+      b.items = (b.items || []).filter((i) => String(i.id) !== String(iid))
       renderBoards()
+      undoToast('Item removed', async () => {
+        const r = await api.bundleItem({
+          bundleId: Number(bid),
+          label: data.label,
+          cost: data.cost,
+        })
+        bumpRev(r)
+        ;(findB(bid).items || (findB(bid).items = [])).push({
+          id: r.id,
+          label: data.label,
+          cost: data.cost,
+          by: 'You',
+          byId: meId(),
+          at: new Date().toISOString(),
+        })
+        renderBoards()
+      })
       try {
         bumpRev(await api.bundleItemDelete(iid))
       } catch (_) {

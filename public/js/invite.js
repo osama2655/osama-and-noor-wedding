@@ -2,6 +2,7 @@ import { api } from './api.js'
 import { qrCanvas } from './qr.js'
 import { startScanner } from './scanner.js'
 import { bumpRev, meId, store } from './store.js'
+import { confirmDelete, undoToast } from './ui.js'
 import { debounce, escapeAttr, escapeHtml } from './util.js'
 
 const invites = () => store.data.invites || (store.data.invites = [])
@@ -132,8 +133,27 @@ function wire(el) {
   el.querySelectorAll('[data-del]').forEach((b) =>
     b.addEventListener('click', async (e) => {
       const id = e.target.dataset.del
+      const snap = find(id)
+      if (!snap || !(await confirmDelete('this invite'))) return
+      const label = snap.label
       store.data.invites = invites().filter((i) => String(i.id) !== String(id))
       renderInvite()
+      undoToast('Invite deleted', async () => {
+        const r = await api.invite({ label })
+        bumpRev(r)
+        invites().push({
+          id: r.id,
+          token: r.token,
+          label,
+          active: true,
+          rsvps: [],
+          rsvpCount: 0,
+          by: 'You',
+          byId: meId(),
+          at: new Date().toISOString(),
+        })
+        renderInvite()
+      })
       try {
         bumpRev(await api.inviteDelete(id))
       } catch (_) {

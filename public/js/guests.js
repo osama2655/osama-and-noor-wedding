@@ -1,6 +1,7 @@
 import { api } from './api.js'
 import { guestStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
+import { confirmDelete, undoToast } from './ui.js'
 import { byTag, debounce, escapeAttr } from './util.js'
 
 const guests = () => store.data.guests || (store.data.guests = [])
@@ -75,9 +76,19 @@ export function renderGuests() {
   body.querySelectorAll('.del').forEach((b) =>
     b.addEventListener('click', async (e) => {
       const id = e.target.dataset.del
+      const snap = find(id)
+      if (!snap || !(await confirmDelete('this guest'))) return
+      const data = { ...snap }
       store.data.guests = guests().filter((g) => String(g.id) !== String(id))
       renderGuests()
       renderGuestStats()
+      undoToast('Guest deleted', async () => {
+        const r = await api.guest(data)
+        bumpRev(r)
+        guests().push({ ...data, id: r.id })
+        renderGuests()
+        renderGuestStats()
+      })
       try {
         bumpRev(await api.guestDelete(id))
       } catch (_) {

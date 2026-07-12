@@ -95,6 +95,16 @@ function handle_state(): void
         $hiddenChecks[$r['item_key']] = true;
     }
 
+    $facts = [];
+    foreach ($pdo->query('SELECT * FROM facts ORDER BY sort, id') as $r) {
+        $facts[] = with_attr(['id' => (int) $r['id'], 'label' => $r['label'], 'value' => $r['value']], $r, $users, 'updated_by');
+    }
+
+    $openItems = [];
+    foreach ($pdo->query('SELECT * FROM open_items ORDER BY sort, id') as $r) {
+        $openItems[] = with_attr(['id' => (int) $r['id'], 'title' => $r['title'], 'detail' => $r['detail'], 'owner' => $r['owner']], $r, $users, 'updated_by');
+    }
+
     $vendors = [];
     foreach ($pdo->query('SELECT * FROM vendors ORDER BY sort, id') as $r) {
         $vendors[] = vendor_row($r, $users);
@@ -188,6 +198,8 @@ function handle_state(): void
         'checks' => $checks,
         'checkItems' => $checkItems,
         'hiddenChecks' => $hiddenChecks,
+        'facts' => $facts,
+        'openItems' => $openItems,
         'decisions' => $decisions,
         'vendors' => $vendors,
         'guests' => $guests,

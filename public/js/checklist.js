@@ -3,6 +3,7 @@ import { CHECKLIST, OWNERS } from './content.js'
 import { renderDash, renderOverall } from './dashboard.js'
 import { weekStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
+import { confirmDelete, undoToast } from './ui.js'
 import { byTag, debounce, escapeAttr } from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
@@ -169,10 +170,25 @@ function wire(el) {
   el.querySelectorAll('[data-delci]').forEach((b) =>
     b.addEventListener('click', async (e) => {
       const id = Number(e.currentTarget.dataset.delci)
+      const snap = (store.data.checkItems || []).find((c) => c.id === id)
+      if (!snap || !(await confirmDelete('this item'))) return
+      const data = { phase: snap.phase, text: snap.text, owner: snap.owner }
       store.data.checkItems = (store.data.checkItems || []).filter(
         (c) => c.id !== id,
       )
       refresh()
+      undoToast('Item deleted', async () => {
+        const r = await api.checkItem({ ...data, sort: 100 })
+        bumpRev(r)
+        ;(store.data.checkItems || (store.data.checkItems = [])).push({
+          id: r.id,
+          ...data,
+          by: 'You',
+          byId: meId(),
+          at: new Date().toISOString(),
+        })
+        refresh()
+      })
       try {
         bumpRev(await api.checkItemDelete(id))
       } catch (_) {

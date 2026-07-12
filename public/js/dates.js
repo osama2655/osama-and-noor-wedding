@@ -1,6 +1,7 @@
 import { api } from './api.js'
 import { WED_DEFAULT } from './content.js'
 import { bumpRev, meId, store } from './store.js'
+import { confirmDelete, undoToast } from './ui.js'
 import { byTag, debounce, escapeAttr } from './util.js'
 
 const dates = () => store.data.dates || (store.data.dates = [])
@@ -116,8 +117,17 @@ export function renderDates() {
   el.querySelectorAll('[data-del]').forEach((b) =>
     b.addEventListener('click', async (e) => {
       const id = e.target.dataset.del
+      const snap = find(id)
+      if (!snap || !(await confirmDelete('this date'))) return
+      const data = { ...snap }
       store.data.dates = dates().filter((d) => String(d.id) !== String(id))
       renderDates()
+      undoToast('Date deleted', async () => {
+        const r = await api.importantDate(data)
+        bumpRev(r)
+        dates().push({ ...data, id: r.id })
+        renderDates()
+      })
       try {
         bumpRev(await api.importantDateDelete(id))
       } catch (_) {

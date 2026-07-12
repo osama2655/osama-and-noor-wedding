@@ -78,6 +78,10 @@ try {
         case 'check_item': handle_check_item(); break;
         case 'check_item_delete': handle_check_item_delete(); break;
         case 'hide_check': handle_hide_check(); break;
+        case 'fact':     handle_fact(); break;
+        case 'fact_delete': handle_fact_delete(); break;
+        case 'open_item': handle_open_item(); break;
+        case 'open_item_delete': handle_open_item_delete(); break;
         case 'setting':  handle_setting(); break;
         default:         json_out(['error' => 'unknown action'], 404);
     }

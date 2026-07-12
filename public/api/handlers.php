@@ -395,6 +395,55 @@ function handle_hide_check(): void
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
+function handle_fact(): void
+{
+    $u = require_user();
+    $b = body();
+    $args = [(string) ($b['label'] ?? ''), (string) ($b['value'] ?? ''), (int) ($b['sort'] ?? 100), $u['id']];
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare('UPDATE facts SET label=?, value=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare('INSERT INTO facts (label, value, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, NOW())')->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_fact_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM facts WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_open_item(): void
+{
+    $u = require_user();
+    $b = body();
+    $owner = in_array($b['owner'] ?? '', OWNERS, true) ? $b['owner'] : 'you';
+    $args = [(string) ($b['title'] ?? ''), (string) ($b['detail'] ?? ''), $owner, (int) ($b['sort'] ?? 100), $u['id']];
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare('UPDATE open_items SET title=?, detail=?, owner=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare('INSERT INTO open_items (title, detail, owner, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, NOW())')->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_open_item_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM open_items WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
 function handle_setting(): void
 {
     $u = require_user();

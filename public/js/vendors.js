@@ -3,6 +3,7 @@ import { STATUS } from './content.js'
 import { renderDash } from './dashboard.js'
 import { moneyTotals } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
+import { confirmDelete, undoToast } from './ui.js'
 import { byTag, debounce, escapeAttr, fmt } from './util.js'
 
 const vendors = () => store.data.vendors || (store.data.vendors = [])
@@ -85,10 +86,21 @@ export function renderVendors() {
   body.querySelectorAll('.del').forEach((b) =>
     b.addEventListener('click', async (e) => {
       const id = e.target.dataset.del
+      const snap = find(id)
+      if (!snap || !(await confirmDelete('this row'))) return
+      const data = { ...snap }
       store.data.vendors = vendors().filter((v) => String(v.id) !== String(id))
       renderVendors()
       renderMoney()
       renderDash()
+      undoToast('Row deleted', async () => {
+        const r = await api.vendor(data)
+        bumpRev(r)
+        vendors().push({ ...data, id: r.id })
+        renderVendors()
+        renderMoney()
+        renderDash()
+      })
       try {
         bumpRev(await api.vendorDelete(id))
       } catch (_) {
