@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#0e0c0a" />
 <title>Osama and Noor, Wedding Planner</title>
+<link rel="icon" href="images/icon-192.png" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="stylesheet" href="css/base.css" />
 <link rel="stylesheet" href="css/layout.css" />
@@ -48,44 +49,38 @@
 <!-- APP -->
 <div id="app" hidden>
   <header class="top">
-    <div class="topbar">
+    <span class="appbar-title">Osama <span class="amp">&amp;</span> Noor</span>
+    <div class="appbar-right">
       <span class="whoami"><span id="whoami"></span></span>
       <button class="icon-btn" id="themeBtn" title="Themes">◐</button>
       <button class="icon-btn" id="logoutBtn" title="Sign out">Sign out</button>
     </div>
-    <div class="eyebrow">Bahrain Wedding · The Battle Plan</div>
-    <h1 class="title" id="names">Osama <span class="amp">&amp;</span> Noor</h1>
-    <div class="subtitle">Everything locked and paid by the Day 10 gate. The final stretch is calm.</div>
-    <div class="countdown" id="countdown"></div>
-    <div class="datechip">Wedding day: <span id="wedDateLabel"></span> <button id="editDate">edit</button></div>
   </header>
 
   <div class="wrap">
-    <div class="overall">
-      <div class="row">
-        <div><strong style="font-size:15px">Overall progress</strong>
-          <div style="color:var(--muted);font-size:12.5px" id="overallSub"></div></div>
-        <div class="pct" id="overallPct">0%</div>
-      </div>
-      <div class="bar"><span id="overallBar"></span></div>
-    </div>
-
+    <nav class="navgroups" id="navGroups">
+      <button data-group="home" class="active">Home</button>
+      <button data-group="plan">Plan</button>
+      <button data-group="vendors">Vendors</button>
+      <button data-group="money">Money &amp; Guests</button>
+      <button data-group="more">More</button>
+    </nav>
     <nav class="tabs" id="tabs">
-      <button data-tab="dash" class="active">Dashboard</button>
-      <button data-tab="facts">The Plan</button>
-      <button data-tab="checklist">Checklist</button>
-      <button data-tab="lanes">Who owns what</button>
-      <button data-tab="venues">Venues</button>
-      <button data-tab="photo">Photo &amp; Video</button>
-      <button data-tab="saved">Saved</button>
-      <button data-tab="boards">Bundles</button>
-      <button data-tab="invite">Invites</button>
-      <button data-tab="dates">Dates</button>
-      <button data-tab="notes">Notes</button>
-      <button data-tab="vendors">Payments</button>
-      <button data-tab="guests">Guests</button>
-      <button data-tab="resources">Resources</button>
-      <button data-tab="themes">Themes</button>
+      <button data-tab="dash" data-group="home" class="active">Dashboard</button>
+      <button data-tab="facts" data-group="plan">The Plan</button>
+      <button data-tab="checklist" data-group="plan">Checklist</button>
+      <button data-tab="lanes" data-group="plan">Who owns what</button>
+      <button data-tab="dates" data-group="plan">Dates</button>
+      <button data-tab="venues" data-group="vendors">Venues</button>
+      <button data-tab="photo" data-group="vendors">Photo &amp; Video</button>
+      <button data-tab="saved" data-group="vendors">Saved</button>
+      <button data-tab="boards" data-group="vendors">Bundles</button>
+      <button data-tab="vendors" data-group="money">Payments</button>
+      <button data-tab="guests" data-group="money">Guests</button>
+      <button data-tab="invite" data-group="money">Invites</button>
+      <button data-tab="notes" data-group="more">Notes</button>
+      <button data-tab="resources" data-group="more">Resources</button>
+      <button data-tab="themes" data-group="more">Themes</button>
     </nav>
 
     <section class="panel active" id="tab-dash"></section>

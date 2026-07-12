@@ -77,9 +77,10 @@ export function initTheme() {
   applyTheme(saved || DEFAULT_THEME)
   const btn = document.getElementById('themeBtn')
   if (btn)
-    btn.addEventListener('click', () =>
-      document.querySelector('#tabs button[data-tab="themes"]')?.click(),
-    )
+    btn.addEventListener('click', () => {
+      document.querySelector('#navGroups button[data-group="more"]')?.click()
+      document.querySelector('#tabs button[data-tab="themes"]')?.click()
+    })
 }
 
 // The shared server value wins once state loads.

@@ -28,9 +28,9 @@ function renderWhoami() {
 function renderAll() {
   hydrateTheme()
   renderWhoami()
+  renderDash()
   renderCountdown()
   renderOverall()
-  renderDash()
   renderFacts()
   renderChecklist()
   renderLanes()
@@ -47,26 +47,58 @@ function renderAll() {
   renderThemes()
 }
 
-function initTabs() {
+function openTab(tab) {
   const tabs = document.getElementById('tabs')
-  if (!tabs) return
+  tabs.querySelectorAll('button').forEach((x) => x.classList.remove('active'))
+  document
+    .querySelectorAll('.panel')
+    .forEach((x) => x.classList.remove('active'))
+  const btn = tabs.querySelector(`button[data-tab="${tab}"]`)
+  btn?.classList.add('active')
+  document.getElementById(`tab-${tab}`)?.classList.add('active')
+}
+
+// Two-level nav: a group strip filters which sub-tabs show; clicking a sub-tab opens its panel.
+function initTabs() {
+  const groups = document.getElementById('navGroups')
+  const tabs = document.getElementById('tabs')
+  if (!groups || !tabs) return
+
+  const showGroup = (group) => {
+    groups
+      .querySelectorAll('button')
+      .forEach((g) => g.classList.toggle('active', g.dataset.group === group))
+    const members = [...tabs.querySelectorAll('button')].filter(
+      (b) => b.dataset.group === group,
+    )
+    tabs.querySelectorAll('button').forEach((b) => {
+      b.hidden = b.dataset.group !== group
+    })
+    const activeVisible = members.some((b) => b.classList.contains('active'))
+    if (!activeVisible && members[0]) openTab(members[0].dataset.tab)
+  }
+
+  groups.addEventListener('click', (e) => {
+    const g = e.target.closest('button[data-group]')
+    if (!g) return
+    showGroup(g.dataset.group)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+
   tabs.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-tab]')
     if (!b) return
-    tabs.querySelectorAll('button').forEach((x) => x.classList.remove('active'))
-    document
-      .querySelectorAll('.panel')
-      .forEach((x) => x.classList.remove('active'))
-    b.classList.add('active')
-    document.getElementById(`tab-${b.dataset.tab}`).classList.add('active')
+    openTab(b.dataset.tab)
     window.scrollTo({ top: 0, behavior: 'smooth' })
   })
+
+  showGroup('home')
 }
 
+// #editDate lives inside the Dashboard, which re-renders every sync, so delegate.
 function initDateEdit() {
-  const btn = document.getElementById('editDate')
-  if (!btn) return
-  btn.addEventListener('click', async () => {
+  document.addEventListener('click', async (e) => {
+    if (e.target.id !== 'editDate') return
     const v = prompt('Wedding date (YYYY-MM-DD):', store.data.wedDate)
     if (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
       store.data.wedDate = v

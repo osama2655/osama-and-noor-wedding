@@ -1,7 +1,6 @@
 import { CHECKLIST } from './content.js'
 import { checkStats, moneyTotals, overallPercent, weekStats } from './stats.js'
 import { store } from './store.js'
-import { fmt } from './util.js'
 
 export function renderOverall() {
   const p = overallPercent()
@@ -25,6 +24,21 @@ export function renderDash() {
   const vendorCount = (store.data?.vendors || []).length
 
   el.innerHTML = `
+    <div class="dash-hero">
+      <div class="eyebrow">Bahrain Wedding · The Battle Plan</div>
+      <h1 class="title">Osama <span class="amp">&amp;</span> Noor</h1>
+      <div class="subtitle">Everything locked and paid by the Day 10 gate. The final stretch is calm.</div>
+      <div class="countdown" id="countdown"></div>
+      <div class="datechip">Wedding day: <span id="wedDateLabel"></span> <button id="editDate">edit</button></div>
+    </div>
+    <div class="overall">
+      <div class="row">
+        <div><strong style="font-size:15px">Overall progress</strong>
+          <div style="color:var(--muted);font-size:12.5px" id="overallSub"></div></div>
+        <div class="pct" id="overallPct">0%</div>
+      </div>
+      <div class="bar"><span id="overallBar"></span></div>
+    </div>
     <div class="card">
       <h2>Where things stand</h2>
       <div class="money-row">
@@ -36,15 +50,6 @@ export function renderDash() {
     <div class="card">
       <h2>Progress by phase</h2>
       <div id="dashBars" style="margin-top:12px"></div>
-    </div>
-    <div class="card">
-      <h2>Money at a glance</h2>
-      <div class="money-row">
-        <div class="money"><div class="l">Total quoted</div><div class="v">BD ${fmt(money.quote)}</div></div>
-        <div class="money"><div class="l">Deposits paid</div><div class="v" style="color:var(--emerald)">BD ${fmt(money.deposit)}</div></div>
-        <div class="money"><div class="l">Balance outstanding</div><div class="v" style="color:var(--amber)">BD ${fmt(money.balance)}</div></div>
-      </div>
-      <p class="hint" style="margin:12px 0 0">Fill the tracker in the <b>Vendors &amp; £</b> tab and these update live.</p>
     </div>`
 
   const bars = document.getElementById('dashBars')

@@ -43,21 +43,21 @@ export function renderVendors() {
       .map(
         (v) => `
       <tr data-id="${v.id}">
-        <td><input value="${escapeAttr(v.category)}" data-f="category" placeholder="Category"></td>
-        <td><input value="${escapeAttr(v.name)}" data-f="name" placeholder="Name / IG"></td>
-        <td><input value="${escapeAttr(v.contact)}" data-f="contact" placeholder="Phone / handle"></td>
-        <td><select data-f="status">${Object.keys(STATUS)
+        <td data-label="Category"><input value="${escapeAttr(v.category)}" data-f="category" placeholder="Category"></td>
+        <td data-label="Vendor"><input value="${escapeAttr(v.name)}" data-f="name" placeholder="Name / IG"></td>
+        <td data-label="Contact"><input value="${escapeAttr(v.contact)}" data-f="contact" placeholder="Phone / handle"></td>
+        <td data-label="Status"><select data-f="status">${Object.keys(STATUS)
           .map(
             (k) =>
               `<option value="${k}" ${v.status === k ? 'selected' : ''}>${STATUS[k]}</option>`,
           )
           .join('')}</select></td>
-        <td><input value="${escapeAttr(v.quote)}" data-f="quote" inputmode="decimal" placeholder="0"></td>
-        <td><input value="${escapeAttr(v.deposit)}" data-f="deposit" inputmode="decimal" placeholder="0"></td>
-        <td><input value="${escapeAttr(v.balance)}" data-f="balance" inputmode="decimal" placeholder="0"></td>
-        <td><input value="${escapeAttr(v.balance_due)}" data-f="balance_due" type="text" placeholder="date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'"></td>
-        <td class="upd">${byTag(v, meId())}</td>
-        <td><button class="del" title="Delete" data-del="${v.id}">✕</button></td>
+        <td data-label="Quote"><input value="${escapeAttr(v.quote)}" data-f="quote" inputmode="decimal" placeholder="0"></td>
+        <td data-label="Deposit"><input value="${escapeAttr(v.deposit)}" data-f="deposit" inputmode="decimal" placeholder="0"></td>
+        <td data-label="Balance"><input value="${escapeAttr(v.balance)}" data-f="balance" inputmode="decimal" placeholder="0"></td>
+        <td data-label="Balance due"><input value="${escapeAttr(v.balance_due)}" data-f="balance_due" type="text" placeholder="date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'"></td>
+        <td data-label="Updated" class="upd">${byTag(v, meId())}</td>
+        <td class="del-cell"><button class="del" title="Delete" data-del="${v.id}">✕</button></td>
       </tr>`,
       )
       .join('')

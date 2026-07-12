@@ -39,19 +39,19 @@ export function renderGuests() {
       .map(
         (g) => `
       <tr data-id="${g.id}">
-        <td><input value="${escapeAttr(g.name)}" data-f="name" placeholder="Name / family"></td>
-        <td><select data-f="side">
+        <td data-label="Name"><input value="${escapeAttr(g.name)}" data-f="name" placeholder="Name / family"></td>
+        <td data-label="Side"><select data-f="side">
           <option value="you" ${g.side === 'you' ? 'selected' : ''}>Your side</option>
           <option value="her" ${g.side === 'her' ? 'selected' : ''}>Noor's side</option>
           <option value="both" ${g.side === 'both' ? 'selected' : ''}>Both</option></select></td>
-        <td><input value="${escapeAttr(g.seats)}" data-f="seats" inputmode="numeric" placeholder="1"></td>
-        <td><select data-f="rsvp">
+        <td data-label="Seats"><input value="${escapeAttr(g.seats)}" data-f="seats" inputmode="numeric" placeholder="1"></td>
+        <td data-label="RSVP"><select data-f="rsvp">
           <option value="pending" ${g.rsvp === 'pending' ? 'selected' : ''}>Pending</option>
           <option value="yes" ${g.rsvp === 'yes' ? 'selected' : ''}>Coming</option>
           <option value="no" ${g.rsvp === 'no' ? 'selected' : ''}>Declined</option></select></td>
-        <td><input value="${escapeAttr(g.notes)}" data-f="notes" placeholder="notes"></td>
-        <td class="upd">${byTag(g, meId())}</td>
-        <td><button class="del" data-del="${g.id}">✕</button></td>
+        <td data-label="Notes"><input value="${escapeAttr(g.notes)}" data-f="notes" placeholder="notes"></td>
+        <td data-label="Updated" class="upd">${byTag(g, meId())}</td>
+        <td class="del-cell"><button class="del" data-del="${g.id}">✕</button></td>
       </tr>`,
       )
       .join('')

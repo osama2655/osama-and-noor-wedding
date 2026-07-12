@@ -13,3 +13,19 @@ td select option{background:var(--card)}
 .s-booked{background:rgba(63,174,130,.16);color:var(--emerald)}
 .s-paid{background:rgba(63,174,130,.28);color:var(--emerald)}
 .del{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1}
+
+/* Mobile: each table row becomes a stacked card (no horizontal scroll-within-scroll) */
+@media (max-width: 560px) {
+  .tablewrap { border: none; overflow: visible; }
+  table { min-width: 0; width: 100%; }
+  thead { display: none; }
+  table, tbody, tr, td { display: block; width: auto; }
+  tr { border: 1px solid var(--line); border-radius: 12px; background: var(--card2); margin-bottom: 10px; padding: 4px 12px; }
+  td { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--line); padding: 8px 0; }
+  tr td:last-child { border-bottom: none; }
+  td::before { content: attr(data-label); color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; flex: 0 0 auto; }
+  td input, td select { width: auto; flex: 1; text-align: right; }
+  td.upd { justify-content: flex-end; }
+  td.del-cell { justify-content: flex-end; }
+  td.del-cell::before { content: ""; }
+}
