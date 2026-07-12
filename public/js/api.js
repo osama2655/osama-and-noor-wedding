@@ -31,6 +31,7 @@ export const api = {
   checkItem: (c) => req('check_item', 'POST', c),
   checkItemDelete: (id) => req('check_item_delete', 'POST', { id }),
   hideCheck: (key, hidden) => req('hide_check', 'POST', { key, hidden }),
+  checkOverride: (key, text) => req('check_override', 'POST', { key, text }),
   fact: (f) => req('fact', 'POST', f),
   factDelete: (id) => req('fact_delete', 'POST', { id }),
   openItem: (o) => req('open_item', 'POST', o),
@@ -43,6 +44,34 @@ export const api = {
   pick: (key, picked) => req('pick', 'POST', { key, picked }),
   catalog: (c) => req('catalog', 'POST', c),
   catalogDelete: (id) => req('catalog_delete', 'POST', { id }),
+  catalogRemark: (catalogId, body) =>
+    req('catalog_remark', 'POST', { catalogId, body }),
+  catalogRemarkDelete: (id) => req('catalog_remark_delete', 'POST', { id }),
+  catalogFileDelete: (id) => req('catalog_file_delete', 'POST', { id }),
+  catalogFileUrl: (id) =>
+    `${BASE}?action=catalog_file&id=${encodeURIComponent(id)}`,
+  catalogFileUpload: async (catalogId, file) => {
+    const fd = new FormData()
+    fd.append('catalogId', String(catalogId))
+    fd.append('file', file)
+    const res = await fetch(`${BASE}?action=catalog_file_upload`, {
+      method: 'POST',
+      credentials: 'same-origin',
+      body: fd,
+    })
+    let data = {}
+    try {
+      data = await res.json()
+    } catch (_) {
+      /* empty body */
+    }
+    if (!res.ok) {
+      const err = new Error(data.error || `upload failed (${res.status})`)
+      err.code = res.status
+      throw err
+    }
+    return data
+  },
   note: (n) => req('note', 'POST', n),
   noteDelete: (id) => req('note_delete', 'POST', { id }),
   importantDate: (d) => req('important_date', 'POST', d),
@@ -53,5 +82,9 @@ export const api = {
   bundleItemDelete: (id) => req('bundle_item_delete', 'POST', { id }),
   invite: (i) => req('invite', 'POST', i),
   inviteDelete: (id) => req('invite_delete', 'POST', { id }),
+  passesGenerate: (count) => req('passes_generate', 'POST', { count }),
+  pass: (p) => req('pass', 'POST', p),
+  passDelete: (id) => req('pass_delete', 'POST', { id }),
+  passRedeem: (token) => req('pass_redeem', 'POST', { token }),
   setting: (k, v) => req('setting', 'POST', { k, v }),
 }

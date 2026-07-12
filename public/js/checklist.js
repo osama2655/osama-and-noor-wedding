@@ -4,7 +4,7 @@ import { renderDash, renderOverall } from './dashboard.js'
 import { weekStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, undoToast } from './ui.js'
-import { byTag, debounce, escapeAttr } from './util.js'
+import { byTag, debounce, escapeAttr, escapeHtml } from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
 const ownerLabel = (o) => OWNERS[o] || ''
@@ -24,6 +24,31 @@ const pushItem = debounce(async (id) => {
   }
 }, 500)
 
+const overrideText = (key, original) => {
+  const ov = store.data.checkOverrides?.[key]
+  return ov != null ? ov : original
+}
+
+// Per-key debounced save of an edited built-in row.
+const overTimers = {}
+function saveOverride(key, text) {
+  store.data.checkOverrides = store.data.checkOverrides || {}
+  store.data.checkOverrides[key] = text
+  clearTimeout(overTimers[key])
+  overTimers[key] = setTimeout(async () => {
+    try {
+      bumpRev(await api.checkOverride(key, text))
+    } catch (_) {
+      /* next poll reconciles */
+    }
+  }, 500)
+}
+
+const autoGrow = (ta) => {
+  ta.style.height = 'auto'
+  ta.style.height = `${ta.scrollHeight}px`
+}
+
 function staticRow(w, i) {
   const key = `${w.id}-${i}`
   const it = w.items[i]
@@ -34,9 +59,10 @@ function staticRow(w, i) {
     ? `<span class="owner-tag t-${ownerClass(owner)}">${ownerLabel(owner)}</span>`
     : ''
   const who = on ? byTag(e, meId()) : ''
+  const text = overrideText(key, it[0])
   return `<li class="${on ? 'done' : ''}">
       <input type="checkbox" class="cbx ${w.gate ? 'gold' : ''}" data-key="${key}" ${on ? 'checked' : ''}>
-      <span class="txt">${it[0]}${ownerTag}${who}</span>
+      <span class="txt"><textarea class="co-text" data-okey="${key}" rows="1">${escapeHtml(text)}</textarea>${ownerTag}${who}</span>
       <button class="row-x" data-hide="${key}" title="Remove this row">&times;</button></li>`
 }
 
@@ -196,6 +222,14 @@ function wire(el) {
       }
     }),
   )
+
+  el.querySelectorAll('.co-text').forEach((ta) => {
+    autoGrow(ta)
+    ta.addEventListener('input', (e) => {
+      autoGrow(e.target)
+      saveOverride(e.target.dataset.okey, e.target.value)
+    })
+  })
 
   el.querySelectorAll('.ci-text, .ci-owner').forEach((inp) =>
     inp.addEventListener('input', (e) => {

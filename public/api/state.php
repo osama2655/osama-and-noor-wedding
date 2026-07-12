@@ -95,6 +95,16 @@ function handle_state(): void
         $hiddenChecks[$r['item_key']] = true;
     }
 
+    // Editable text for built-in checklist rows. Tolerate the table not yet existing.
+    $checkOverrides = [];
+    try {
+        foreach ($pdo->query('SELECT item_key, text FROM check_overrides') as $r) {
+            $checkOverrides[$r['item_key']] = $r['text'];
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] check_overrides table missing; run schema.sql');
+    }
+
     $facts = [];
     foreach ($pdo->query('SELECT * FROM facts ORDER BY sort, id') as $r) {
         $facts[] = with_attr(['id' => (int) $r['id'], 'label' => $r['label'], 'value' => $r['value']], $r, $users, 'updated_by');
@@ -120,9 +130,41 @@ function handle_state(): void
         $picks[$r['vendor_key']] = with_attr([], $r, $users, 'picked_by');
     }
 
+    // Tolerate the catalog_remarks / catalog_files tables not yet existing (schema.sql
+    // not reloaded after this feature deployed) so the planner stays up meanwhile.
+    $remarksByCat = [];
+    $filesByCat = [];
+    try {
+        foreach ($pdo->query('SELECT * FROM catalog_remarks ORDER BY id DESC') as $r) {
+            $bid = $r['created_by'] !== null ? (int) $r['created_by'] : null;
+            $remarksByCat[(int) $r['catalog_id']][] = [
+                'id' => (int) $r['id'],
+                'body' => $r['body'],
+                'by' => ($bid !== null && isset($users[$bid])) ? $users[$bid] : null,
+                'byId' => $bid,
+                'at' => $r['created_at'],
+            ];
+        }
+        foreach ($pdo->query('SELECT * FROM catalog_files ORDER BY id DESC') as $r) {
+            $bid = $r['uploaded_by'] !== null ? (int) $r['uploaded_by'] : null;
+            $filesByCat[(int) $r['catalog_id']][] = [
+                'id' => (int) $r['id'],
+                'name' => $r['orig_name'],
+                'size' => (int) $r['size_bytes'],
+                'by' => ($bid !== null && isset($users[$bid])) ? $users[$bid] : null,
+                'at' => $r['created_at'],
+            ];
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] catalog_remarks/files tables missing; run schema.sql');
+    }
+
     $catalog = [];
     foreach ($pdo->query('SELECT * FROM catalog ORDER BY category, sort, id') as $r) {
-        $catalog[] = catalog_row($r, $users);
+        $row = catalog_row($r, $users);
+        $row['remarks'] = $remarksByCat[(int) $r['id']] ?? [];
+        $row['files'] = $filesByCat[(int) $r['id']] ?? [];
+        $catalog[] = $row;
     }
 
     $notes = [];
@@ -191,13 +233,35 @@ function handle_state(): void
         ], $r, $users, 'updated_by');
     }
 
+    // Tolerate the passes table not yet existing (schema.sql not reloaded after
+    // this feature deployed) so the whole planner does not go down meanwhile.
+    $passes = [];
+    try {
+        foreach ($pdo->query('SELECT * FROM passes ORDER BY id') as $r) {
+            $rby = $r['redeemed_by'] !== null ? (int) $r['redeemed_by'] : null;
+            $passes[] = [
+                'id' => (int) $r['id'],
+                'token' => $r['token'],
+                'label' => $r['label'],
+                'status' => $r['status'],
+                'redeemedAt' => $r['redeemed_at'],
+                'redeemedBy' => ($rby !== null && isset($users[$rby])) ? $users[$rby] : null,
+            ];
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] passes table missing; run schema.sql');
+    }
+
     json_out([
         'me' => user_public($u),
+        'passes' => $passes,
+        'passCap' => 200,
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
         'theme' => setting_get('theme') ?: 'gold',
         'checks' => $checks,
         'checkItems' => $checkItems,
         'hiddenChecks' => $hiddenChecks,
+        'checkOverrides' => $checkOverrides,
         'facts' => $facts,
         'openItems' => $openItems,
         'decisions' => $decisions,

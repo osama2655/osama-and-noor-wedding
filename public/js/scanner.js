@@ -10,7 +10,9 @@ function loadLib() {
   })
 }
 
-export async function startScanner(mount) {
+// onDecode(text, stop) — when given, it owns what happens on a scan (the door
+// check-in uses this to redeem). Without it, the scanner just follows invite URLs.
+export async function startScanner(mount, onDecode) {
   if (!mount) return
   try {
     await loadLib()
@@ -19,10 +21,14 @@ export async function startScanner(mount) {
       '<div class="card"><p class="hint">The scanner could not load.</p></div>'
     return
   }
+  const prompt = onDecode
+    ? 'Point the camera at a guest entrance pass.'
+    : 'Point the camera at an invite QR.'
   mount.innerHTML = `
     <div class="card">
-      <p class="hint">Point the camera at an invite QR.</p>
+      <p class="hint">${prompt}</p>
       <div id="reader" style="width:100%;max-width:320px;margin:0 auto"></div>
+      <div id="scanResult"></div>
       <div class="toolbar" style="justify-content:center;margin-top:10px"><button class="btn ghost sm" id="stopScan">Stop</button></div>
     </div>`
   const scanner = new window.Html5Qrcode('reader')
@@ -36,6 +42,10 @@ export async function startScanner(mount) {
       { facingMode: 'environment' },
       { fps: 10, qrbox: 240 },
       (decoded) => {
+        if (onDecode) {
+          onDecode(decoded, stop)
+          return
+        }
         stop()
         if (/^https?:\/\//.test(decoded)) window.location.href = decoded
         else alert(`Scanned: ${decoded}`)

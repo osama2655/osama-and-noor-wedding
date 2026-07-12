@@ -104,6 +104,31 @@ CREATE TABLE IF NOT EXISTS catalog (
   updated_at  TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Free-form remarks logged against a catalog item (a hall / photographer), with
+-- who said it and when. Append-only; the couple builds up a call history.
+CREATE TABLE IF NOT EXISTS catalog_remarks (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  catalog_id INT NOT NULL,
+  body       VARCHAR(1000) NOT NULL DEFAULT '',
+  created_by INT NULL,
+  created_at TIMESTAMP NULL DEFAULT NULL,
+  KEY idx_catalog_remarks_cat (catalog_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Files attached to a catalog item (quotes, PowerPoints, PDFs). The bytes live on
+-- disk above the web root (uploads/, never served directly); this row is metadata.
+CREATE TABLE IF NOT EXISTS catalog_files (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  catalog_id  INT NOT NULL,
+  orig_name   VARCHAR(255) NOT NULL DEFAULT '',
+  stored_name VARCHAR(64) NOT NULL,
+  mime        VARCHAR(128) NOT NULL DEFAULT '',
+  size_bytes  INT NOT NULL DEFAULT 0,
+  uploaded_by INT NULL,
+  created_at  TIMESTAMP NULL DEFAULT NULL,
+  KEY idx_catalog_files_cat (catalog_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS notes (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   title      VARCHAR(191) NOT NULL DEFAULT '',
@@ -162,12 +187,35 @@ CREATE TABLE IF NOT EXISTS rsvps (
   KEY idx_rsvps_invite (invite_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Single-use entrance passes. Each token is redeemed exactly once at the door.
+-- Capped at 200 rows by the API (see PASS_CAP in handlers.php).
+CREATE TABLE IF NOT EXISTS passes (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  token       VARCHAR(32) NOT NULL UNIQUE,
+  label       VARCHAR(191) NOT NULL DEFAULT '',
+  status      ENUM('unused','redeemed') NOT NULL DEFAULT 'unused',
+  redeemed_at TIMESTAMP NULL DEFAULT NULL,
+  redeemed_by INT NULL,
+  created_by  INT NULL,
+  created_at  TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS check_items (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   phase      VARCHAR(16) NOT NULL DEFAULT '',
   text       VARCHAR(500) NOT NULL DEFAULT '',
   owner      VARCHAR(8) NOT NULL DEFAULT 'you',
   sort       INT NOT NULL DEFAULT 100,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Editable text for the built-in checklist rows. Keyed by the static item key
+-- ("phase-index"); when present it replaces the hardcoded wording so the couple
+-- can reword a task or add extra detail.
+CREATE TABLE IF NOT EXISTS check_overrides (
+  item_key   VARCHAR(64) PRIMARY KEY,
+  text       VARCHAR(500) NOT NULL DEFAULT '',
   updated_by INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
