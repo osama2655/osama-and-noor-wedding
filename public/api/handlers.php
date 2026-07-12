@@ -287,6 +287,58 @@ function handle_bundle_item_delete(): void
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
+const LANE_TAGS = ['you', 'men', 'her', 'hall'];
+
+function handle_lane(): void
+{
+    $u = require_user();
+    $b = body();
+    $tag = in_array($b['tag'] ?? '', LANE_TAGS, true) ? $b['tag'] : 'you';
+    $args = [(string) ($b['title'] ?? ''), (string) ($b['note'] ?? ''), $tag, (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare('UPDATE lanes SET title=?, note=?, tag=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare('INSERT INTO lanes (title, note, tag, sort, updated_by, updated_at) VALUES(?, ?, ?, COALESCE(?, 100), ?, NOW())')->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_lane_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM lane_items WHERE lane_id = ?')->execute([$id]);
+    db()->prepare('DELETE FROM lanes WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_lane_item(): void
+{
+    $u = require_user();
+    $b = body();
+    $args = [(int) ($b['laneId'] ?? 0), (string) ($b['label'] ?? ''), !empty($b['done']) ? 1 : 0, (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
+    if (!empty($b['id'])) {
+        $args[] = (int) $b['id'];
+        db()->prepare('UPDATE lane_items SET lane_id=?, label=?, done=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        $id = (int) $b['id'];
+    } else {
+        db()->prepare('INSERT INTO lane_items (lane_id, label, done, sort, updated_by, updated_at) VALUES(?, ?, ?, COALESCE(?, 100), ?, NOW())')->execute($args);
+        $id = (int) db()->lastInsertId();
+    }
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_lane_item_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM lane_items WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
 function handle_invite(): void
 {
     $u = require_user();

@@ -244,3 +244,67 @@ CREATE TABLE IF NOT EXISTS open_items (
   updated_by INT NULL,
   updated_at TIMESTAMP NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- "Who owns what" ownership lanes. A lane is a titled group with an owner tag and
+-- a list of items; mirrors the bundles / bundle_items shape. `done` makes each
+-- item's checkbox real. Editable by the couple.
+CREATE TABLE IF NOT EXISTS lanes (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  title      VARCHAR(191) NOT NULL DEFAULT '',
+  note       VARCHAR(500) NOT NULL DEFAULT '',
+  tag        VARCHAR(32) NOT NULL DEFAULT 'you',
+  sort       INT NOT NULL DEFAULT 100,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE IF NOT EXISTS lane_items (
+  id         INT AUTO_INCREMENT PRIMARY KEY,
+  lane_id    INT NOT NULL,
+  label      VARCHAR(500) NOT NULL DEFAULT '',
+  done       TINYINT(1) NOT NULL DEFAULT 0,
+  sort       INT NOT NULL DEFAULT 100,
+  updated_by INT NULL,
+  updated_at TIMESTAMP NULL DEFAULT NULL,
+  KEY idx_lane_items_lane (lane_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Seed the 4 lanes from the original static content, only if empty (idempotent).
+INSERT INTO lanes (title, note, tag, sort)
+SELECT * FROM (
+  SELECT 'YOU, fully' AS title, 'You own these end to end. Report progress, do not hand them off.' AS note, 'you' AS tag, 10 AS sort
+  UNION ALL SELECT "MEN'S SIDE, both days", 'You, your brother, and Hashim run this together.', 'men', 20
+  UNION ALL SELECT 'HER SIDE', 'Support it, do not take it over. Pay deposits on time and clear the admin.', 'her', 30
+  UNION ALL SELECT 'THE HALL', 'All-inclusive. This absorbs roughly 60 percent of the work once booked.', 'hall', 40
+) seed
+WHERE NOT EXISTS (SELECT 1 FROM lanes LIMIT 1);
+
+-- Seed lane items, correlating on lane title, only if empty (idempotent).
+INSERT INTO lane_items (lane_id, label, sort)
+SELECT l.id, s.label, s.sort FROM lanes l
+JOIN (
+  SELECT 'YOU, fully' AS title, 'Venue selection and contract.' AS label, 10 AS sort
+  UNION ALL SELECT 'YOU, fully', "Milcha logistics and documents (ma'thoon, IDs, the full list).", 20
+  UNION ALL SELECT 'YOU, fully', 'Your attire: thobe and bisht, or a suit.', 30
+  UNION ALL SELECT 'YOU, fully', 'The gold, BD 2000.', 40
+  UNION ALL SELECT 'YOU, fully', 'The payments tracker.', 50
+  UNION ALL SELECT 'YOU, fully', 'Honeymoon, pending leave from Citi.', 60
+  UNION ALL SELECT 'YOU, fully', 'The day-of runsheet.', 70
+  UNION ALL SELECT 'YOU, fully', 'Being the calm coordinator.', 80
+  UNION ALL SELECT "MEN'S SIDE, both days", "The men's majlis on Day B: gahwa, dates, lighter food.", 10
+  UNION ALL SELECT "MEN'S SIDE, both days", 'Seating and the greeting order.', 20
+  UNION ALL SELECT "MEN'S SIDE, both days", 'Receiving and looking after the men both days.', 30
+  UNION ALL SELECT "MEN'S SIDE, both days", 'Gahwa and dates supplier.', 40
+  UNION ALL SELECT 'HER SIDE', 'The dress.', 10
+  UNION ALL SELECT 'HER SIDE', 'HMUA (hair and makeup) and the trial.', 20
+  UNION ALL SELECT 'HER SIDE', "The henna night (women-led, bride's side).", 30
+  UNION ALL SELECT 'HER SIDE', 'Her guest list.', 40
+  UNION ALL SELECT 'HER SIDE', 'Bridal prep.', 50
+  UNION ALL SELECT 'THE HALL', 'Theme and decor.', 10
+  UNION ALL SELECT 'THE HALL', 'Flowers.', 20
+  UNION ALL SELECT 'THE HALL', 'The stage and kosha.', 30
+  UNION ALL SELECT 'THE HALL', 'Sound and DJ.', 40
+  UNION ALL SELECT 'THE HALL', 'Catering.', 50
+  UNION ALL SELECT 'THE HALL', 'On-site coordination.', 60
+) s ON s.title = l.title
+WHERE NOT EXISTS (SELECT 1 FROM lane_items LIMIT 1);

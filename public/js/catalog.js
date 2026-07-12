@@ -1,11 +1,53 @@
+import { api } from './api.js'
 import { ASK_EVERY_HALL, PHOTOVIDEO } from './content.js'
 import { openDrawer } from './drawer.js'
 import { isSaved, toggleSave } from './saves.js'
-import { store } from './store.js'
+import { bumpRev, meId, store } from './store.js'
 import { escapeHtml } from './util.js'
 
 const items = (cat) =>
   (store.data.catalog || []).filter((c) => c.category === cat)
+
+// Create a blank listing and open the drawer to fill it in. Backend handle_catalog
+// inserts when there is no id; the drawer edits the core fields from there.
+async function addListing(category, rerender) {
+  const count = items(category).length
+  try {
+    const r = await api.catalog({
+      category,
+      name: '',
+      status: 'todo',
+      sort: count + 1,
+    })
+    bumpRev(r)
+    const row = {
+      id: r.id,
+      category,
+      name: '',
+      area: '',
+      phone: '',
+      instagram: '',
+      mapsQuery: '',
+      capacity: null,
+      segregated: false,
+      femaleCrew: false,
+      featured: false,
+      status: 'todo',
+      note: '',
+      verify: '',
+      remarks: [],
+      files: [],
+      by: 'You',
+      byId: meId(),
+      at: new Date().toISOString(),
+    }
+    ;(store.data.catalog || (store.data.catalog = [])).push(row)
+    rerender()
+    openDrawer(row, rerender)
+  } catch (_) {
+    /* ignore */
+  }
+}
 
 function card(item) {
   const saved = isSaved(item)
@@ -67,6 +109,7 @@ export function renderVenues() {
     <div class="card">
       <h2>Venues</h2>
       <p class="hint">Tap a hall to see it on the map, call, and get directions. Star to save it together.</p>
+      <div class="toolbar" style="margin-top:14px"><button class="btn sm" id="addVenue">+ Add venue</button></div>
       <div class="cat-grid" id="venues-grid"></div>
     </div>
     <div class="card">
@@ -74,6 +117,9 @@ export function renderVenues() {
       <ol class="ask-list">${ASK_EVERY_HALL.map((q) => `<li>${escapeHtml(q)}</li>`).join('')}</ol>
     </div>`
   grid('venue', el.querySelector('#venues-grid'), renderVenues)
+  el.querySelector('#addVenue')?.addEventListener('click', () =>
+    addListing('venue', renderVenues),
+  )
 }
 
 export function renderPhotoVideo() {
@@ -83,7 +129,11 @@ export function renderPhotoVideo() {
     <div class="card">
       <h2>Photo and video</h2>
       <div class="dw-verify" style="margin:0 0 14px"><b>Hard requirement</b> ${escapeHtml(PHOTOVIDEO.requirement)}</div>
+      <div class="toolbar" style="margin-bottom:14px"><button class="btn sm" id="addPhoto">+ Add photographer</button></div>
       <div class="cat-grid" id="photo-grid"></div>
     </div>`
   grid('photo', el.querySelector('#photo-grid'), renderPhotoVideo)
+  el.querySelector('#addPhoto')?.addEventListener('click', () =>
+    addListing('photo', renderPhotoVideo),
+  )
 }

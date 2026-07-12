@@ -26,6 +26,17 @@
 .dw-btn { background: var(--gold); color: var(--bg); border: none; border-radius: 12px; padding: 11px 16px; font-weight: 700; font-size: 13.5px; cursor: pointer; text-decoration: none; }
 .dw-btn.ghost { background: var(--card); color: var(--txt); border: 1px solid var(--line); }
 .dw-btn.sm { padding: 8px 13px; font-size: 12.5px; }
+.dw-btn.danger { background: transparent; color: var(--red); border: 1px solid var(--red); width: 100%; }
+
+/* Editable core fields */
+.dw-edit { display: flex; flex-direction: column; gap: 10px; }
+.dw-edit-row { display: flex; align-items: center; gap: 10px; }
+.dw-edit-row.col { flex-direction: column; align-items: stretch; gap: 5px; }
+.dw-edit-row > span { flex: 0 0 84px; font-size: 12px; color: var(--faint); }
+.dw-edit-row.col > span { flex: none; }
+.dw-edit-row input, .dw-edit-row textarea { flex: 1; min-width: 0; background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 14px; }
+.dw-edit-row input:focus, .dw-edit-row textarea:focus { outline: none; border-color: var(--gold); }
+.dw-edit-row textarea { resize: vertical; }
 
 /* Working sections: status pipeline, remarks log, file attachments */
 .dw-section { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px; }

@@ -78,6 +78,10 @@ try {
         case 'bundle_delete': handle_bundle_delete(); break;
         case 'bundle_item': handle_bundle_item(); break;
         case 'bundle_item_delete': handle_bundle_item_delete(); break;
+        case 'lane':     handle_lane(); break;
+        case 'lane_delete': handle_lane_delete(); break;
+        case 'lane_item': handle_lane_item(); break;
+        case 'lane_item_delete': handle_lane_item_delete(); break;
         case 'invite':   handle_invite(); break;
         case 'invite_delete': handle_invite_delete(); break;
         case 'passes_generate': handle_passes_generate(); break;
