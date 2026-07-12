@@ -159,7 +159,7 @@ function handle_catalog(): void
         $status,
         (string) ($b['note'] ?? ''),
         (string) ($b['verify'] ?? ''),
-        (int) ($b['sort'] ?? 100),
+        (array_key_exists('sort', $b) ? (int) $b['sort'] : null),
         $u['id'],
     ];
 
@@ -167,7 +167,7 @@ function handle_catalog(): void
         $args[] = (int) $b['id'];
         db()->prepare(
             'UPDATE catalog SET category=?, name=?, area=?, phone=?, instagram=?, maps_query=?, capacity=?,
-             segregated=?, female_crew=?, featured=?, status=?, note=?, verify=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?'
+             segregated=?, female_crew=?, featured=?, status=?, note=?, verify=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?'
         )->execute($args);
         $id = (int) $b['id'];
     } else {
@@ -218,10 +218,10 @@ function handle_important_date(): void
     $u = require_user();
     $b = body();
     $date = num_in($b['date'] ?? '');
-    $args = [(string) ($b['label'] ?? ''), $date, (string) ($b['note'] ?? ''), (int) ($b['sort'] ?? 100), $u['id']];
+    $args = [(string) ($b['label'] ?? ''), $date, (string) ($b['note'] ?? ''), (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
     if (!empty($b['id'])) {
         $args[] = (int) $b['id'];
-        db()->prepare('UPDATE important_dates SET label=?, on_date=?, note=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        db()->prepare('UPDATE important_dates SET label=?, on_date=?, note=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
         $id = (int) $b['id'];
     } else {
         db()->prepare('INSERT INTO important_dates (label, on_date, note, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, NOW())')->execute($args);
@@ -242,10 +242,10 @@ function handle_bundle(): void
 {
     $u = require_user();
     $b = body();
-    $args = [(string) ($b['name'] ?? ''), (int) ($b['sort'] ?? 100), $u['id']];
+    $args = [(string) ($b['name'] ?? ''), (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
     if (!empty($b['id'])) {
         $args[] = (int) $b['id'];
-        db()->prepare('UPDATE bundles SET name=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        db()->prepare('UPDATE bundles SET name=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
         $id = (int) $b['id'];
     } else {
         db()->prepare('INSERT INTO bundles (name, sort, updated_by, updated_at) VALUES(?, ?, ?, NOW())')->execute($args);
@@ -267,13 +267,13 @@ function handle_bundle_item(): void
 {
     $u = require_user();
     $b = body();
-    $args = [(int) ($b['bundleId'] ?? 0), (string) ($b['label'] ?? ''), num_in($b['cost'] ?? ''), (int) ($b['sort'] ?? 100), $u['id']];
+    $args = [(int) ($b['bundleId'] ?? 0), (string) ($b['label'] ?? ''), num_in($b['cost'] ?? ''), (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
     if (!empty($b['id'])) {
         $args[] = (int) $b['id'];
-        db()->prepare('UPDATE bundle_items SET bundle_id=?, label=?, cost=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        db()->prepare('UPDATE bundle_items SET bundle_id=?, label=?, cost=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
         $id = (int) $b['id'];
     } else {
-        db()->prepare('INSERT INTO bundle_items (bundle_id, label, cost, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, NOW())')->execute($args);
+        db()->prepare('INSERT INTO bundle_items (bundle_id, label, cost, sort, updated_by, updated_at) VALUES(?, ?, ?, COALESCE(?, 100), ?, NOW())')->execute($args);
         $id = (int) db()->lastInsertId();
     }
     json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
@@ -358,10 +358,10 @@ function handle_check_item(): void
     $u = require_user();
     $b = body();
     $owner = in_array($b['owner'] ?? '', OWNERS, true) ? $b['owner'] : 'you';
-    $args = [(string) ($b['phase'] ?? ''), (string) ($b['text'] ?? ''), $owner, (int) ($b['sort'] ?? 100), $u['id']];
+    $args = [(string) ($b['phase'] ?? ''), (string) ($b['text'] ?? ''), $owner, (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
     if (!empty($b['id'])) {
         $args[] = (int) $b['id'];
-        db()->prepare('UPDATE check_items SET phase=?, text=?, owner=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        db()->prepare('UPDATE check_items SET phase=?, text=?, owner=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
         $id = (int) $b['id'];
     } else {
         db()->prepare('INSERT INTO check_items (phase, text, owner, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, NOW())')->execute($args);
@@ -399,10 +399,10 @@ function handle_fact(): void
 {
     $u = require_user();
     $b = body();
-    $args = [(string) ($b['label'] ?? ''), (string) ($b['value'] ?? ''), (int) ($b['sort'] ?? 100), $u['id']];
+    $args = [(string) ($b['label'] ?? ''), (string) ($b['value'] ?? ''), (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
     if (!empty($b['id'])) {
         $args[] = (int) $b['id'];
-        db()->prepare('UPDATE facts SET label=?, value=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        db()->prepare('UPDATE facts SET label=?, value=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
         $id = (int) $b['id'];
     } else {
         db()->prepare('INSERT INTO facts (label, value, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, NOW())')->execute($args);
@@ -424,10 +424,10 @@ function handle_open_item(): void
     $u = require_user();
     $b = body();
     $owner = in_array($b['owner'] ?? '', OWNERS, true) ? $b['owner'] : 'you';
-    $args = [(string) ($b['title'] ?? ''), (string) ($b['detail'] ?? ''), $owner, (int) ($b['sort'] ?? 100), $u['id']];
+    $args = [(string) ($b['title'] ?? ''), (string) ($b['detail'] ?? ''), $owner, (array_key_exists('sort', $b) ? (int) $b['sort'] : null), $u['id']];
     if (!empty($b['id'])) {
         $args[] = (int) $b['id'];
-        db()->prepare('UPDATE open_items SET title=?, detail=?, owner=?, sort=?, updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
+        db()->prepare('UPDATE open_items SET title=?, detail=?, owner=?, sort = COALESCE(?, sort), updated_by=?, updated_at=NOW() WHERE id=?')->execute($args);
         $id = (int) $b['id'];
     } else {
         db()->prepare('INSERT INTO open_items (title, detail, owner, sort, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, NOW())')->execute($args);
