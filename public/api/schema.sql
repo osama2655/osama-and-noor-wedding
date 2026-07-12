@@ -162,6 +162,19 @@ CREATE TABLE IF NOT EXISTS rsvps (
   KEY idx_rsvps_invite (invite_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Single-use entrance passes. Each token is redeemed exactly once at the door.
+-- Capped at 200 rows by the API (see PASS_CAP in handlers.php).
+CREATE TABLE IF NOT EXISTS passes (
+  id          INT AUTO_INCREMENT PRIMARY KEY,
+  token       VARCHAR(32) NOT NULL UNIQUE,
+  label       VARCHAR(191) NOT NULL DEFAULT '',
+  status      ENUM('unused','redeemed') NOT NULL DEFAULT 'unused',
+  redeemed_at TIMESTAMP NULL DEFAULT NULL,
+  redeemed_by INT NULL,
+  created_by  INT NULL,
+  created_at  TIMESTAMP NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 CREATE TABLE IF NOT EXISTS check_items (
   id         INT AUTO_INCREMENT PRIMARY KEY,
   phase      VARCHAR(16) NOT NULL DEFAULT '',

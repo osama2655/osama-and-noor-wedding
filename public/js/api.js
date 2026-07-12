@@ -53,5 +53,9 @@ export const api = {
   bundleItemDelete: (id) => req('bundle_item_delete', 'POST', { id }),
   invite: (i) => req('invite', 'POST', i),
   inviteDelete: (id) => req('invite_delete', 'POST', { id }),
+  passesGenerate: (count) => req('passes_generate', 'POST', { count }),
+  pass: (p) => req('pass', 'POST', p),
+  passDelete: (id) => req('pass_delete', 'POST', { id }),
+  passRedeem: (token) => req('pass_redeem', 'POST', { token }),
   setting: (k, v) => req('setting', 'POST', { k, v }),
 }

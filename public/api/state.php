@@ -191,8 +191,29 @@ function handle_state(): void
         ], $r, $users, 'updated_by');
     }
 
+    // Tolerate the passes table not yet existing (schema.sql not reloaded after
+    // this feature deployed) so the whole planner does not go down meanwhile.
+    $passes = [];
+    try {
+        foreach ($pdo->query('SELECT * FROM passes ORDER BY id') as $r) {
+            $rby = $r['redeemed_by'] !== null ? (int) $r['redeemed_by'] : null;
+            $passes[] = [
+                'id' => (int) $r['id'],
+                'token' => $r['token'],
+                'label' => $r['label'],
+                'status' => $r['status'],
+                'redeemedAt' => $r['redeemed_at'],
+                'redeemedBy' => ($rby !== null && isset($users[$rby])) ? $users[$rby] : null,
+            ];
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] passes table missing; run schema.sql');
+    }
+
     json_out([
         'me' => user_public($u),
+        'passes' => $passes,
+        'passCap' => 200,
         'wedDate' => setting_get('wedDate') ?: '2026-08-14',
         'theme' => setting_get('theme') ?: 'gold',
         'checks' => $checks,

@@ -12,6 +12,7 @@ import { initGuestControls, renderGuests } from './guests.js'
 import { renderInvite } from './invite.js'
 import { renderLanes } from './lanes.js'
 import { renderNotes } from './notes.js'
+import { renderPasses } from './passes.js'
 import { renderResources } from './resources.js'
 import { bumpRev, setData, store } from './store.js'
 import { startSync } from './sync.js'
@@ -39,6 +40,7 @@ function renderAll() {
   renderSaved()
   renderBoards()
   renderInvite()
+  renderPasses()
   renderDates()
   renderNotes()
   renderVendors()

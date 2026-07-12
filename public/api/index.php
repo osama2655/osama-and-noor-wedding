@@ -39,7 +39,7 @@ session_start();
 $action = $_GET['action'] ?? '';
 
 // The only unauthenticated surface: guests submit RSVPs and read invite info by token.
-$publicActions = ['rsvp' => 'handle_rsvp_submit', 'invite_info' => 'handle_invite_info'];
+$publicActions = ['rsvp' => 'handle_rsvp_submit', 'invite_info' => 'handle_invite_info', 'pass_info' => 'handle_pass_info'];
 if (isset($publicActions[$action])) {
     try {
         $publicActions[$action]();
@@ -75,6 +75,10 @@ try {
         case 'bundle_item_delete': handle_bundle_item_delete(); break;
         case 'invite':   handle_invite(); break;
         case 'invite_delete': handle_invite_delete(); break;
+        case 'passes_generate': handle_passes_generate(); break;
+        case 'pass':     handle_pass(); break;
+        case 'pass_delete': handle_pass_delete(); break;
+        case 'pass_redeem': handle_pass_redeem(); break;
         case 'check_item': handle_check_item(); break;
         case 'check_item_delete': handle_check_item_delete(); break;
         case 'hide_check': handle_hide_check(); break;

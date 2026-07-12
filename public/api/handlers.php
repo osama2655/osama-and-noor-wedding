@@ -351,6 +351,119 @@ function handle_invite_info(): void
     json_out(['label' => $inv['label'], 'active' => (bool) $inv['active'], 'wedDate' => setting_get('wedDate') ?: '2026-08-14']);
 }
 
+const PASS_CAP = 200;
+
+// Pull a bare token out of whatever the door scanner decoded: a full pass.html
+// URL, a "token=..." query, or the raw 32-hex token on its own.
+function pass_token_from(string $raw): string
+{
+    $raw = trim($raw);
+    if (preg_match('/[?&]token=([0-9a-f]{32})/i', $raw, $m)) {
+        return strtolower($m[1]);
+    }
+    if (preg_match('/^[0-9a-f]{32}$/i', $raw)) {
+        return strtolower($raw);
+    }
+    return '';
+}
+
+// Mint up to `count` new passes, never exceeding PASS_CAP total.
+function handle_passes_generate(): void
+{
+    $u = require_user();
+    $b = body();
+    $want = max(1, min(PASS_CAP, (int) ($b['count'] ?? 1)));
+    $existing = (int) db()->query('SELECT COUNT(*) FROM passes')->fetchColumn();
+    $room = PASS_CAP - $existing;
+    if ($room <= 0) {
+        json_out(['created' => 0, 'total' => $existing, 'cap' => PASS_CAP, 'rev' => get_rev()]);
+    }
+    $make = min($want, $room);
+    $ins = db()->prepare('INSERT INTO passes (token, label, status, created_by, created_at) VALUES(?, ?, \'unused\', ?, NOW())');
+    for ($i = 0; $i < $make; $i++) {
+        $ins->execute([bin2hex(random_bytes(16)), '', $u['id']]);
+    }
+    json_out(['created' => $make, 'total' => $existing + $make, 'cap' => PASS_CAP, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+// Rename a pass (who it is for). Never resets status.
+function handle_pass(): void
+{
+    $u = require_user();
+    $b = body();
+    $id = (int) ($b['id'] ?? 0);
+    if ($id <= 0) {
+        json_out(['error' => 'bad id'], 400);
+    }
+    db()->prepare('UPDATE passes SET label=? WHERE id=?')
+        ->execute([mb_substr((string) ($b['label'] ?? ''), 0, 191), $id]);
+    json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_pass_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM passes WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+// The door. Redemption is a single atomic UPDATE guarded on status='unused', so two
+// simultaneous scans of the same code can never both succeed.
+function handle_pass_redeem(): void
+{
+    $u = require_user();
+    $token = pass_token_from((string) (body()['token'] ?? ''));
+    if ($token === '') {
+        json_out(['result' => 'invalid', 'rev' => get_rev()]);
+    }
+    $upd = db()->prepare(
+        'UPDATE passes SET status=\'redeemed\', redeemed_at=NOW(), redeemed_by=? WHERE token=? AND status=\'unused\''
+    );
+    $upd->execute([$u['id'], $token]);
+    if ($upd->rowCount() === 1) {
+        $st = db()->prepare('SELECT label FROM passes WHERE token=?');
+        $st->execute([$token]);
+        json_out(['result' => 'ok', 'label' => (string) ($st->fetchColumn() ?: ''), 'rev' => bump_rev((int) $u['id'])]);
+    }
+    $st = db()->prepare('SELECT label, status, redeemed_at, redeemed_by FROM passes WHERE token=?');
+    $st->execute([$token]);
+    $p = $st->fetch();
+    if (!$p) {
+        json_out(['result' => 'invalid', 'rev' => get_rev()]);
+    }
+    $users = users_map();
+    $by = ($p['redeemed_by'] !== null && isset($users[(int) $p['redeemed_by']])) ? $users[(int) $p['redeemed_by']] : null;
+    json_out([
+        'result' => 'used',
+        'label' => (string) $p['label'],
+        'redeemedAt' => $p['redeemed_at'],
+        'redeemedBy' => $by,
+        'rev' => get_rev(),
+    ]);
+}
+
+// PUBLIC. What a guest sees when they scan their own pass. Read-only, never redeems.
+function handle_pass_info(): void
+{
+    $token = pass_token_from((string) ($_GET['token'] ?? ''));
+    if ($token === '') {
+        json_out(['error' => 'not found'], 404);
+    }
+    $st = db()->prepare('SELECT label, status, redeemed_at FROM passes WHERE token = ?');
+    $st->execute([$token]);
+    $p = $st->fetch();
+    if (!$p) {
+        json_out(['error' => 'not found'], 404);
+    }
+    json_out([
+        'label' => (string) $p['label'],
+        'status' => $p['status'],
+        'redeemedAt' => $p['redeemed_at'],
+        'wedDate' => setting_get('wedDate') ?: '2026-08-14',
+    ]);
+}
+
 const OWNERS = ['you', 'men', 'her', 'hall'];
 
 function handle_check_item(): void
