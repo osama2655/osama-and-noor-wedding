@@ -11,6 +11,11 @@ ul.checks li:last-child{border-bottom:none}
 ul.checks li .txt{flex:1;font-size:14.5px}
 ul.checks li.done .txt{color:var(--faint);text-decoration:line-through}
 
+/* Built-in rows are editable: the field reads like text until focused. */
+.co-text{display:block;width:100%;background:transparent;border:none;border-radius:6px;color:var(--txt);font:inherit;font-size:14.5px;line-height:1.5;padding:2px 5px;margin:-2px -5px 2px;resize:none;overflow:hidden}
+.co-text:focus{outline:none;background:var(--card2)}
+ul.checks li.done .co-text{color:var(--faint);text-decoration:line-through}
+
 .owner-tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;
   padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle}
 .t-you{background:rgba(216,176,114,.16);color:var(--gold)}

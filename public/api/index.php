@@ -65,6 +65,11 @@ try {
         case 'pick':     handle_pick(); break;
         case 'catalog':  handle_catalog(); break;
         case 'catalog_delete': handle_catalog_delete(); break;
+        case 'catalog_remark': handle_catalog_remark(); break;
+        case 'catalog_remark_delete': handle_catalog_remark_delete(); break;
+        case 'catalog_file_upload': handle_catalog_file_upload(); break;
+        case 'catalog_file': handle_catalog_file_download(); break;
+        case 'catalog_file_delete': handle_catalog_file_delete(); break;
         case 'note':     handle_note(); break;
         case 'note_delete': handle_note_delete(); break;
         case 'important_date': handle_important_date(); break;
@@ -82,6 +87,7 @@ try {
         case 'check_item': handle_check_item(); break;
         case 'check_item_delete': handle_check_item_delete(); break;
         case 'hide_check': handle_hide_check(); break;
+        case 'check_override': handle_check_override(); break;
         case 'fact':     handle_fact(); break;
         case 'fact_delete': handle_fact_delete(); break;
         case 'open_item': handle_open_item(); break;

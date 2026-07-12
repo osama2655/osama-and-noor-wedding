@@ -351,6 +351,113 @@ function handle_invite_info(): void
     json_out(['label' => $inv['label'], 'active' => (bool) $inv['active'], 'wedDate' => setting_get('wedDate') ?: '2026-08-14']);
 }
 
+const REMARK_MAX = 1000;
+const UPLOAD_MAX_BYTES = 20 * 1024 * 1024; // 20 MB per file
+const UPLOAD_DIR = __DIR__ . '/../../uploads'; // above the web root, never served directly
+const UPLOAD_EXT = [
+    'pdf', 'ppt', 'pptx', 'key', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt',
+    'png', 'jpg', 'jpeg', 'gif', 'webp', 'heic', 'zip',
+];
+
+function catalog_exists(int $id): bool
+{
+    $st = db()->prepare('SELECT 1 FROM catalog WHERE id = ?');
+    $st->execute([$id]);
+    return (bool) $st->fetchColumn();
+}
+
+function handle_catalog_remark(): void
+{
+    $u = require_user();
+    $b = body();
+    $cid = (int) ($b['catalogId'] ?? 0);
+    $body = trim((string) ($b['body'] ?? ''));
+    if ($cid <= 0 || !catalog_exists($cid) || $body === '') {
+        json_out(['error' => 'bad request'], 400);
+    }
+    db()->prepare('INSERT INTO catalog_remarks (catalog_id, body, created_by, created_at) VALUES(?, ?, ?, NOW())')
+        ->execute([$cid, mb_substr($body, 0, REMARK_MAX), $u['id']]);
+    json_out(['id' => (int) db()->lastInsertId(), 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_catalog_remark_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM catalog_remarks WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+// Multipart. Stores the bytes under UPLOAD_DIR with a random name; the row keeps the
+// original filename for display and download.
+function handle_catalog_file_upload(): void
+{
+    $u = require_user();
+    $cid = (int) ($_POST['catalogId'] ?? 0);
+    if ($cid <= 0 || !catalog_exists($cid)) {
+        json_out(['error' => 'bad request'], 400);
+    }
+    $f = $_FILES['file'] ?? null;
+    if (!$f || ($f['error'] ?? UPLOAD_ERR_NO_FILE) !== UPLOAD_ERR_OK || !is_uploaded_file($f['tmp_name'])) {
+        json_out(['error' => 'no file'], 400);
+    }
+    if ((int) $f['size'] > UPLOAD_MAX_BYTES) {
+        json_out(['error' => 'file too large (max 20 MB)'], 400);
+    }
+    $orig = mb_substr((string) ($f['name'] ?? 'file'), 0, 255);
+    $ext = strtolower((string) pathinfo($orig, PATHINFO_EXTENSION));
+    if (!in_array($ext, UPLOAD_EXT, true)) {
+        json_out(['error' => 'file type not allowed'], 400);
+    }
+    if (!is_dir(UPLOAD_DIR) && !mkdir(UPLOAD_DIR, 0700, true) && !is_dir(UPLOAD_DIR)) {
+        json_out(['error' => 'server error'], 500);
+    }
+    $stored = bin2hex(random_bytes(16)) . '.' . $ext;
+    if (!move_uploaded_file($f['tmp_name'], UPLOAD_DIR . '/' . $stored)) {
+        json_out(['error' => 'server error'], 500);
+    }
+    $mime = mb_substr((string) ($f['type'] ?? 'application/octet-stream'), 0, 128);
+    db()->prepare(
+        'INSERT INTO catalog_files (catalog_id, orig_name, stored_name, mime, size_bytes, uploaded_by, created_at)
+         VALUES(?, ?, ?, ?, ?, ?, NOW())'
+    )->execute([$cid, $orig, $stored, $mime, (int) $f['size'], $u['id']]);
+    json_out(['id' => (int) db()->lastInsertId(), 'rev' => bump_rev((int) $u['id'])]);
+}
+
+// Streams a stored file back to the logged-in couple. Not JSON.
+function handle_catalog_file_download(): void
+{
+    require_user();
+    $id = (int) ($_GET['id'] ?? 0);
+    $st = db()->prepare('SELECT orig_name, stored_name, mime FROM catalog_files WHERE id = ?');
+    $st->execute([$id]);
+    $row = $st->fetch();
+    $path = $row ? UPLOAD_DIR . '/' . basename((string) $row['stored_name']) : '';
+    if (!$row || !is_file($path)) {
+        json_out(['error' => 'not found'], 404);
+    }
+    header('Content-Type: ' . ($row['mime'] ?: 'application/octet-stream'));
+    header('Content-Length: ' . (string) filesize($path));
+    header('Content-Disposition: attachment; filename="' . str_replace('"', '', (string) $row['orig_name']) . '"');
+    header('X-Content-Type-Options: nosniff');
+    readfile($path);
+    exit;
+}
+
+function handle_catalog_file_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    $st = db()->prepare('SELECT stored_name FROM catalog_files WHERE id = ?');
+    $st->execute([$id]);
+    $stored = $st->fetchColumn();
+    if ($stored) {
+        @unlink(UPLOAD_DIR . '/' . basename((string) $stored));
+    }
+    db()->prepare('DELETE FROM catalog_files WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
 const PASS_CAP = 200;
 
 // Pull a bare token out of whatever the door scanner decoded: a full pass.html
@@ -489,6 +596,21 @@ function handle_check_item_delete(): void
     $id = (int) (body()['id'] ?? 0);
     db()->prepare('DELETE FROM check_items WHERE id = ?')->execute([$id]);
     db()->prepare('DELETE FROM checks WHERE item_key = ?')->execute(["ci-{$id}"]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_check_override(): void
+{
+    $u = require_user();
+    $b = body();
+    $key = trim((string) ($b['key'] ?? ''));
+    if ($key === '') {
+        json_out(['error' => 'missing key'], 400);
+    }
+    db()->prepare(
+        'INSERT INTO check_overrides(item_key, text, updated_by, updated_at) VALUES(?, ?, ?, NOW())
+         ON DUPLICATE KEY UPDATE text = VALUES(text), updated_by = VALUES(updated_by), updated_at = NOW()'
+    )->execute([$key, mb_substr((string) ($b['text'] ?? ''), 0, 500), $u['id']]);
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 

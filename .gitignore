@@ -15,3 +15,6 @@ node_modules/
 
 # server-side DB credentials (never commit)
 .db-secret.php
+
+# uploaded vendor files (quotes, decks); live above the web root, never committed
+uploads/
