@@ -207,6 +207,32 @@ function handle_state(): void
         ], $r, $users, 'updated_by');
     }
 
+    // "Who owns what" lanes. Tolerate the tables not yet existing (schema.sql not
+    // reloaded after this feature deployed) so the planner stays up meanwhile.
+    $lanes = [];
+    try {
+        $itemsByLane = [];
+        foreach ($pdo->query('SELECT * FROM lane_items ORDER BY sort, id') as $r) {
+            $itemsByLane[(int) $r['lane_id']][] = with_attr([
+                'id' => (int) $r['id'],
+                'label' => $r['label'],
+                'done' => (bool) $r['done'],
+            ], $r, $users, 'updated_by');
+        }
+        foreach ($pdo->query('SELECT * FROM lanes ORDER BY sort, id') as $r) {
+            $lid = (int) $r['id'];
+            $lanes[] = with_attr([
+                'id' => $lid,
+                'title' => $r['title'],
+                'note' => $r['note'],
+                'tag' => $r['tag'],
+                'items' => $itemsByLane[$lid] ?? [],
+            ], $r, $users, 'updated_by');
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] lanes tables missing; run schema.sql');
+    }
+
     $rsvpsByInvite = [];
     foreach ($pdo->query('SELECT * FROM rsvps ORDER BY id DESC') as $r) {
         $rsvpsByInvite[(int) $r['invite_id']][] = [
@@ -272,6 +298,7 @@ function handle_state(): void
         'notes' => $notes,
         'dates' => $dates,
         'bundles' => $bundles,
+        'lanes' => $lanes,
         'invites' => $invites,
         'budgetMin' => 1000,
         'budgetMax' => 1200,

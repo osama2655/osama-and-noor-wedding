@@ -2,7 +2,8 @@ import { api } from './api.js'
 import { googleMap, instagramCard } from './embeds.js'
 import { isSaved, toggleSave } from './saves.js'
 import { bumpRev, meId, store } from './store.js'
-import { escapeAttr, escapeHtml } from './util.js'
+import { confirmDelete, undoToast } from './ui.js'
+import { debounce, escapeAttr, escapeHtml } from './util.js'
 
 let current = null
 
@@ -56,6 +57,45 @@ function chips(item) {
   }
   return c.join('')
 }
+
+const editRow = (label, field, value, ph = '') =>
+  `<label class="dw-edit-row"><span>${label}</span><input data-f="${field}" value="${escapeAttr(value ?? '')}" placeholder="${ph}"></label>`
+
+// Editable core identity of a listing. Toggles (featured / segregated) sit below;
+// femaleCrew keeps its own dedicated button in dw-actions.
+function editHTML(row) {
+  const isVenue = row.category === 'venue'
+  const toggle = (field, label) =>
+    `<button class="dw-status ${row[field] ? 'on' : ''}" data-toggle="${field}">${label}</button>`
+  return `<div class="dw-section">
+      <div class="dw-section-h">Details</div>
+      <div class="dw-edit">
+        ${editRow('Name', 'name', row.name, 'e.g. Studio Classic')}
+        ${editRow('Instagram', 'instagram', row.instagram, '@handle')}
+        ${editRow('Phone', 'phone', row.phone, '+973 ...')}
+        ${editRow('Area', 'area', row.area, 'e.g. Dumistan')}
+        ${isVenue ? editRow('Capacity', 'capacity', row.capacity, 'guests') : ''}
+        ${isVenue ? editRow('Maps query', 'mapsQuery', row.mapsQuery, 'name or address') : ''}
+        <label class="dw-edit-row col"><span>Note</span><textarea data-f="note" rows="2" placeholder="Short description">${escapeHtml(row.note || '')}</textarea></label>
+        ${editRow('Verify', 'verify', row.verify, 'What still needs confirming')}
+      </div>
+      <div class="dw-statusrow" style="margin-top:10px">
+        ${toggle('featured', 'Start here')}
+        ${isVenue ? toggle('segregated', 'Segregated layout') : ''}
+      </div>
+    </div>`
+}
+
+// Debounced write-back of the whole listing while the couple type.
+const pushCatalog = debounce(async (id) => {
+  const row = liveRow(id)
+  if (!row) return
+  try {
+    bumpRev(await api.catalog({ ...row }))
+  } catch (_) {
+    /* next poll reconciles */
+  }
+}, 500)
 
 function statusHTML(row) {
   const active = row.status || 'todo'
@@ -145,9 +185,13 @@ function drawerHTML(item) {
           ${showMap ? `<a class="dw-btn ghost" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.mapsQuery)}" target="_blank" rel="noopener">Directions</a>` : ''}
           ${item.category === 'photo' ? `<button class="dw-btn ${item.femaleCrew ? 'ghost' : ''}" data-female>${item.femaleCrew ? 'Female crew confirmed' : 'Mark female crew confirmed'}</button>` : ''}
         </div>
+        ${editHTML(row)}
         ${statusHTML(row)}
         ${remarksHTML(row)}
         ${filesHTML(row)}
+        <div class="dw-section">
+          <button class="dw-btn danger sm" data-delete>Delete this listing</button>
+        </div>
       </div>
     </aside>`
 }
@@ -176,9 +220,73 @@ export function openDrawer(item, onChange) {
     markFemaleConfirmed(item, onChange)
   })
 
+  wireEdit(root, item, onChange)
   wireStatus(root, item, onChange)
   wireRemarks(root, item, onChange)
   wireFiles(root, item, onChange)
+}
+
+function wireEdit(root, item, onChange) {
+  root.querySelectorAll('[data-f]').forEach((inp) =>
+    inp.addEventListener('input', (e) => {
+      const f = e.target.dataset.f
+      const val = e.target.value
+      const row = liveRow(item.id)
+      if (row) {
+        row[f] = val
+        row.by = 'You'
+        row.byId = meId()
+      }
+      item[f] = val
+      pushCatalog(item.id)
+      // Keep the grid card label in step while typing the name.
+      if (f === 'name') onChange?.()
+    }),
+  )
+
+  root.querySelectorAll('[data-toggle]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const f = b.dataset.toggle
+      const next = !item[f]
+      const row = liveRow(item.id)
+      if (row) row[f] = next
+      item[f] = next
+      openDrawer(item, onChange)
+      onChange?.()
+      try {
+        bumpRev(await api.catalog({ ...item, [f]: next }))
+      } catch (_) {
+        /* next poll reconciles */
+      }
+    }),
+  )
+
+  root.querySelector('[data-delete]')?.addEventListener('click', async () => {
+    if (!(await confirmDelete('this listing'))) return
+    const snap = { ...(liveRow(item.id) || item) }
+    store.data.catalog = (store.data.catalog || []).filter(
+      (c) => c.id !== item.id,
+    )
+    closeDrawer()
+    onChange?.()
+    undoToast('Listing deleted', async () => {
+      const { id, remarks, files, by, byId, at, ...fields } = snap
+      const r = await api.catalog(fields)
+      bumpRev(r)
+      ;(store.data.catalog || (store.data.catalog = [])).push({
+        ...fields,
+        id: r.id,
+        remarks: [],
+        files: [],
+      })
+      onChange?.()
+    })
+    try {
+      bumpRev(await api.catalogDelete(item.id))
+    } catch (_) {
+      /* next poll reconciles */
+    }
+  })
 }
 
 function wireStatus(root, item, onChange) {
