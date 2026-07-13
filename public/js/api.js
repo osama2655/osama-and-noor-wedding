@@ -32,6 +32,7 @@ export const api = {
   checkItemDelete: (id) => req('check_item_delete', 'POST', { id }),
   hideCheck: (key, hidden) => req('hide_check', 'POST', { key, hidden }),
   checkOverride: (key, text) => req('check_override', 'POST', { key, text }),
+  checkOverrideDelete: (key) => req('check_override_delete', 'POST', { key }),
   fact: (f) => req('fact', 'POST', f),
   factDelete: (id) => req('fact_delete', 'POST', { id }),
   openItem: (o) => req('open_item', 'POST', o),
@@ -47,6 +48,8 @@ export const api = {
   catalogRemark: (catalogId, body) =>
     req('catalog_remark', 'POST', { catalogId, body }),
   catalogRemarkDelete: (id) => req('catalog_remark_delete', 'POST', { id }),
+  catalogRemarkUpdate: (id, body) =>
+    req('catalog_remark_update', 'POST', { id, body }),
   catalogFileDelete: (id) => req('catalog_file_delete', 'POST', { id }),
   catalogFileUrl: (id) =>
     `${BASE}?action=catalog_file&id=${encodeURIComponent(id)}`,
@@ -86,9 +89,14 @@ export const api = {
   laneItemDelete: (id) => req('lane_item_delete', 'POST', { id }),
   invite: (i) => req('invite', 'POST', i),
   inviteDelete: (id) => req('invite_delete', 'POST', { id }),
+  rsvpUpdate: (r) => req('rsvp_update', 'POST', r),
+  rsvpDelete: (id) => req('rsvp_delete', 'POST', { id }),
+  rsvpAdd: (r) => req('rsvp_add', 'POST', r),
   passesGenerate: (count) => req('passes_generate', 'POST', { count }),
   pass: (p) => req('pass', 'POST', p),
   passDelete: (id) => req('pass_delete', 'POST', { id }),
   passRedeem: (token) => req('pass_redeem', 'POST', { token }),
+  passAdd: (label) => req('pass_add', 'POST', { label }),
+  passUnredeem: (id) => req('pass_unredeem', 'POST', { id }),
   setting: (k, v) => req('setting', 'POST', { k, v }),
 }
