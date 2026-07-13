@@ -2,7 +2,13 @@ import { api } from './api.js'
 import { OWNERS } from './content.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, undoToast } from './ui.js'
-import { debounce, escapeAttr, escapeHtml } from './util.js'
+import {
+  debounce,
+  escapeAttr,
+  escapeHtml,
+  reorderBtns,
+  reorderBySort,
+} from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
 const ownerClass = (o) =>
@@ -34,6 +40,7 @@ function factRow(f) {
   return `<div class="fact" data-id="${f.id}">
       <input class="fact-k" data-f="label" value="${escapeAttr(f.label)}" placeholder="Label">
       <textarea class="fact-v" data-f="value" rows="1" placeholder="Value">${escapeHtml(f.value || '')}</textarea>
+      ${reorderBtns(f.id)}
       <button class="row-x" data-delf="${f.id}" title="Delete">&times;</button>
     </div>`
 }
@@ -43,6 +50,7 @@ function openRow(o) {
       <select class="open-owner t-${ownerClass(o.owner)}" data-f="owner">${OWNER_KEYS.map((k) => `<option value="${k}" ${o.owner === k ? 'selected' : ''}>${OWNERS[k]}</option>`).join('')}</select>
       <input class="open-title" data-f="title" value="${escapeAttr(o.title)}" placeholder="Title">
       <input class="open-detail" data-f="detail" value="${escapeAttr(o.detail)}" placeholder="Detail">
+      ${reorderBtns(o.id)}
       <button class="row-x" data-delo="${o.id}" title="Delete">&times;</button>
     </div>`
 }
@@ -199,6 +207,28 @@ function wire(el) {
       } catch (_) {
         /* next poll reconciles */
       }
+    }),
+  )
+
+  el.querySelectorAll('.fact .reord').forEach((b) =>
+    b.addEventListener('click', () => {
+      const dir = b.dataset.up != null ? -1 : 1
+      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
+      const ok = reorderBySort(facts(), id, dir, (f) =>
+        api.fact(f).then(bumpRev).catch(() => {}),
+      )
+      if (ok) renderFacts()
+    }),
+  )
+
+  el.querySelectorAll('.open-item .reord').forEach((b) =>
+    b.addEventListener('click', () => {
+      const dir = b.dataset.up != null ? -1 : 1
+      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
+      const ok = reorderBySort(opens(), id, dir, (o) =>
+        api.openItem(o).then(bumpRev).catch(() => {}),
+      )
+      if (ok) renderFacts()
     }),
   )
 }

@@ -1,7 +1,14 @@
 import { api } from './api.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, undoToast } from './ui.js'
-import { byTag, debounce, escapeAttr, fmt } from './util.js'
+import {
+  byTag,
+  debounce,
+  escapeAttr,
+  fmt,
+  reorderBtns,
+  reorderBySort,
+} from './util.js'
 
 const bundles = () => store.data.bundles || (store.data.bundles = [])
 const findB = (id) => bundles().find((b) => String(b.id) === String(id))
@@ -91,6 +98,7 @@ function itemRow(it) {
   return `<div class="bi-row" data-id="${it.id}">
       <input class="bi-label" data-f="label" value="${escapeAttr(it.label)}" placeholder="Item, e.g. Venue">
       <input class="bi-cost" data-f="cost" inputmode="decimal" value="${escapeAttr(it.cost)}" placeholder="0">
+      ${reorderBtns(it.id)}
       <button class="del" data-del="${it.id}" title="Remove">&times;</button>
     </div>`
 }
@@ -296,6 +304,23 @@ function wire(el) {
       } catch (_) {
         /* next poll reconciles */
       }
+    }),
+  )
+
+  el.querySelectorAll('.bi-row .reord').forEach((b) =>
+    b.addEventListener('click', () => {
+      const bid = b.closest('.bundle').dataset.id
+      const bb = findB(bid)
+      if (!bb) return
+      const dir = b.dataset.up != null ? -1 : 1
+      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
+      const ok = reorderBySort(bb.items || (bb.items = []), id, dir, (it) =>
+        api
+          .bundleItem({ ...it, bundleId: Number(bid) })
+          .then(bumpRev)
+          .catch(() => {}),
+      )
+      if (ok) renderBoards()
     }),
   )
 }

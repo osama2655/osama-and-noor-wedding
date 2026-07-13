@@ -4,7 +4,13 @@ import { renderDash, renderOverall } from './dashboard.js'
 import { weekStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, undoToast } from './ui.js'
-import { byTag, debounce, escapeAttr, escapeHtml } from './util.js'
+import {
+  byTag,
+  debounce,
+  escapeAttr,
+  escapeHtml,
+  reorderBtns,
+} from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
 const ownerLabel = (o) => OWNERS[o] || ''
@@ -87,6 +93,7 @@ function customRow(w, c) {
         <select class="ci-owner" data-f="owner">${OWNER_KEYS.map((o) => `<option value="${o}" ${c.owner === o ? 'selected' : ''}>${OWNERS[o]}</option>`).join('')}</select>
         ${who}
       </span>
+      ${reorderBtns(c.id)}
       <button class="row-x" data-delci="${c.id}" title="Delete this row">&times;</button></li>`
 }
 
@@ -266,6 +273,39 @@ function wire(el) {
       it.byId = meId()
       it.at = new Date().toISOString()
       pushItem(id)
+    }),
+  )
+
+  // Reorder custom items within their phase (built-in rows keep the plan's order).
+  el.querySelectorAll('.ci .reord').forEach((b) =>
+    b.addEventListener('click', () => {
+      const id = Number(b.dataset.up != null ? b.dataset.up : b.dataset.down)
+      const dir = b.dataset.up != null ? -1 : 1
+      const items = store.data.checkItems || []
+      const it = items.find((c) => c.id === id)
+      if (!it) return
+      const sibs = items.filter((c) => c.phase === it.phase)
+      const pos = sibs.findIndex((c) => c.id === id)
+      const j = pos + dir
+      if (j < 0 || j >= sibs.length) return
+      sibs.splice(pos, 1)
+      sibs.splice(j, 0, it)
+      sibs.forEach((c, idx) => {
+        const s = idx + 1
+        if (c.sort !== s) {
+          c.sort = s
+          api
+            .checkItem(c)
+            .then(bumpRev)
+            .catch(() => {})
+        }
+      })
+      items.sort(
+        (a, cc) =>
+          String(a.phase).localeCompare(String(cc.phase)) ||
+          (a.sort || 0) - (cc.sort || 0),
+      )
+      refresh()
     }),
   )
 }

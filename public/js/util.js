@@ -49,3 +49,38 @@ export function byTag(entry, meId) {
     : ''
   return `<span class="by ${mine ? 'me' : 'them'}"><span class="dot"></span>${escapeHtml(who)}${when}</span>`
 }
+
+// Move item `id` one step (`dir` -1 up / +1 down) within `list`, renumber the `sort` field
+// sequentially, and call persist(item) for each item whose sort changed. Returns true if moved.
+export function reorderBySort(list, id, dir, persist) {
+  const i = list.findIndex((x) => String(x.id) === String(id))
+  const j = i + dir
+  if (i < 0 || j < 0 || j >= list.length) return false
+  const [moved] = list.splice(i, 1)
+  list.splice(j, 0, moved)
+  list.forEach((x, idx) => {
+    const s = idx + 1
+    if (x.sort !== s) {
+      x.sort = s
+      persist(x)
+    }
+  })
+  return true
+}
+
+// Up/down move controls for a reorderable row.
+export const reorderBtns = (id) =>
+  `<span class="reorder"><button class="reord" type="button" data-up="${id}" title="Move up" aria-label="Move up">&#9650;</button><button class="reord" type="button" data-down="${id}" title="Move down" aria-label="Move down">&#9660;</button></span>`
+
+// Wire the up/down controls inside `root`. getList(button) returns the array the row lives in;
+// persist(item) saves one item; rerender() repaints after the move.
+export function wireReorder(root, getList, persist, rerender) {
+  root.querySelectorAll('.reord').forEach((b) =>
+    b.addEventListener('click', () => {
+      const dir = b.dataset.up != null ? -1 : 1
+      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
+      const list = getList(b)
+      if (list && reorderBySort(list, id, dir, persist)) rerender()
+    }),
+  )
+}

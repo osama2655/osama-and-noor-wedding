@@ -2,7 +2,13 @@ import { api } from './api.js'
 import { OWNERS } from './content.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, undoToast } from './ui.js'
-import { debounce, escapeAttr, escapeHtml } from './util.js'
+import {
+  debounce,
+  escapeAttr,
+  escapeHtml,
+  reorderBtns,
+  reorderBySort,
+} from './util.js'
 
 const TAG_KEYS = ['you', 'men', 'her', 'hall']
 const lanes = () => store.data.lanes || (store.data.lanes = [])
@@ -36,6 +42,7 @@ function itemRow(it) {
   return `<li class="li-row ${it.done ? 'done' : ''}" data-id="${it.id}">
       <input type="checkbox" class="cbx" data-done ${it.done ? 'checked' : ''}>
       <input class="li-label" data-f="label" value="${escapeAttr(it.label)}" placeholder="Add a task">
+      ${reorderBtns(it.id)}
       <button class="del" data-del="${it.id}" title="Remove">&times;</button>
     </li>`
 }
@@ -234,6 +241,23 @@ function wire(el) {
       } catch (_) {
         /* next poll reconciles */
       }
+    }),
+  )
+
+  el.querySelectorAll('.li-row .reord').forEach((b) =>
+    b.addEventListener('click', () => {
+      const lid = b.closest('.lane').dataset.id
+      const l = findL(lid)
+      if (!l) return
+      const dir = b.dataset.up != null ? -1 : 1
+      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
+      const ok = reorderBySort(l.items || (l.items = []), id, dir, (it) =>
+        api
+          .laneItem({ ...it, laneId: Number(lid) })
+          .then(bumpRev)
+          .catch(() => {}),
+      )
+      if (ok) renderLanes()
     }),
   )
 }

@@ -2,7 +2,13 @@ import { api } from './api.js'
 import { WED_DEFAULT } from './content.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, undoToast } from './ui.js'
-import { byTag, debounce, escapeAttr } from './util.js'
+import {
+  byTag,
+  debounce,
+  escapeAttr,
+  reorderBtns,
+  reorderBySort,
+} from './util.js'
 
 const dates = () => store.data.dates || (store.data.dates = [])
 const find = (id) => dates().find((d) => String(d.id) === String(id))
@@ -52,6 +58,7 @@ function dateRow(d) {
       <div class="dt-side">
         ${cd ? `<span class="dt-count">${cd}</span>` : ''}
         ${byTag(d, meId())}
+        ${reorderBtns(d.id)}
         <button class="del" data-del="${d.id}" title="Delete">&times;</button>
       </div>
     </div>`
@@ -133,6 +140,20 @@ export function renderDates() {
       } catch (_) {
         /* next poll reconciles */
       }
+    }),
+  )
+
+  el.querySelectorAll('.dt-row .reord').forEach((b) =>
+    b.addEventListener('click', () => {
+      const dir = b.dataset.up != null ? -1 : 1
+      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
+      const ok = reorderBySort(dates(), id, dir, (d) =>
+        api
+          .importantDate(d)
+          .then(bumpRev)
+          .catch(() => {}),
+      )
+      if (ok) renderDates()
     }),
   )
 }

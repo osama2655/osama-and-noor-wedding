@@ -24,3 +24,11 @@
 .toast-close { background: none; border: none; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; opacity: .65; }
 .toast-close:hover { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .modal, .toast { animation: none; } }
+
+/* Up/down reorder controls on list rows */
+.reorder { display: inline-flex; flex-direction: column; gap: 1px; flex: 0 0 auto; }
+.reord { background: none; border: 1px solid var(--line); color: var(--muted); cursor: pointer; line-height: 1; font-size: 8px; padding: 3px 6px; border-radius: 5px; transition: color var(--dur-1) var(--ease), border-color var(--dur-1) var(--ease); }
+.reord:first-child { border-radius: 6px 6px 2px 2px; }
+.reord:last-child { border-radius: 2px 2px 6px 6px; }
+.reord:hover { color: var(--gold); border-color: var(--line2); }
+.reord:focus-visible { outline: 2px solid var(--ring); outline-offset: 1px; }
