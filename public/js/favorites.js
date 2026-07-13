@@ -1,3 +1,4 @@
+import { CATEGORY_LABELS } from './catalog.js'
 import { openDrawer } from './drawer.js'
 import { saveKey } from './saves.js'
 import { meId, store } from './store.js'
@@ -6,8 +7,7 @@ import { byTag, escapeHtml } from './util.js'
 function savedCard(item) {
   const p = store.data.picks[saveKey(item)]
   const who = p ? byTag(p, meId()) : ''
-  const meta =
-    item.category === 'venue' ? item.area || 'Venue' : 'Photo and video'
+  const meta = CATEGORY_LABELS[item.category] || CATEGORY_LABELS.other
   return `<div class="cat-card" data-id="${item.id}">
       <div class="cat-name">${escapeHtml(item.name)}</div>
       <div class="cat-meta">${escapeHtml(meta)}</div>

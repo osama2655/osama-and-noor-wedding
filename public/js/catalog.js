@@ -5,8 +5,29 @@ import { isSaved, toggleSave } from './saves.js'
 import { bumpRev, meId, store } from './store.js'
 import { escapeHtml } from './util.js'
 
+// Keys are the category strings stored on catalog rows; shared with the saved screen.
+export const CATEGORY_LABELS = {
+  venue: 'Venue',
+  photo: 'Photo & Video',
+  hmua: 'HMUA',
+  henna: 'Henna',
+  cake: 'Cake',
+  caterer: 'Caterer',
+  transport: 'Transport',
+  car: 'Wedding car',
+  other: 'Other',
+}
+
+const CATEGORY_ORDER = Object.keys(CATEGORY_LABELS)
+
+// Module-level so the chosen filter survives the re-renders background sync triggers.
+let activeCat = 'all'
+
 const items = (cat) =>
   (store.data.catalog || []).filter((c) => c.category === cat)
+
+const byId = (id) =>
+  (store.data.catalog || []).find((c) => String(c.id) === String(id))
 
 // Create a blank listing and open the drawer to fill it in. Backend handle_catalog
 // inserts when there is no id; the drawer edits the core fields from there.
@@ -78,22 +99,20 @@ function card(item) {
     </div>`
 }
 
-function grid(cat, host, rerender) {
-  if (!host) return
-  const list = items(cat)
-  host.innerHTML =
-    list.map(card).join('') || '<div class="empty">Nothing here yet.</div>'
+// Resolve each card by id against the whole catalog, so one wiring pass serves
+// both the single-category grid and the grouped "All" view.
+function wireCards(host, rerender) {
   host.querySelectorAll('.cat-card').forEach((el) =>
     el.addEventListener('click', (e) => {
       if (e.target.closest('[data-star]')) return
-      const item = items(cat).find((c) => String(c.id) === el.dataset.id)
+      const item = byId(el.dataset.id)
       if (item) openDrawer(item, rerender)
     }),
   )
   host.querySelectorAll('[data-star]').forEach((b) =>
     b.addEventListener('click', async (e) => {
       e.stopPropagation()
-      const item = items(cat).find((c) => String(c.id) === b.dataset.star)
+      const item = byId(b.dataset.star)
       if (!item) return
       const picked = await toggleSave(item)
       b.classList.toggle('on', picked)
@@ -102,38 +121,81 @@ function grid(cat, host, rerender) {
   )
 }
 
-export function renderVenues() {
-  const el = document.getElementById('tab-venues')
-  if (!el) return
-  el.innerHTML = `
-    <div class="card">
-      <h2>Venues</h2>
-      <p class="hint">Tap a hall to see it on the map, call, and get directions. Star to save it together.</p>
-      <div class="toolbar" style="margin-top:14px"><button class="btn sm" id="addVenue">+ Add venue</button></div>
-      <div class="cat-grid" id="venues-grid"></div>
-    </div>
-    <div class="card">
-      <h2>Ask every hall</h2>
-      <ol class="ask-list">${ASK_EVERY_HALL.map((q) => `<li>${escapeHtml(q)}</li>`).join('')}</ol>
+function chipsHTML() {
+  const chip = (cat, label) =>
+    `<button class="cat-chip ${activeCat === cat ? 'on' : ''}" data-cat="${cat}">${escapeHtml(label)}</button>`
+  return `<div class="cat-chips">
+      ${chip('all', 'All')}
+      ${CATEGORY_ORDER.map((c) => chip(c, CATEGORY_LABELS[c])).join('')}
     </div>`
-  grid('venue', el.querySelector('#venues-grid'), renderVenues)
-  el.querySelector('#addVenue')?.addEventListener('click', () =>
-    addListing('venue', renderVenues),
-  )
 }
 
-export function renderPhotoVideo() {
-  const el = document.getElementById('tab-photo')
+// On "All" the add target is ambiguous, so pick it explicitly; a specific chip
+// makes the button self-explanatory.
+function addControlHTML() {
+  if (activeCat === 'all') {
+    const opts = CATEGORY_ORDER.map(
+      (c) => `<option value="${c}">${escapeHtml(CATEGORY_LABELS[c])}</option>`,
+    ).join('')
+    return `<div class="toolbar" style="margin-top:14px">
+      <select class="cat-add-cat" id="shortlistAddCat" aria-label="Category for the new listing">${opts}</select>
+      <button class="btn sm" id="shortlistAdd">+ Add</button>
+    </div>`
+  }
+  return `<div class="toolbar" style="margin-top:14px">
+      <button class="btn sm" id="shortlistAdd">+ Add ${escapeHtml(CATEGORY_LABELS[activeCat])}</button>
+    </div>`
+}
+
+function groupHTML(cat) {
+  const list = items(cat)
+  if (!list.length) return ''
+  return `<h3 class="cat-group-h">${escapeHtml(CATEGORY_LABELS[cat])}</h3>
+      <div class="cat-grid">${list.map(card).join('')}</div>`
+}
+
+function bodyHTML() {
+  if (activeCat === 'all') {
+    const groups = CATEGORY_ORDER.map(groupHTML).filter(Boolean).join('')
+    return (
+      groups ||
+      '<div class="empty">Nothing shortlisted yet. Pick a category and add your first option.</div>'
+    )
+  }
+  const list = items(activeCat)
+  return list.length
+    ? `<div class="cat-grid">${list.map(card).join('')}</div>`
+    : '<div class="empty">Nothing here yet. Tap + Add to start this shortlist.</div>'
+}
+
+export function renderShortlist() {
+  const el = document.getElementById('tab-shortlist')
   if (!el) return
+  const showAsk = activeCat === 'all' || activeCat === 'venue'
+  const showPhotoReq = activeCat === 'photo'
   el.innerHTML = `
     <div class="card">
-      <h2>Photo and video</h2>
-      <div class="dw-verify" style="margin:0 0 14px"><b>Hard requirement</b> ${escapeHtml(PHOTOVIDEO.requirement)}</div>
-      <div class="toolbar" style="margin-bottom:14px"><button class="btn sm" id="addPhoto">+ Add photographer</button></div>
-      <div class="cat-grid" id="photo-grid"></div>
-    </div>`
-  grid('photo', el.querySelector('#photo-grid'), renderPhotoVideo)
-  el.querySelector('#addPhoto')?.addEventListener('click', () =>
-    addListing('photo', renderPhotoVideo),
+      <h2>Shortlist</h2>
+      <p class="hint">Every option you and Noor are weighing, in one place. Filter by category, star to save it together, tap to open.</p>
+      ${chipsHTML()}
+      ${showPhotoReq ? `<div class="dw-verify" style="margin:14px 0 0"><b>Hard requirement</b> ${escapeHtml(PHOTOVIDEO.requirement)}</div>` : ''}
+      ${addControlHTML()}
+      ${bodyHTML()}
+    </div>
+    ${showAsk ? `<div class="card"><h2>Ask every hall</h2><ol class="ask-list">${ASK_EVERY_HALL.map((q) => `<li>${escapeHtml(q)}</li>`).join('')}</ol></div>` : ''}`
+
+  el.querySelectorAll('[data-cat]').forEach((b) =>
+    b.addEventListener('click', () => {
+      activeCat = b.dataset.cat
+      renderShortlist()
+    }),
   )
+  el.querySelector('#shortlistAdd')?.addEventListener('click', () => {
+    const chosen =
+      activeCat === 'all'
+        ? el.querySelector('#shortlistAddCat')?.value || 'venue'
+        : activeCat
+    addListing(chosen, renderShortlist)
+  })
+  wireCards(el, renderShortlist)
 }
