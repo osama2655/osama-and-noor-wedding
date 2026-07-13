@@ -11,12 +11,12 @@
 .add-item { margin-bottom: 12px; }
 .bd-forecast { margin-top: 8px; }
 .bd-bar { height: 10px; border-radius: 999px; background: var(--bg2); border: 1px solid var(--line); overflow: hidden; }
-.bd-bar > span { display: block; height: 100%; border-radius: 999px; transition: width .4s ease; }
+.bd-bar > span { display: block; height: 100%; border-radius: 999px; transition: width var(--dur-4) var(--ease); }
 .bd-bar.ok > span { background: linear-gradient(90deg, var(--emerald2), var(--emerald)); }
 .bd-bar.room > span { background: linear-gradient(90deg, var(--gold2), var(--gold)); }
 .bd-bar.over > span { background: linear-gradient(90deg, #c0432f, var(--red)); }
 .bd-line { display: flex; justify-content: space-between; align-items: baseline; margin-top: 6px; }
-.bd-total { font-size: 16px; font-weight: 800; color: var(--txt); }
+.bd-total { font-size: 16px; font-weight: 800; color: var(--txt); font-variant-numeric: tabular-nums; }
 .bd-status { font-size: 12px; font-weight: 700; }
 .bd-status.ok { color: var(--emerald); }
 .bd-status.room { color: var(--gold); }

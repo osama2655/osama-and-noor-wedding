@@ -2,9 +2,10 @@
 table{border-collapse:collapse;width:100%;min-width:720px;font-size:13px}
 th,td{padding:9px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
 th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
-td input,td select{width:100%;background:transparent;border:1px solid transparent;color:var(--txt);
-  border-radius:7px;padding:5px 6px;font:inherit;font-size:13px}
-td input:focus,td select:focus{border-color:var(--line2);background:var(--card2);outline:none}
+td input,td select{width:100%;background:transparent;border:1px solid var(--field-rest);color:var(--txt);
+  border-radius:var(--r-1);padding:5px 6px;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;
+  transition:border-color var(--dur-1) var(--ease),background var(--dur-1) var(--ease)}
+td input:focus,td select:focus{border-color:var(--gold);background:var(--card2);outline:none}
 td select option{background:var(--card)}
 .status-pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;display:inline-block}
 .s-todo{background:rgba(138,123,100,.18);color:var(--faint)}

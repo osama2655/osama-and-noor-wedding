@@ -7,13 +7,13 @@ ul.checks li:last-child{border-bottom:none}
 .cbx:checked::after{content:"✓";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   color:#0b130e;font-size:14px;font-weight:900}
 .cbx.gold:checked{background:var(--gold);border-color:var(--gold)}
-.cbx.gold:checked::after{color:#1a1206}
+.cbx.gold:checked::after{color:var(--on-primary)}
 ul.checks li .txt{flex:1;font-size:14.5px}
 ul.checks li.done .txt{color:var(--faint);text-decoration:line-through}
 
-/* Built-in rows are editable: the field reads like text until focused. */
-.co-text{display:block;width:100%;background:transparent;border:none;border-radius:6px;color:var(--txt);font:inherit;font-size:14.5px;line-height:1.5;padding:2px 5px;margin:-2px -5px 2px;resize:none;overflow:hidden}
-.co-text:focus{outline:none;background:var(--card2)}
+.co-text{display:block;width:100%;background:transparent;border:1px solid var(--field-rest);border-radius:var(--r-1);color:var(--txt);font:inherit;font-size:14.5px;line-height:1.5;padding:2px 5px;margin:-2px -6px 2px;resize:none;overflow:hidden;
+  transition:border-color var(--dur-1) var(--ease),background var(--dur-1) var(--ease)}
+.co-text:focus{outline:none;border-color:var(--gold);background:var(--card2)}
 ul.checks li.done .co-text{color:var(--faint);text-decoration:line-through}
 
 .owner-tag{font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;

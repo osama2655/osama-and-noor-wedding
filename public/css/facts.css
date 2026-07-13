@@ -1,10 +1,10 @@
 .facts { display: flex; flex-direction: column; gap: 2px; }
 .fact { display: grid; grid-template-columns: 130px 1fr auto; gap: 8px; align-items: start; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .fact:last-child { border-bottom: none; }
-.fact-k { background: transparent; border: 1px solid transparent; color: var(--gold); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 7px 6px; border-radius: 8px; font-family: inherit; }
-.fact-k:focus { border-color: var(--line2); background: var(--card2); outline: none; }
-.fact-v { background: transparent; border: 1px solid transparent; color: var(--txt); font-size: 14.5px; padding: 7px 6px; border-radius: 8px; font-family: inherit; resize: vertical; min-height: 36px; line-height: 1.45; }
-.fact-v:focus { border-color: var(--line2); background: var(--card2); outline: none; }
+.fact-k { background: transparent; border: 1px solid var(--field-rest); color: var(--gold); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 7px 6px; border-radius: var(--r-1); font-family: inherit; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
+.fact-k:focus { border-color: var(--gold); background: var(--card2); outline: none; }
+.fact-v { background: transparent; border: 1px solid var(--field-rest); color: var(--txt); font-size: 14.5px; padding: 7px 6px; border-radius: var(--r-1); font-family: inherit; resize: vertical; min-height: 36px; line-height: 1.45; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
+.fact-v:focus { border-color: var(--gold); background: var(--card2); outline: none; }
 @media (max-width: 560px) {
   .fact { grid-template-columns: 1fr auto; gap: 3px; }
   .fact-k { grid-column: 1; }

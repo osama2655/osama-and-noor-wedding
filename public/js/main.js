@@ -18,6 +18,7 @@ import { bumpRev, setData, store } from './store.js'
 import { startSync } from './sync.js'
 import { hydrateTheme, initTheme } from './theme.js'
 import { renderThemes } from './themes.js'
+import { promptDialog } from './ui.js'
 import { initVendorControls, renderVendors } from './vendors.js'
 
 function renderWhoami() {
@@ -101,7 +102,12 @@ function initTabs() {
 function initDateEdit() {
   document.addEventListener('click', async (e) => {
     if (e.target.id !== 'editDate') return
-    const v = prompt('Wedding date (YYYY-MM-DD):', store.data.wedDate)
+    const v = await promptDialog({
+      title: 'Wedding day',
+      label: 'Pick the date',
+      value: store.data.wedDate,
+      inputType: 'date',
+    })
     if (v && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
       store.data.wedDate = v
       renderCountdown()
@@ -129,6 +135,21 @@ function initExport() {
   })
 }
 
+// The boot splash covers first paint; drop it once the app or login is on screen.
+function hideBoot() {
+  const b = document.getElementById('boot')
+  if (!b || b.dataset.hiding) return
+  b.dataset.hiding = '1'
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    b.remove()
+    return
+  }
+  b.classList.add('boot-hide')
+  const done = () => b.remove()
+  b.addEventListener('transitionend', done, { once: true })
+  setTimeout(done, 500)
+}
+
 async function boot() {
   try {
     const data = await api.state()
@@ -151,6 +172,8 @@ async function boot() {
       tick.textContent = '⚠ offline'
       tick.closest('.savebar').classList.add('err')
     }
+  } finally {
+    hideBoot()
   }
 }
 

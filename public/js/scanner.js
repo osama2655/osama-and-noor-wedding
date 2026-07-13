@@ -1,3 +1,5 @@
+import { toast } from './ui.js'
+
 // The scanner lib is heavy, so load it only when the couple actually scans.
 function loadLib() {
   return new Promise((resolve, reject) => {
@@ -10,7 +12,7 @@ function loadLib() {
   })
 }
 
-// onDecode(text, stop) — when given, it owns what happens on a scan (the door
+// onDecode(text, stop): when given, it owns what happens on a scan (the door
 // check-in uses this to redeem). Without it, the scanner just follows invite URLs.
 export async function startScanner(mount, onDecode) {
   if (!mount) return
@@ -48,7 +50,7 @@ export async function startScanner(mount, onDecode) {
         }
         stop()
         if (/^https?:\/\//.test(decoded)) window.location.href = decoded
-        else alert(`Scanned: ${decoded}`)
+        else toast({ type: 'info', message: `Scanned: ${decoded}` })
       },
       () => {},
     )
