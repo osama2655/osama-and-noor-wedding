@@ -369,6 +369,44 @@ function handle_invite_delete(): void
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
+function handle_rsvp_add(): void
+{
+    $u = require_user();
+    $b = body();
+    $inviteId = (int) ($b['invite_id'] ?? 0);
+    $st = db()->prepare('SELECT 1 FROM invites WHERE id = ?');
+    $st->execute([$inviteId]);
+    if (!$st->fetchColumn()) {
+        json_out(['error' => 'bad request'], 400);
+    }
+    $side = in_array($b['side'] ?? '', GUEST_SIDES, true) ? $b['side'] : 'both';
+    $attending = in_array($b['attending'] ?? '', ['yes', 'no'], true) ? $b['attending'] : 'yes';
+    $head = max(1, min(20, (int) ($b['headcount'] ?? 1)));
+    db()->prepare('INSERT INTO rsvps (invite_id, name, side, headcount, attending, message, created_at) VALUES(?, ?, ?, ?, ?, ?, NOW())')
+        ->execute([$inviteId, mb_substr((string) ($b['name'] ?? ''), 0, 191), $side, $head, $attending, mb_substr((string) ($b['message'] ?? ''), 0, 500)]);
+    json_out(['id' => (int) db()->lastInsertId(), 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_rsvp_update(): void
+{
+    $u = require_user();
+    $b = body();
+    $side = in_array($b['side'] ?? '', GUEST_SIDES, true) ? $b['side'] : 'both';
+    $attending = in_array($b['attending'] ?? '', ['yes', 'no'], true) ? $b['attending'] : 'yes';
+    $head = max(1, min(20, (int) ($b['headcount'] ?? 1)));
+    db()->prepare('UPDATE rsvps SET name=?, side=?, headcount=?, attending=?, message=? WHERE id=?')
+        ->execute([mb_substr((string) ($b['name'] ?? ''), 0, 191), $side, $head, $attending, mb_substr((string) ($b['message'] ?? ''), 0, 500), (int) ($b['id'] ?? 0)]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_rsvp_delete(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM rsvps WHERE id = ?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
 // PUBLIC. Guests submit an RSVP by invite token. No session; the token is the authorization.
 function handle_rsvp_submit(): void
 {
@@ -430,6 +468,19 @@ function handle_catalog_remark(): void
     db()->prepare('INSERT INTO catalog_remarks (catalog_id, body, created_by, created_at) VALUES(?, ?, ?, NOW())')
         ->execute([$cid, mb_substr($body, 0, REMARK_MAX), $u['id']]);
     json_out(['id' => (int) db()->lastInsertId(), 'rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_catalog_remark_update(): void
+{
+    $u = require_user();
+    $b = body();
+    $body = trim((string) ($b['body'] ?? ''));
+    if ($body === '') {
+        json_out(['error' => 'bad request'], 400);
+    }
+    db()->prepare('UPDATE catalog_remarks SET body=? WHERE id=?')
+        ->execute([mb_substr($body, 0, REMARK_MAX), (int) ($b['id'] ?? 0)]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
 function handle_catalog_remark_delete(): void
@@ -545,6 +596,20 @@ function handle_passes_generate(): void
     json_out(['created' => $make, 'total' => $existing + $make, 'cap' => PASS_CAP, 'rev' => bump_rev((int) $u['id'])]);
 }
 
+// Mint a single labelled pass, still bounded by PASS_CAP.
+function handle_pass_add(): void
+{
+    $u = require_user();
+    $b = body();
+    if ((int) db()->query('SELECT COUNT(*) FROM passes')->fetchColumn() >= PASS_CAP) {
+        json_out(['error' => 'pass cap reached'], 400);
+    }
+    $token = bin2hex(random_bytes(16));
+    db()->prepare('INSERT INTO passes (token, label, status, created_by, created_at) VALUES(?, ?, \'unused\', ?, NOW())')
+        ->execute([$token, mb_substr((string) ($b['label'] ?? ''), 0, 191), $u['id']]);
+    json_out(['id' => (int) db()->lastInsertId(), 'rev' => bump_rev((int) $u['id']), 'token' => $token]);
+}
+
 // Rename a pass (who it is for). Never resets status.
 function handle_pass(): void
 {
@@ -600,6 +665,14 @@ function handle_pass_redeem(): void
         'redeemedBy' => $by,
         'rev' => get_rev(),
     ]);
+}
+
+function handle_pass_unredeem(): void
+{
+    $u = require_user();
+    $id = (int) (body()['id'] ?? 0);
+    db()->prepare('UPDATE passes SET status=\'unused\', redeemed_at=NULL, redeemed_by=NULL WHERE id=?')->execute([$id]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
 // PUBLIC. What a guest sees when they scan their own pass. Read-only, never redeems.
@@ -663,6 +736,17 @@ function handle_check_override(): void
         'INSERT INTO check_overrides(item_key, text, updated_by, updated_at) VALUES(?, ?, ?, NOW())
          ON DUPLICATE KEY UPDATE text = VALUES(text), updated_by = VALUES(updated_by), updated_at = NOW()'
     )->execute([$key, mb_substr((string) ($b['text'] ?? ''), 0, 500), $u['id']]);
+    json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+function handle_check_override_delete(): void
+{
+    $u = require_user();
+    $key = trim((string) (body()['key'] ?? ''));
+    if ($key === '') {
+        json_out(['error' => 'missing key'], 400);
+    }
+    db()->prepare('DELETE FROM check_overrides WHERE item_key = ?')->execute([$key]);
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 

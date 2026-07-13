@@ -300,8 +300,8 @@ function handle_state(): void
         'bundles' => $bundles,
         'lanes' => $lanes,
         'invites' => $invites,
-        'budgetMin' => 1000,
-        'budgetMax' => 1200,
+        'budgetMin' => (int) (setting_get('budgetMin') ?: 1000),
+        'budgetMax' => (int) (setting_get('budgetMax') ?: 1200),
         'rev' => $rev,
     ]);
 }

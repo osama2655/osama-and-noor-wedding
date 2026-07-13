@@ -66,6 +66,7 @@ try {
         case 'catalog':  handle_catalog(); break;
         case 'catalog_delete': handle_catalog_delete(); break;
         case 'catalog_remark': handle_catalog_remark(); break;
+        case 'catalog_remark_update': handle_catalog_remark_update(); break;
         case 'catalog_remark_delete': handle_catalog_remark_delete(); break;
         case 'catalog_file_upload': handle_catalog_file_upload(); break;
         case 'catalog_file': handle_catalog_file_download(); break;
@@ -84,14 +85,20 @@ try {
         case 'lane_item_delete': handle_lane_item_delete(); break;
         case 'invite':   handle_invite(); break;
         case 'invite_delete': handle_invite_delete(); break;
+        case 'rsvp_add': handle_rsvp_add(); break;
+        case 'rsvp_update': handle_rsvp_update(); break;
+        case 'rsvp_delete': handle_rsvp_delete(); break;
         case 'passes_generate': handle_passes_generate(); break;
+        case 'pass_add': handle_pass_add(); break;
         case 'pass':     handle_pass(); break;
         case 'pass_delete': handle_pass_delete(); break;
         case 'pass_redeem': handle_pass_redeem(); break;
+        case 'pass_unredeem': handle_pass_unredeem(); break;
         case 'check_item': handle_check_item(); break;
         case 'check_item_delete': handle_check_item_delete(); break;
         case 'hide_check': handle_hide_check(); break;
         case 'check_override': handle_check_override(); break;
+        case 'check_override_delete': handle_check_override_delete(); break;
         case 'fact':     handle_fact(); break;
         case 'fact_delete': handle_fact_delete(); break;
         case 'open_item': handle_open_item(); break;
