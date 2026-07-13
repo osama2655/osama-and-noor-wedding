@@ -2,3 +2,25 @@
    Dashboard-specific tweaks live here. */
 #dashBars .mini-progress:last-child{margin-bottom:0}
 #dashBars .mini-progress > div:first-child{min-width:120px;font-size:13px}
+
+/* On track: committed spend vs budget (left) and the next due dates (right).
+   The bar reuses .bd-bar / .ok / .over / .room from boards.css. */
+.ontrack .ot-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:12px}
+.ot-eyebrow,.ot-due-h{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
+.ot-figure{font-size:26px;font-weight:800;color:var(--txt);line-height:1.15;margin-top:2px;font-variant-numeric:tabular-nums}
+.ot-sub{font-size:12.5px;color:var(--muted);margin-bottom:10px;font-variant-numeric:tabular-nums}
+.ot-status{font-size:12px;font-weight:700;margin-top:7px}
+.ot-status.ok{color:var(--emerald)}
+.ot-status.room{color:var(--gold)}
+.ot-status.over{color:var(--red)}
+.ot-paid{font-size:12px;color:var(--muted);margin-top:3px;font-variant-numeric:tabular-nums}
+.ot-due-h{margin-bottom:6px}
+.ot-due-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line)}
+.ot-due-row:last-child{border-bottom:none}
+.ot-due-main{min-width:0}
+.ot-due-label{display:block;font-size:13px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ot-due-date{display:block;font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ot-due-away{flex:none;font-size:12.5px;font-weight:700;color:var(--txt);font-variant-numeric:tabular-nums}
+.ot-due-away.soon{color:var(--amber)}
+.ot-due-empty{font-size:13px;color:var(--muted);padding:6px 0}
+@media (max-width:620px){.ontrack .ot-grid{grid-template-columns:1fr;gap:18px}}

@@ -11,6 +11,22 @@ const find = (id) => vendors().find((v) => String(v.id) === String(id))
 
 const NUMERIC = new Set(['quote', 'deposit', 'balance'])
 
+// A free-text contact is dialable when it is +-prefixed or mostly digits; an
+// @handle, name, or email is not. Phone -> tel: mirrors drawer.js locally.
+const looksLikePhone = (contact) => {
+  const s = String(contact || '').replace(/\s+/g, '')
+  if (!s || /[a-zA-Z@]/.test(s)) return false
+  return s[0] === '+' || s.replace(/\D/g, '').length >= 6
+}
+
+const telHref = (contact) => String(contact || '').replace(/\s+/g, '')
+
+function contactCell(v) {
+  const input = `<input value="${escapeAttr(v.contact)}" data-f="contact" placeholder="Phone / handle">`
+  if (!looksLikePhone(v.contact)) return input
+  return `<div class="vendor-contact" style="display:flex;align-items:center;gap:6px;flex:1">${input}<a class="vendor-call" href="tel:${escapeAttr(telHref(v.contact))}" title="Call ${escapeAttr(v.contact)}" aria-label="Call ${escapeAttr(v.contact)}" style="flex:none;text-decoration:none;font-size:15px;line-height:1">📞</a></div>`
+}
+
 const pushVendor = debounce(async (id) => {
   const v = find(id)
   if (!v) return
@@ -46,7 +62,7 @@ export function renderVendors() {
       <tr data-id="${v.id}">
         <td data-label="Category"><input value="${escapeAttr(v.category)}" data-f="category" placeholder="Category"></td>
         <td data-label="Vendor"><input value="${escapeAttr(v.name)}" data-f="name" placeholder="Name / IG"></td>
-        <td data-label="Contact"><input value="${escapeAttr(v.contact)}" data-f="contact" placeholder="Phone / handle"></td>
+        <td data-label="Contact">${contactCell(v)}</td>
         <td data-label="Status"><select data-f="status">${Object.keys(STATUS)
           .map(
             (k) =>

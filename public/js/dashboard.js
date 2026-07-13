@@ -1,6 +1,7 @@
 import { CHECKLIST } from './content.js'
 import { checkStats, moneyTotals, overallPercent, weekStats } from './stats.js'
 import { store } from './store.js'
+import { escapeHtml, fmt } from './util.js'
 
 export function renderOverall() {
   const p = overallPercent()
@@ -12,6 +13,93 @@ export function renderOverall() {
   const sub = document.getElementById('overallSub')
   if (sub)
     sub.textContent = `${c.done} of ${c.total} tasks done, the Day 10 gate ahead`
+}
+
+const budgetBand = () => ({
+  min: store.data.budgetMin ?? 1000,
+  max: store.data.budgetMax ?? 1200,
+})
+
+// Mirrors dates.js daysUntil (not exported there); keep both counting the same way.
+const daysUntil = (iso) => {
+  if (!iso) return null
+  return Math.ceil((new Date(`${iso}T00:00:00`) - new Date()) / 86400000)
+}
+
+const awayLabel = (n) => (n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : `${n} days`)
+
+const shortDate = (iso) =>
+  new Date(`${iso}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: 'short',
+    day: 'numeric',
+    month: 'short',
+  })
+
+function upcomingDue() {
+  const out = []
+  for (const v of store.data.vendors || []) {
+    const days = daysUntil(v.balance_due)
+    if (days !== null && days >= 0)
+      out.push({
+        label: `${v.name || v.category || 'Vendor'} balance`,
+        date: v.balance_due,
+        days,
+      })
+  }
+  for (const d of store.data.dates || []) {
+    const days = daysUntil(d.date)
+    if (days !== null && days >= 0)
+      out.push({ label: d.label || 'Date', date: d.date, days })
+  }
+  return out.sort((a, b) => a.days - b.days).slice(0, 3)
+}
+
+function onTrackCard() {
+  const { quote: committed, deposit } = moneyTotals()
+  const { min, max } = budgetBand()
+  const cls = committed > max ? 'over' : committed < min ? 'room' : 'ok'
+  const pct = Math.min(100, max ? (committed / max) * 100 : 0)
+  const status =
+    committed > max
+      ? `BD ${fmt(committed - max)} over`
+      : committed < min
+        ? `BD ${fmt(min - committed)} to reach ${fmt(min)}`
+        : 'On budget'
+
+  const due = upcomingDue()
+  const dueList = due.length
+    ? due
+        .map(
+          (d) =>
+            `<div class="ot-due-row">
+              <div class="ot-due-main">
+                <span class="ot-due-label">${escapeHtml(d.label)}</span>
+                <span class="ot-due-date">${shortDate(d.date)}</span>
+              </div>
+              <span class="ot-due-away${d.days <= 7 ? ' soon' : ''}">${awayLabel(d.days)}</span>
+            </div>`,
+        )
+        .join('')
+    : '<div class="ot-due-empty">Nothing scheduled yet. Add balance-due dates or milestones.</div>'
+
+  return `
+    <div class="card ontrack">
+      <h2>On track</h2>
+      <div class="ot-grid">
+        <div class="ot-budget">
+          <div class="ot-eyebrow">Committed</div>
+          <div class="ot-figure">BD ${fmt(committed)}</div>
+          <div class="ot-sub">of BD ${fmt(min)} to ${fmt(max)} budget</div>
+          <div class="bd-bar ${cls}"><span style="width:${pct}%"></span></div>
+          <div class="ot-status ${cls}">${status}</div>
+          <div class="ot-paid">BD ${fmt(deposit)} paid so far</div>
+        </div>
+        <div class="ot-due">
+          <div class="ot-due-h">Next due</div>
+          <div class="ot-due-list">${dueList}</div>
+        </div>
+      </div>
+    </div>`
 }
 
 export function renderDash() {
@@ -47,6 +135,7 @@ export function renderDash() {
         <div class="money"><div class="l">Day 10 gate</div><div class="v" style="color:${gs.done === gs.total ? 'var(--emerald)' : 'var(--amber)'}">${gs.done}<small>/${gs.total}</small></div></div>
       </div>
     </div>
+    ${onTrackCard()}
     <div class="card">
       <h2>Progress by phase</h2>
       <div id="dashBars" style="margin-top:12px"></div>
