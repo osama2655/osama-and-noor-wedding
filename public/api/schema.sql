@@ -192,12 +192,14 @@ CREATE TABLE IF NOT EXISTS rsvps (
 CREATE TABLE IF NOT EXISTS passes (
   id          INT AUTO_INCREMENT PRIMARY KEY,
   token       VARCHAR(32) NOT NULL UNIQUE,
+  guest_id    INT NULL,
   label       VARCHAR(191) NOT NULL DEFAULT '',
   status      ENUM('unused','redeemed') NOT NULL DEFAULT 'unused',
   redeemed_at TIMESTAMP NULL DEFAULT NULL,
   redeemed_by INT NULL,
   created_by  INT NULL,
-  created_at  TIMESTAMP NULL DEFAULT NULL
+  created_at  TIMESTAMP NULL DEFAULT NULL,
+  UNIQUE KEY uniq_passes_guest (guest_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS check_items (

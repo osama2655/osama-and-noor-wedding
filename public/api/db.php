@@ -39,7 +39,32 @@ function db(): PDO
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         PDO::ATTR_EMULATE_PREPARES => false,
     ]);
+    ensure_schema();
     return $pdo;
+}
+
+// One-time, idempotent migrations that run when a fresh worker first connects (the PDO is
+// static-cached, so this runs once per process). Guarded so it is safe to run repeatedly and
+// never breaks a request if it fails.
+function ensure_schema(): void
+{
+    try {
+        $has = (int) db()->query(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'passes' AND COLUMN_NAME = 'guest_id'"
+        )->fetchColumn();
+        if ($has === 0) {
+            db()->exec('ALTER TABLE passes ADD COLUMN guest_id INT NULL, ADD UNIQUE KEY uniq_passes_guest (guest_id)');
+            // Give every existing guest a single-use QR pass (token like bin2hex(random_bytes(16))).
+            db()->exec(
+                "INSERT IGNORE INTO passes (guest_id, token, label, status, created_at)
+                 SELECT g.id, LOWER(HEX(RANDOM_BYTES(16))), g.name, 'unused', NOW() FROM guests g
+                 WHERE NOT EXISTS (SELECT 1 FROM passes p WHERE p.guest_id = g.id)"
+            );
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] ensure_schema: ' . $e->getMessage());
+    }
 }
 
 function setting_get(string $k): ?string

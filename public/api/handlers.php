@@ -109,6 +109,8 @@ function handle_guest(): void
         )->execute($args);
         $id = (int) db()->lastInsertId();
     }
+    // Every guest gets one unique single-use QR entrance pass; keep its label = name.
+    guest_pass_sync($id, (string) ($b['name'] ?? ''), (int) $u['id']);
     json_out(['id' => $id, 'rev' => bump_rev((int) $u['id'])]);
 }
 
@@ -116,8 +118,33 @@ function handle_guest_delete(): void
 {
     $u = require_user();
     $id = (int) (body()['id'] ?? 0);
+    db()->prepare('DELETE FROM passes WHERE guest_id = ?')->execute([$id]);
     db()->prepare('DELETE FROM guests WHERE id = ?')->execute([$id]);
     json_out(['rev' => bump_rev((int) $u['id'])]);
+}
+
+// Ensure a guest has exactly one single-use QR entrance pass, and keep its label = name.
+// Guest passes are exempt from PASS_CAP (a guest list can exceed the manual-pass cap).
+function guest_pass_sync(int $guestId, string $name, int $uid): void
+{
+    if ($guestId <= 0) {
+        return;
+    }
+    try {
+        $st = db()->prepare('SELECT id FROM passes WHERE guest_id = ? LIMIT 1');
+        $st->execute([$guestId]);
+        $pid = $st->fetchColumn();
+        $label = mb_substr($name, 0, 191);
+        if ($pid) {
+            db()->prepare('UPDATE passes SET label = ? WHERE id = ?')->execute([$label, (int) $pid]);
+        } else {
+            db()->prepare(
+                'INSERT INTO passes (guest_id, token, label, status, created_by, created_at) VALUES(?, ?, ?, \'unused\', ?, NOW())'
+            )->execute([$guestId, bin2hex(random_bytes(16)), $label, $uid]);
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] guest_pass_sync: ' . $e->getMessage());
+    }
 }
 
 function handle_pick(): void
@@ -583,7 +610,7 @@ function handle_passes_generate(): void
     $u = require_user();
     $b = body();
     $want = max(1, min(PASS_CAP, (int) ($b['count'] ?? 1)));
-    $existing = (int) db()->query('SELECT COUNT(*) FROM passes')->fetchColumn();
+    $existing = (int) db()->query('SELECT COUNT(*) FROM passes WHERE guest_id IS NULL')->fetchColumn();
     $room = PASS_CAP - $existing;
     if ($room <= 0) {
         json_out(['created' => 0, 'total' => $existing, 'cap' => PASS_CAP, 'rev' => get_rev()]);
@@ -601,7 +628,7 @@ function handle_pass_add(): void
 {
     $u = require_user();
     $b = body();
-    if ((int) db()->query('SELECT COUNT(*) FROM passes')->fetchColumn() >= PASS_CAP) {
+    if ((int) db()->query('SELECT COUNT(*) FROM passes WHERE guest_id IS NULL')->fetchColumn() >= PASS_CAP) {
         json_out(['error' => 'pass cap reached'], 400);
     }
     $token = bin2hex(random_bytes(16));

@@ -3,11 +3,11 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 /* Fixed layout so columns always fit the card (no right-edge cut-off); scrolls only below min-width, cards below 560px */
 .grid{table-layout:fixed}
 .grid.pay{min-width:800px}
-.grid.guest{min-width:560px}
+.grid.guest{min-width:680px}
 .pay .c-cat{width:14%}.pay .c-name{width:14%}.pay .c-contact{width:13%}.pay .c-status{width:12%}
 .pay .c-num{width:7%}.pay .c-due{width:11%}.pay .c-upd{width:9%}.pay .c-del{width:4%}
-.guest .g-name{width:23%}.guest .g-side{width:15%}.guest .g-seats{width:9%}.guest .g-rsvp{width:16%}
-.guest .g-notes{width:19%}.guest .g-upd{width:12%}.guest .g-del{width:5%}
+.guest .g-name{width:20%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
+.guest .g-notes{width:15%}.guest .g-pass{width:12%}.guest .g-upd{width:12%}.guest .g-del{width:6%}
 th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
 th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
 tbody tr{transition:background var(--dur-1) var(--ease)}
@@ -28,6 +28,9 @@ td select.stat:focus{outline:2px solid var(--ring);outline-offset:1px}
 .stat.s-quoted{background:rgba(224,169,74,.18);color:var(--amber)}
 .stat.s-booked{background:rgba(63,174,130,.18);color:var(--emerald)}
 .stat.s-paid{background:rgba(63,174,130,.30);color:var(--emerald)}
+.stat.rs-pending{background:rgba(224,169,74,.18);color:var(--amber)}
+.stat.rs-yes{background:rgba(63,174,130,.18);color:var(--emerald)}
+.stat.rs-no{background:rgba(138,123,100,.20);color:var(--faint)}
 .status-pill{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;display:inline-block}
 .s-todo{background:rgba(138,123,100,.18);color:var(--faint)}
 .s-contacted{background:rgba(127,180,216,.16);color:var(--blue)}

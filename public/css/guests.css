@@ -1,3 +1,25 @@
 /* Guests reuse the shared table primitives in vendors.css.
    Guest-specific tweaks live here. */
 #guestStats .money .v small{color:var(--muted)}
+
+/* Per-guest single-use entrance QR: the in-row button + the share card overlay */
+.gp-btn{appearance:none;border:1px solid var(--line2);background:var(--card2);color:var(--txt);
+  border-radius:var(--r-pill);padding:5px 12px;font:inherit;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;
+  transition:border-color var(--dur-1) var(--ease),background var(--dur-1) var(--ease)}
+.gp-btn:hover{border-color:var(--gold)}
+.gp-btn.used{color:var(--emerald);border-color:color-mix(in srgb,var(--emerald) 45%,transparent);background:rgba(63,174,130,.12)}
+.gp-btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
+.gp-none{color:var(--faint);font-size:12px}
+
+.gpass-overlay{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;
+  padding:20px;background:rgba(0,0,0,.55);animation:gpass-fade var(--dur-3) var(--ease)}
+@keyframes gpass-fade{from{opacity:0}to{opacity:1}}
+.gpass-card{position:relative;width:min(340px,100%);background:var(--card);border:1px solid var(--line);
+  border-radius:var(--r-4);padding:24px 22px;text-align:center;box-shadow:var(--shadow)}
+.gpass-x{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer}
+.gpass-name{font-family:Georgia,"Times New Roman",serif;font-size:var(--fs-h1);color:var(--txt)}
+.gpass-sub{color:var(--faint);font-size:var(--fs-xs);margin-top:2px}
+.gpass-qr{display:flex;justify-content:center;margin:16px 0}
+.gpass-qr .qr-canvas{width:min(240px,60vw);height:auto;border-radius:var(--r-2);background:#fff;padding:10px}
+.gpass-actions{display:flex;flex-direction:column;gap:8px}
+.gpass-actions .btn{width:100%}

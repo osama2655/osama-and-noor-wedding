@@ -120,9 +120,24 @@ function handle_state(): void
         $vendors[] = vendor_row($r, $users);
     }
 
+    // Each guest carries its single-use QR entrance pass (guest-linked passes only).
+    $guestPasses = [];
+    try {
+        foreach ($pdo->query('SELECT id, guest_id, token, status FROM passes WHERE guest_id IS NOT NULL') as $p) {
+            $guestPasses[(int) $p['guest_id']] = [
+                'id' => (int) $p['id'],
+                'token' => $p['token'],
+                'status' => $p['status'],
+            ];
+        }
+    } catch (Throwable $e) {
+        error_log('[wedding-api] passes.guest_id missing; ensure_schema will add it');
+    }
     $guests = [];
     foreach ($pdo->query('SELECT * FROM guests ORDER BY id') as $r) {
-        $guests[] = guest_row($r, $users);
+        $g = guest_row($r, $users);
+        $g['pass'] = $guestPasses[(int) $r['id']] ?? null;
+        $guests[] = $g;
     }
 
     $picks = [];
@@ -263,7 +278,7 @@ function handle_state(): void
     // this feature deployed) so the whole planner does not go down meanwhile.
     $passes = [];
     try {
-        foreach ($pdo->query('SELECT * FROM passes ORDER BY id') as $r) {
+        foreach ($pdo->query('SELECT * FROM passes WHERE guest_id IS NULL ORDER BY id') as $r) {
             $rby = $r['redeemed_by'] !== null ? (int) $r['redeemed_by'] : null;
             $passes[] = [
                 'id' => (int) $r['id'],
