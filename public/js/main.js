@@ -1,7 +1,7 @@
 import { api } from './api.js'
 import { initAuth, initLogout, showLogin } from './auth.js'
 import { renderBoards } from './boards.js'
-import { renderPhotoVideo, renderVenues } from './catalog.js'
+import { renderShortlist } from './catalog.js'
 import { renderChecklist } from './checklist.js'
 import { renderCountdown } from './countdown.js'
 import { renderDash, renderOverall } from './dashboard.js'
@@ -36,8 +36,7 @@ function renderAll() {
   renderFacts()
   renderChecklist()
   renderLanes()
-  renderVenues()
-  renderPhotoVideo()
+  renderShortlist()
   renderSaved()
   renderBoards()
   renderInvite()
