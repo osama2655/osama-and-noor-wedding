@@ -115,13 +115,13 @@
           <button class="btn sm" id="addVendor">+ Add vendor row</button>
         </div>
         <div class="tablewrap">
-          <table>
+          <table class="grid pay">
             <thead><tr>
-              <th style="min-width:120px">Category</th><th style="min-width:130px">Vendor</th>
-              <th style="min-width:120px">Contact</th><th>Status</th>
-              <th style="width:90px">Quote</th><th style="width:90px">Deposit</th>
-              <th style="width:90px">Balance</th><th style="min-width:120px">Balance due</th>
-              <th style="min-width:90px">Updated</th><th></th>
+              <th class="c-cat">Category</th><th class="c-name">Vendor</th>
+              <th class="c-contact">Contact</th><th class="c-status">Status</th>
+              <th class="c-num">Quote</th><th class="c-num">Deposit</th>
+              <th class="c-num">Balance</th><th class="c-due">Balance due</th>
+              <th class="c-upd">Updated</th><th class="c-del"></th>
             </tr></thead>
             <tbody id="vendorBody"></tbody>
           </table>
@@ -138,11 +138,11 @@
           <button class="btn sm" id="addGuest">+ Add guest / party</button>
         </div>
         <div class="tablewrap">
-          <table>
+          <table class="grid guest">
             <thead><tr>
-              <th style="min-width:160px">Name / party</th><th style="width:120px">Side</th>
-              <th style="width:70px">Seats</th><th style="width:130px">RSVP</th>
-              <th style="min-width:140px">Notes</th><th style="min-width:90px">Updated</th><th></th>
+              <th class="g-name">Name / party</th><th class="g-side">Side</th>
+              <th class="g-seats">Seats</th><th class="g-rsvp">RSVP</th>
+              <th class="g-notes">Notes</th><th class="g-upd">Updated</th><th class="g-del"></th>
             </tr></thead>
             <tbody id="guestBody"></tbody>
           </table>

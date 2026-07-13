@@ -4,12 +4,46 @@ import { renderDash } from './dashboard.js'
 import { moneyTotals } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, undoToast } from './ui.js'
-import { byTag, debounce, escapeAttr, fmt } from './util.js'
+import { byTag, debounce, escapeAttr, escapeHtml, fmt } from './util.js'
 
 const vendors = () => store.data.vendors || (store.data.vendors = [])
 const find = (id) => vendors().find((v) => String(v.id) === String(id))
 
 const NUMERIC = new Set(['quote', 'deposit', 'balance'])
+
+// Short pill labels for the status select; the full STATUS label is the option title.
+const STATUS_SHORT = {
+  todo: 'To do',
+  contacted: 'Contacted',
+  quoted: 'Quoted',
+  booked: 'Booked',
+  paid: 'Paid',
+}
+const CATEGORIES = [
+  'Planner',
+  'Venue',
+  'Photo + video',
+  'HMUA (hair & makeup)',
+  'Henna artist',
+  'Décor / flowers / kosha',
+  'Catering / menu',
+  'Cake',
+  'Entertainment (DJ / ardha)',
+  'Wedding car / transport',
+  'Invitations',
+  'Your attire (thobe/bisht)',
+  'Honeymoon',
+]
+
+function catOptions(cur) {
+  const list = !cur || CATEGORIES.includes(cur) ? CATEGORIES : [cur, ...CATEGORIES]
+  return (
+    `<option value="" ${!cur ? 'selected' : ''}>Category…</option>` +
+    list
+      .map((c) => `<option ${c === cur ? 'selected' : ''}>${escapeHtml(c)}</option>`)
+      .join('')
+  )
+}
 
 // A free-text contact is dialable when it is +-prefixed or mostly digits; an
 // @handle, name, or email is not. Phone -> tel: mirrors drawer.js locally.
@@ -60,13 +94,13 @@ export function renderVendors() {
       .map(
         (v) => `
       <tr data-id="${v.id}">
-        <td data-label="Category"><input value="${escapeAttr(v.category)}" data-f="category" placeholder="Category"></td>
+        <td data-label="Category"><select data-f="category" class="cat-select">${catOptions(v.category)}</select></td>
         <td data-label="Vendor"><input value="${escapeAttr(v.name)}" data-f="name" placeholder="Name / IG"></td>
         <td data-label="Contact">${contactCell(v)}</td>
-        <td data-label="Status"><select data-f="status">${Object.keys(STATUS)
+        <td data-label="Status"><select data-f="status" class="stat s-${v.status}">${Object.keys(STATUS_SHORT)
           .map(
             (k) =>
-              `<option value="${k}" ${v.status === k ? 'selected' : ''}>${STATUS[k]}</option>`,
+              `<option value="${k}" ${v.status === k ? 'selected' : ''} title="${escapeAttr(STATUS[k])}">${STATUS_SHORT[k]}</option>`,
           )
           .join('')}</select></td>
         <td data-label="Quote"><input value="${escapeAttr(v.quote)}" data-f="quote" inputmode="decimal" placeholder="0"></td>
@@ -91,6 +125,7 @@ export function renderVendors() {
       v.byId = meId()
       v.at = new Date().toISOString()
       tr.querySelector('.upd').innerHTML = byTag(v, meId())
+      if (f === 'status') e.target.className = `stat s-${e.target.value}`
       if (f === 'status' || NUMERIC.has(f)) {
         renderMoney()
         renderDash()
