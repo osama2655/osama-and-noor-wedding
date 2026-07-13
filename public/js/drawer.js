@@ -2,7 +2,7 @@ import { api } from './api.js'
 import { googleMap, instagramCard } from './embeds.js'
 import { isSaved, toggleSave } from './saves.js'
 import { bumpRev, meId, store } from './store.js'
-import { confirmDelete, undoToast } from './ui.js'
+import { confirmDelete, toast, undoToast } from './ui.js'
 import { debounce, escapeAttr, escapeHtml } from './util.js'
 
 let current = null
@@ -113,8 +113,16 @@ function remarkHTML(r) {
   const meta = [r.by, fmtWhen(r.at)].filter(Boolean).join(' &middot; ')
   return `<div class="dw-remark" data-remark="${r.id}">
       <div class="dw-remark-body">${escapeHtml(r.body)}</div>
-      <div class="dw-remark-foot"><span class="dw-remark-meta">${meta}</span><button class="dw-mini-x" data-remark-del="${r.id}" title="Delete">&times;</button></div>
+      <div class="dw-remark-foot"><span class="dw-remark-meta">${meta}</span><span class="dw-remark-tools"><button class="dw-mini-x" data-remark-edit="${r.id}" title="Edit">✎</button><button class="dw-mini-x" data-remark-del="${r.id}" title="Delete">&times;</button></span></div>
     </div>`
+}
+
+function remarkEditHTML(r) {
+  return `<textarea class="field" style="width:100%;resize:vertical" rows="3">${escapeHtml(r.body)}</textarea>
+      <div class="dw-remark-foot" style="justify-content:flex-end">
+        <button class="dw-btn ghost sm" type="button" data-remark-edit-cancel>Cancel</button>
+        <button class="dw-btn sm" type="button" data-remark-edit-save>Save</button>
+      </div>`
 }
 
 function remarksHTML(row) {
@@ -349,6 +357,44 @@ function wireRemarks(root, item, onChange) {
       } catch (_) {
         /* next poll reconciles */
       }
+    }),
+  )
+
+  root.querySelectorAll('[data-remark-edit]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const id = Number(b.dataset.remarkEdit)
+      const remark = (liveRow(item.id)?.remarks || []).find((x) => x.id === id)
+      const box = root.querySelector(`.dw-remark[data-remark="${id}"]`)
+      if (!remark || !box) return
+      box.innerHTML = remarkEditHTML(remark)
+      const field = box.querySelector('textarea')
+      field.focus()
+      box
+        .querySelector('[data-remark-edit-cancel]')
+        .addEventListener('click', () => openDrawer(item, onChange))
+      box
+        .querySelector('[data-remark-edit-save]')
+        .addEventListener('click', async () => {
+          const body = field.value.trim()
+          if (!body) {
+            toast({
+              type: 'err',
+              message: 'A remark cannot be empty. Use Delete to remove it instead.',
+            })
+            return
+          }
+          const target = (liveRow(item.id)?.remarks || []).find(
+            (x) => x.id === id,
+          )
+          if (target) target.body = body
+          openDrawer(item, onChange)
+          onChange?.()
+          try {
+            bumpRev(await api.catalogRemarkUpdate(id, body))
+          } catch (_) {
+            /* next poll reconciles */
+          }
+        })
     }),
   )
 }

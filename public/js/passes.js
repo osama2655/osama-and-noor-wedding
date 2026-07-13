@@ -2,7 +2,7 @@ import { api } from './api.js'
 import { qrCanvas } from './qr.js'
 import { startScanner } from './scanner.js'
 import { bumpRev, store } from './store.js'
-import { confirmDelete, undoToast } from './ui.js'
+import { confirmDelete, confirmDialog, toast, undoToast } from './ui.js'
 import { escapeAttr, escapeHtml } from './util.js'
 
 const CAP = 200
@@ -48,6 +48,7 @@ function passCard(p) {
       <div class="pass-actions">
         <button class="btn ghost sm" data-copy="${escapeAttr(l)}">Copy link</button>
         <button class="btn ghost sm" data-dl="${p.id}">Download QR</button>
+        ${used ? `<button class="btn ghost sm" data-unredeem="${p.id}">Undo check-in</button>` : ''}
       </div>
     </div>`
 }
@@ -72,6 +73,10 @@ export function renderPasses() {
         <button class="btn sm" id="genPasses" ${c.room <= 0 ? 'disabled' : ''}>Generate passes</button>
         <button class="btn ghost sm" id="doorScan">Door check-in</button>
         <button class="btn ghost sm" id="printPasses" ${c.issued === 0 ? 'disabled' : ''}>Print all</button>
+      </div>
+      <div class="pass-add-one">
+        <input id="passLabel" class="field" type="text" placeholder="Guest name (optional)" ${c.room <= 0 ? 'disabled' : ''}>
+        <button class="btn ghost sm" id="addPass" ${c.room <= 0 ? 'disabled' : ''}>Add pass</button>
       </div>
       ${c.room <= 0 ? `<p class="hint" style="margin-top:8px">You have issued all ${cap()} passes. Delete one to free a slot.</p>` : ''}
       <div id="pass-scanner"></div>
@@ -108,6 +113,22 @@ function wire(el) {
     }
   })
 
+  el.querySelector('#addPass')?.addEventListener('click', async () => {
+    const input = el.querySelector('#passLabel')
+    const label = (input?.value || '').trim()
+    const btn = el.querySelector('#addPass')
+    btn.disabled = true
+    try {
+      const r = await api.passAdd(label)
+      bumpRev(r)
+      passes().push({ id: r.id, token: r.token, label, status: 'unused' })
+      renderPasses()
+    } catch (err) {
+      btn.disabled = false
+      toast({ type: 'err', message: err.message || 'Could not add the pass.' })
+    }
+  })
+
   el.querySelector('#doorScan')?.addEventListener('click', () => startDoor())
 
   el.querySelector('#printPasses')?.addEventListener('click', printAll)
@@ -134,6 +155,28 @@ function wire(el) {
       renderPasses()
       try {
         bumpRev(await api.passDelete(id))
+      } catch (_) {
+        /* next poll reconciles */
+      }
+    }),
+  )
+
+  el.querySelectorAll('[data-unredeem]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const p = find(b.dataset.unredeem)
+      if (!p) return
+      const ok = await confirmDialog({
+        title: 'Undo check-in?',
+        message: 'This pass will work again for a single entry.',
+        confirm: 'Undo check-in',
+      })
+      if (!ok) return
+      p.status = 'unused'
+      delete p.redeemedAt
+      delete p.redeemedBy
+      renderPasses()
+      try {
+        bumpRev(await api.passUnredeem(p.id))
       } catch (_) {
         /* next poll reconciles */
       }
@@ -206,7 +249,7 @@ function startDoor() {
         show(
           'used',
           'Already used',
-          `${r.label ? `${r.label} — ` : ''}checked in${at ? ` at ${at}` : ''}${r.redeemedBy ? ` by ${r.redeemedBy}` : ''}`,
+          `${r.label ? `${r.label} - ` : ''}checked in${at ? ` at ${at}` : ''}${r.redeemedBy ? ` by ${r.redeemedBy}` : ''}`,
         )
       } else {
         show(
@@ -256,7 +299,7 @@ function printAll() {
       .cap{margin-top:6px;font-size:12px}
       @media print{.cell{border-color:#bbb}}
     </style></head><body>
-    <h1>Osama &amp; Noor — entrance passes (${passes().length})</h1>
+    <h1>Osama &amp; Noor - entrance passes (${passes().length})</h1>
     <div class="grid">${cells}</div>
     <script>window.onload=function(){window.print()}</script>
     </body></html>`)
