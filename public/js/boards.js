@@ -14,6 +14,30 @@ const budget = () => ({
 const forecast = (b) =>
   (b.items || []).reduce((s, i) => s + (Number(i.cost) || 0), 0)
 
+const hintText = () => {
+  const { min, max } = budget()
+  return `Build a plan, add what each piece costs, and see it against your budget of BD ${min} to ${max}. Make a Plan A and a Plan B and compare.`
+}
+
+const budgetField = (key, label, value) =>
+  `<label class="budget-field" style="display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted)">${label}
+      <input class="field" id="${key}" type="number" min="0" value="${escapeAttr(value)}" style="max-width:120px">
+    </label>`
+
+const budgetSaver = (key) =>
+  debounce(async () => {
+    try {
+      bumpRev(await api.setting(key, store.data[key]))
+    } catch (_) {
+      /* next poll reconciles */
+    }
+  }, 500)
+
+const budgetSavers = {
+  budgetMin: budgetSaver('budgetMin'),
+  budgetMax: budgetSaver('budgetMax'),
+}
+
 const pushBundle = debounce(async (id) => {
   const b = findB(id)
   if (!b) return
@@ -51,6 +75,18 @@ function barHTML(total) {
     <div class="bd-line"><span class="bd-total">BD ${fmt(total)}</span><span class="bd-status ${s.cls}">${s.label}</span></div>`
 }
 
+// Repaint the hint and every forecast bar in place after a budget edit, so the
+// bars track the new band without re-rendering the inputs the user is typing in.
+function refreshForecast(el) {
+  const hint = el.querySelector('#budgetHint')
+  if (hint) hint.textContent = hintText()
+  el.querySelectorAll('.bundle').forEach((node) => {
+    const b = findB(node.dataset.id)
+    const fc = node.querySelector('.bd-forecast')
+    if (b && fc) fc.innerHTML = barHTML(forecast(b))
+  })
+}
+
 function itemRow(it) {
   return `<div class="bi-row" data-id="${it.id}">
       <input class="bi-label" data-f="label" value="${escapeAttr(it.label)}" placeholder="Item, e.g. Venue">
@@ -79,7 +115,11 @@ export function renderBoards() {
   el.innerHTML = `
     <div class="card">
       <h2>Bundles</h2>
-      <p class="hint">Build a plan, add what each piece costs, and see it against your budget of BD ${min} to ${max}. Make a Plan A and a Plan B and compare.</p>
+      <p class="hint" id="budgetHint">${hintText()}</p>
+      <div class="toolbar">
+        ${budgetField('budgetMin', 'Budget min', min)}
+        ${budgetField('budgetMax', 'Budget max', max)}
+      </div>
       <div class="toolbar"><button class="btn sm" id="addBundle">+ New plan</button></div>
       <div class="bundles">${bundles().map(bundleCard).join('') || '<div class="empty">No plans yet. Start Plan A.</div>'}</div>
     </div>`
@@ -87,6 +127,14 @@ export function renderBoards() {
 }
 
 function wire(el) {
+  ;['budgetMin', 'budgetMax'].forEach((key) => {
+    el.querySelector(`#${key}`)?.addEventListener('input', (e) => {
+      store.data[key] = Number(e.target.value) || 0
+      refreshForecast(el)
+      budgetSavers[key]()
+    })
+  })
+
   el.querySelector('#addBundle')?.addEventListener('click', async () => {
     try {
       const r = await api.bundle({ name: '', sort: bundles().length + 1 })
