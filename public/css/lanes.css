@@ -1,12 +1,12 @@
-/* Who owns what — editable lanes */
+/* Who owns what: editable lanes */
 .lane-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.lane-title { flex: 1; min-width: 0; background: transparent; border: none; border-bottom: 1px solid var(--line); color: var(--txt); font-weight: 800; font-size: 18px; padding: 4px 2px; font-family: inherit; }
-.lane-title:focus { outline: none; border-color: var(--gold); }
+.lane-title { flex: 1; min-width: 0; background: transparent; border: 1px solid var(--field-rest); border-radius: var(--r-1); color: var(--txt); font-weight: 800; font-size: 18px; padding: 5px 8px; font-family: inherit; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
+.lane-title:focus { outline: none; border-color: var(--gold); background: var(--card2); }
 .lane-tag { border: none; border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; font-family: inherit; cursor: pointer; }
-.lane-note { width: 100%; background: var(--card2); border: 1px solid var(--line); color: var(--muted); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 13px; margin-bottom: 10px; }
-.lane-note:focus { outline: none; border-color: var(--gold); }
+.lane-note { width: 100%; background: transparent; border: 1px solid var(--field-rest); color: var(--muted); border-radius: var(--r-1); padding: 8px 10px; font: inherit; font-size: 13px; margin-bottom: 10px; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
+.lane-note:focus { outline: none; border-color: var(--gold); background: var(--card2); }
 .li-row { gap: 10px !important; align-items: center !important; }
 .li-row.done .li-label { color: var(--faint); text-decoration: line-through; }
-.li-label { flex: 1; min-width: 0; background: transparent; border: none; color: var(--txt); font: inherit; font-size: 14.5px; padding: 2px 2px; }
-.li-label:focus { outline: none; background: var(--card2); border-radius: 6px; }
+.li-label { flex: 1; min-width: 0; background: transparent; border: 1px solid var(--field-rest); border-radius: var(--r-1); color: var(--txt); font: inherit; font-size: 14.5px; padding: 3px 6px; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
+.li-label:focus { outline: none; border-color: var(--gold); background: var(--card2); }
 .lane .cbx { cursor: pointer; }

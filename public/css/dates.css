@@ -1,14 +1,14 @@
 .dt-wed { display: flex; align-items: center; justify-content: space-between; gap: 12px; background: linear-gradient(135deg, var(--card2), var(--card)); border: 1px solid var(--gold); border-radius: 14px; padding: 16px; margin-top: 12px; }
 .dt-wed-l { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
 .dt-wed-v { font-size: 16px; font-weight: 700; color: var(--txt); margin-top: 3px; }
-.dt-wed-c { font-size: 22px; font-weight: 800; color: var(--gold); white-space: nowrap; }
+.dt-wed-c { font-size: 22px; font-weight: 800; color: var(--gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .dt-list { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
 .dt-row { display: flex; align-items: center; gap: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
 .dt-row.past { opacity: .55; }
 .dt-main { flex: 1; display: grid; grid-template-columns: 1.2fr 150px 1fr; gap: 8px; min-width: 0; }
-.dt-main input { background: transparent; border: 1px solid transparent; color: var(--txt); border-radius: 8px; padding: 6px 8px; font: inherit; font-size: 13px; }
-.dt-main input:focus { border-color: var(--line2); background: var(--card); outline: none; }
+.dt-main input { background: transparent; border: 1px solid var(--field-rest); color: var(--txt); border-radius: var(--r-1); padding: 6px 8px; font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
+.dt-main input:focus { border-color: var(--gold); background: var(--card2); outline: none; }
 .dt-label { font-weight: 600; }
 .dt-side { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
-.dt-count { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; }
+.dt-count { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; font-variant-numeric: tabular-nums; }
 @media (max-width: 640px) { .dt-main { grid-template-columns: 1fr; gap: 4px; } .dt-row { flex-wrap: wrap; } }

@@ -2,21 +2,25 @@
 #modal-root { position: fixed; inset: 0; z-index: 200; display: none; }
 #modal-root.open { display: flex; align-items: flex-end; justify-content: center; }
 @media (min-width: 520px) { #modal-root.open { align-items: center; } }
-.modal-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); animation: dw-fade .15s ease; }
-.modal { position: relative; z-index: 1; background: var(--card); border: 1px solid var(--line); width: 100%; max-width: 400px; border-radius: 18px 18px 0 0; padding: 22px 20px 24px; box-shadow: var(--shadow); animation: modal-up .2s ease; }
+.modal-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); animation: dw-fade var(--dur-3) var(--ease); }
+.modal { position: relative; z-index: 1; background: var(--card); border: 1px solid var(--line); width: 100%; max-width: 400px; border-radius: 18px 18px 0 0; padding: 22px 20px 24px; box-shadow: var(--shadow); animation: modal-up var(--dur-3) var(--ease); }
 @media (min-width: 520px) { .modal { border-radius: 18px; } }
 @keyframes modal-up { from { transform: translateY(20px); opacity: .6 } to { transform: none; opacity: 1 } }
 .modal-title { margin: 0 0 6px; font-size: 18px; }
 .modal-msg { margin: 0; color: var(--muted); font-size: 14px; }
 .modal-actions { display: flex; gap: 10px; margin-top: 18px; }
 .modal-actions .btn { flex: 1; padding: 13px; font-size: 15px; }
-.btn.danger { background: var(--red); color: #fff; }
-.btn.danger:hover { filter: brightness(1.05); }
+.modal-label { display: block; font-size: var(--fs-sm); color: var(--muted); margin: 16px 0 0; }
+.modal-input { width: 100%; margin-top: 6px; padding: 11px 12px; font-size: 15px; }
 
 /* Undo toast, above the savebar */
 #toast-root { position: fixed; left: 0; right: 0; bottom: 0; z-index: 150; display: none; justify-content: center; pointer-events: none; padding: 0 12px 46px; }
 #toast-root.show { display: flex; }
-.toast { pointer-events: auto; display: flex; align-items: center; gap: 14px; background: var(--txt); color: var(--bg); border-radius: 12px; padding: 11px 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); max-width: 420px; width: 100%; animation: modal-up .2s ease; }
+.toast { pointer-events: auto; display: flex; align-items: center; gap: 14px; background: var(--txt); color: var(--bg); border-radius: 12px; padding: 11px 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); max-width: 420px; width: 100%; animation: modal-up var(--dur-3) var(--ease); }
+.toast.ok { border-left: 3px solid var(--emerald); }
+.toast.err { border-left: 3px solid var(--red); }
 .toast-label { flex: 1; font-size: 13.5px; font-weight: 600; }
 .toast-undo { background: none; border: none; color: var(--gold); font-weight: 800; font-size: 13.5px; cursor: pointer; padding: 2px 4px; }
+.toast-close { background: none; border: none; color: inherit; font-size: 18px; line-height: 1; cursor: pointer; padding: 0 2px; opacity: .65; }
+.toast-close:hover { opacity: 1; }
 @media (prefers-reduced-motion: reduce) { .modal, .toast { animation: none; } }

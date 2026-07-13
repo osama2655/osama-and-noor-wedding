@@ -1,7 +1,7 @@
 #drawer-root { position: fixed; inset: 0; z-index: 100; display: none; }
 #drawer-root.open { display: block; }
-.dw-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); animation: dw-fade .2s ease; }
-.dw-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--bg); border-left: 1px solid var(--line); overflow-y: auto; animation: dw-slide .25s ease; }
+.dw-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); animation: dw-fade var(--dur-3) var(--ease); }
+.dw-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--bg); border-left: 1px solid var(--line); overflow-y: auto; animation: dw-slide var(--dur-3) var(--ease); }
 @keyframes dw-fade { from { opacity: 0 } to { opacity: 1 } }
 @keyframes dw-slide { from { transform: translateX(30px); opacity: .4 } to { transform: none; opacity: 1 } }
 .dw-hero { position: relative; height: 150px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--gold2), var(--gold)); }
@@ -23,10 +23,16 @@
 .dw-verify b { color: var(--amber); text-transform: uppercase; font-size: 10px; letter-spacing: .06em; margin-right: 6px; }
 .dw-map, .dw-ig { margin: 14px 0; }
 .dw-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.dw-btn { background: var(--gold); color: var(--bg); border: none; border-radius: 12px; padding: 11px 16px; font-weight: 700; font-size: 13.5px; cursor: pointer; text-decoration: none; }
-.dw-btn.ghost { background: var(--card); color: var(--txt); border: 1px solid var(--line); }
-.dw-btn.sm { padding: 8px 13px; font-size: 12.5px; }
+.dw-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); background: var(--btn-bg); color: var(--on-primary); border: 1px solid transparent; border-radius: var(--r-2); padding: 11px 16px; font: inherit; font-weight: 700; font-size: var(--fs-sm); cursor: pointer; text-decoration: none; transition: filter var(--dur-1) var(--ease), transform var(--dur-1) var(--ease); }
+.dw-btn:hover { filter: brightness(1.06); }
+.dw-btn:active { transform: translateY(1px); filter: brightness(.96); }
+.dw-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
+.dw-btn:disabled { opacity: .5; cursor: default; filter: none; transform: none; }
+.dw-btn.ghost { background: var(--card); color: var(--txt); border-color: var(--line); }
+.dw-btn.ghost:hover { background: var(--card2); border-color: var(--line2); filter: none; }
+.dw-btn.sm { padding: 8px 13px; font-size: var(--fs-xs); }
 .dw-btn.danger { background: transparent; color: var(--red); border: 1px solid var(--red); width: 100%; }
+.dw-btn.danger:hover { filter: none; background: color-mix(in srgb, var(--red) 10%, transparent); }
 
 /* Editable core fields */
 .dw-edit { display: flex; flex-direction: column; gap: 10px; }

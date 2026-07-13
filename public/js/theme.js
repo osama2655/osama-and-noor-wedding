@@ -42,9 +42,24 @@ export const THEMES = [
 
 const valid = (id) => THEMES.some((t) => t.id === id)
 
+// Address-bar / status-bar tint per theme (matches each theme's --bg).
+const THEME_COLORS = {
+  gold: '#0e0c0a',
+  nocturne: '#0b0b10',
+  rose: '#fbf3f1',
+  emerald: '#f4f1e8',
+  aurora: '#1b1024',
+  geometric: '#0c1a2b',
+  glass: '#eef1f8',
+  ivory: '#fcfbf7',
+}
+
 export function applyTheme(id) {
   const t = valid(id) ? id : DEFAULT_THEME
   document.documentElement.setAttribute('data-theme', t)
+  document
+    .querySelector('meta[name=theme-color]')
+    ?.setAttribute('content', THEME_COLORS[t] || THEME_COLORS[DEFAULT_THEME])
   try {
     localStorage.setItem(KEY, t)
   } catch (_) {
