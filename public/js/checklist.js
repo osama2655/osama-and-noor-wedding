@@ -29,6 +29,8 @@ const overrideText = (key, original) => {
   return ov != null ? ov : original
 }
 
+const hasOverride = (key) => store.data.checkOverrides?.[key] != null
+
 // Per-key debounced save of an edited built-in row.
 const overTimers = {}
 function saveOverride(key, text) {
@@ -60,10 +62,13 @@ function staticRow(w, i) {
     : ''
   const who = on ? byTag(e, meId()) : ''
   const text = overrideText(key, it[0])
+  const reset = hasOverride(key)
+    ? `<button class="row-x" data-reset="${key}" title="Reset to original wording">↺</button>`
+    : ''
   return `<li class="${on ? 'done' : ''}">
       <input type="checkbox" class="cbx ${w.gate ? 'gold' : ''}" data-key="${key}" ${on ? 'checked' : ''}>
       <span class="txt"><textarea class="co-text" data-okey="${key}" rows="1">${escapeHtml(text)}</textarea>${ownerTag}${who}</span>
-      <button class="row-x" data-hide="${key}" title="Remove this row">&times;</button></li>`
+      ${reset}<button class="row-x" data-hide="${key}" title="Remove this row">&times;</button></li>`
 }
 
 function customRow(w, c) {
@@ -142,6 +147,22 @@ function wire(el) {
       refresh()
       try {
         bumpRev(await api.hideCheck(key, true))
+      } catch (_) {
+        /* next poll reconciles */
+      }
+    }),
+  )
+
+  el.querySelectorAll('[data-reset]').forEach((b) =>
+    b.addEventListener('click', async (e) => {
+      const key = e.currentTarget.dataset.reset
+      // Cancel any in-flight debounced save of the edit we are discarding, or it
+      // would re-create the override on the server right after we delete it.
+      clearTimeout(overTimers[key])
+      if (store.data.checkOverrides) delete store.data.checkOverrides[key]
+      refresh()
+      try {
+        bumpRev(await api.checkOverrideDelete(key))
       } catch (_) {
         /* next poll reconciles */
       }
