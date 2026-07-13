@@ -58,6 +58,9 @@ function openTab(tab) {
   const btn = tabs.querySelector(`button[data-tab="${tab}"]`)
   btn?.classList.add('active')
   document.getElementById(`tab-${tab}`)?.classList.add('active')
+  // Panels that JS-size content (checklist auto-grow textareas) must relayout once
+  // they are visible; scrollHeight reads 0 while a panel is display:none.
+  window.dispatchEvent(new CustomEvent('tab:shown', { detail: tab }))
 }
 
 // Two-level nav: a group strip filters which sub-tabs show; clicking a sub-tab opens its panel.

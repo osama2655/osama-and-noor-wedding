@@ -46,9 +46,13 @@ function saveOverride(key, text) {
   }, 500)
 }
 
+// A hidden panel (display:none) reports scrollHeight 0; setting height to 0 would
+// collapse the textarea and hide its text. Skip until the element is laid out; the
+// tab:shown listener at the bottom re-grows these once the panel is visible.
 const autoGrow = (ta) => {
   ta.style.height = 'auto'
-  ta.style.height = `${ta.scrollHeight}px`
+  const h = ta.scrollHeight
+  if (h) ta.style.height = `${h}px`
 }
 
 function staticRow(w, i) {
@@ -265,3 +269,13 @@ function wire(el) {
     }),
   )
 }
+
+// Built-in rows use auto-growing textareas sized from scrollHeight, which reads 0
+// while the Checklist panel is hidden, so the text renders collapsed until the tab
+// is opened. Re-grow every row the moment the panel becomes visible.
+window.addEventListener('tab:shown', (e) => {
+  if (e.detail !== 'checklist') return
+  document
+    .querySelectorAll('#tab-checklist .co-text')
+    .forEach((ta) => autoGrow(ta))
+})
