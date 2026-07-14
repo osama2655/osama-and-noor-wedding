@@ -790,7 +790,27 @@ function invite_card_settings(): array
         'timeZaffa' => setting_get('timeZaffa') ?: '11:30',
         'timeDinner' => setting_get('timeDinner') ?: '12:30',
         'honoraryLabel' => setting_get('honoraryLabel') ?: 'المكرمة',
+        'inviteNameFace' => setting_get('inviteNameFace') ?: '',
+        'inviteNameScale' => setting_get('inviteNameScale') ?: '1',
+        'groomFirstAr' => setting_get('groomFirstAr') ?: '',
+        'groomFamilyAr' => setting_get('groomFamilyAr') ?: '',
+        'brideFirstAr' => setting_get('brideFirstAr') ?: '',
+        'brideFamilyAr' => setting_get('brideFamilyAr') ?: '',
+        'eyebrowText' => setting_get('eyebrowText') ?: '',
+        'footerText' => setting_get('footerText') ?: '',
+        'sealGlyph' => setting_get('sealGlyph') ?: '',
     ];
+}
+
+// PUBLIC. The invitation builder's read path: the shared card configuration
+// without needing a pass token. Everything here already appears on every
+// guest's invitation.
+function handle_invite_card(): void
+{
+    json_out([
+        'invite' => invite_card_settings(),
+        'wedDate' => setting_get('wedDate') ?: '2026-08-21',
+    ]);
 }
 
 const OWNERS = ['you', 'men', 'her', 'hall'];

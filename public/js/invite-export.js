@@ -3,12 +3,12 @@
 // mangles Arabic shaping. Curved/letter-spaced text is Latin+digits only.
 import {
   COUPLE,
-  DEFAULT_INVITE,
   INVITE_THEMES,
   STARS,
   STR,
   gregorianLabel,
   hijriLabel,
+  resolveInvite,
 } from './invite-card.js'
 import { qrArtCanvas } from './qr.js'
 
@@ -18,22 +18,28 @@ const CX = W / 2
 
 // Every family/size pair drawn below, probed with the real glyphs. iOS Safari
 // silently falls back to system Arabic if a face is not loaded at fillText time.
-const fontProbes = (t) => [
-  [`${t.nameWeight} 112px ${t.face}`, 'أسـامة نـور'],
-  [`400 44px ${t.face}`, 'الجمـل القـروص'],
-  [`400 38px ${t.face}`, 'ربيع الأول هـ'],
-  [`400 48px ${t.face}`, 'ضيف'],
-  ['300 56px Lateef', 'و'],
-  ['600 30px Cairo', 'بطاقة دخول'],
-  ['400 36px Cairo', '9:30'],
-  ['500 44px Cairo', '2026'],
-]
+const fontProbes = (t, r) => {
+  const css = r?.face?.css || t.face
+  const w = r?.face?.weight || t.nameWeight
+  const names = `${r?.groomFirst || 'أسـامة'} ${r?.brideFirst || 'نـور'}`
+  return [
+    [`${w} 112px ${css}`, names],
+    [`400 44px ${css}`, `${r?.groomFamily || 'الجمـل'} ${r?.brideFamily || 'القـروص'}`],
+    [`400 38px ${css}`, 'ربيع الأول هـ'],
+    [`400 48px ${css}`, 'ضيف'],
+    [`300 56px ${r?.sealFont || "'Lateef'"}`, r?.sealGlyph || 'و'],
+    ['600 30px Cairo', 'بطاقة دخول'],
+    ['400 36px Cairo', '9:30'],
+    ['500 44px Cairo', '2026'],
+  ]
+}
 
 const artCache = new Map()
 
-export async function prewarm(theme) {
+export async function prewarm(theme, settings) {
   const t = INVITE_THEMES[theme] || INVITE_THEMES.sage
-  const jobs = fontProbes(t).map(([f, probe]) =>
+  const r = resolveInvite(settings || {})
+  const jobs = fontProbes(t, r).map(([f, probe]) =>
     document.fonts?.load ? document.fonts.load(f, probe).catch(() => {}) : null,
   )
   if (t.art && !artCache.has(t.art)) {
@@ -166,7 +172,7 @@ async function drawArt(ctx, t) {
   ctx.drawImage(img, (W - dw) / 2, H - dh, dw, dh)
 }
 
-function drawSeal(ctx, theme, t, y) {
+function drawSeal(ctx, theme, t, y, rv) {
   const r = 40
   ctx.lineWidth = 3
   ctx.strokeStyle = t.accent
@@ -186,18 +192,24 @@ function drawSeal(ctx, theme, t, y) {
   ctx.stroke()
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
-  ctx.font = '300 56px Lateef, Georgia, serif'
+  const glyph = rv?.sealGlyph || 'و'
+  const sealFont = rv?.sealFont || "'Lateef'"
+  let fs = 56
+  ctx.font = `300 ${fs}px ${sealFont}, Georgia, serif`
+  while (fs > 14 && ctx.measureText(glyph).width > 66) {
+    fs = Math.floor(fs * 0.9)
+    ctx.font = `300 ${fs}px ${sealFont}, Georgia, serif`
+  }
   ctx.fillStyle = theme === 'badr' ? foil(ctx, CX - 30, CX + 30, y + r) : t.names
-  ctx.fillText('و', CX, y + r - 10)
+  ctx.fillText(glyph, CX, y + r - 10)
   return y + r * 2
 }
 
-function drawNames(ctx, theme, t) {
-  const size = 112
-  ctx.font = `${t.nameWeight} ${size}px ${t.face}, 'Lateef', serif`
-  const gw = ctx.measureText(COUPLE.groomFirst).width
-  const bw = ctx.measureText(COUPLE.brideFirst).width
-  ctx.font = `300 64px ${t.face}, 'Lateef', serif`
+function drawNames(ctx, theme, t, rv, nameCss, nameWeight, size) {
+  ctx.font = `${nameWeight} ${size}px ${nameCss}, 'Lateef', serif`
+  const gw = ctx.measureText(rv.groomFirst).width
+  const bw = ctx.measureText(rv.brideFirst).width
+  ctx.font = `300 ${Math.round(size * 0.57)}px ${nameCss}, 'Lateef', serif`
   const jw = ctx.measureText(COUPLE.join).width
   const gap = 30
   const total = gw + gap + jw + gap + bw
@@ -309,9 +321,15 @@ function drawDivider(ctx, theme, t, y) {
 // Renders the full card and returns the canvas. Everything is awaited inside;
 // callers wanting iOS share must prewarm() first so this stays near-instant.
 export async function drawInviteCanvas({ theme = 'sage', settings = {}, wedDate = '2026-08-21', guestName = '', tokenUrl = '' }) {
-  await prewarm(theme)
+  await prewarm(theme, settings)
   const t = INVITE_THEMES[theme] || INVITE_THEMES.sage
-  const s = { ...DEFAULT_INVITE, ...settings }
+  const rv = resolveInvite(settings)
+  const s = rv.s
+  const faceScale = rv.face?.scale || 1
+  const nameCss = rv.face?.css || t.face
+  const nameWeight = rv.face?.weight || t.nameWeight
+  const nameSize = Math.round(112 * faceScale * rv.scale)
+  const fpx = (base) => Math.round(base * faceScale)
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
@@ -332,34 +350,34 @@ export async function drawInviteCanvas({ theme = 'sage', settings = {}, wedDate 
   let y = Math.max(48, (H - blocks) / 2)
 
   ctx.textAlign = 'center'
-  y = drawSeal(ctx, theme, t, y)
+  y = drawSeal(ctx, theme, t, y, rv)
   y += 22
 
   ctx.font = '600 30px Cairo, sans-serif'
   ctx.fillStyle = t.label
   ctx.textBaseline = 'alphabetic'
-  ctx.fillText(STR.eyebrow, CX, y + 30)
+  ctx.fillText(rv.eyebrow, CX, y + 30)
   y += 30 + 36
 
-  const n = drawNames(ctx, theme, t)
+  const n = drawNames(ctx, theme, t, rv, nameCss, nameWeight, nameSize)
   const nameBase = y + 100
-  fillNameRun(ctx, theme, t, COUPLE.groomFirst, n.xg, nameBase, `${t.nameWeight} 112px ${t.face}, 'Lateef', serif`)
-  fillNameRun(ctx, theme, t, COUPLE.brideFirst, n.xb, nameBase, `${t.nameWeight} 112px ${t.face}, 'Lateef', serif`)
+  fillNameRun(ctx, theme, t, rv.groomFirst, n.xg, nameBase, `${nameWeight} ${nameSize}px ${nameCss}, 'Lateef', serif`)
+  fillNameRun(ctx, theme, t, rv.brideFirst, n.xb, nameBase, `${nameWeight} ${nameSize}px ${nameCss}, 'Lateef', serif`)
   ctx.fillStyle = theme === 'badr' ? foil(ctx, n.xj - 20, n.xj + 20, nameBase) : t.gold
-  ctx.font = `300 64px ${t.face}, 'Lateef', serif`
+  ctx.font = `300 ${Math.round(nameSize * 0.57)}px ${nameCss}, 'Lateef', serif`
   ctx.fillText(COUPLE.join, n.xj, nameBase - 4)
   y = nameBase + 50
 
-  ctx.font = `400 44px ${t.face}, 'Lateef', serif`
+  ctx.font = `400 ${fpx(44)}px ${nameCss}, 'Lateef', serif`
   ctx.fillStyle = t.family
-  ctx.fillText(COUPLE.groomFamily, n.xg, y + 18)
-  ctx.fillText(COUPLE.brideFamily, n.xb, y + 18)
+  ctx.fillText(rv.groomFamily, n.xg, y + 18)
+  ctx.fillText(rv.brideFamily, n.xb, y + 18)
   y += 44 + 18
 
   y = drawDivider(ctx, theme, t, y + 10) + 34
 
   if (hijri) {
-    ctx.font = `400 38px ${t.face}, 'Lateef', serif`
+    ctx.font = `400 ${fpx(38)}px ${nameCss}, 'Lateef', serif`
     ctx.fillStyle = t.body
     ctx.fillText(hijri, CX, y + 28)
     y += 48
@@ -374,7 +392,7 @@ export async function drawInviteCanvas({ theme = 'sage', settings = {}, wedDate 
   ctx.restore()
   y += 52
   if (venue) {
-    ctx.font = `400 36px ${t.face}, 'Lateef', serif`
+    ctx.font = `400 ${fpx(36)}px ${nameCss}, 'Lateef', serif`
     ctx.fillStyle = t.muted
     ctx.fillText(venue, CX, y + 28)
     y += 48
@@ -412,6 +430,8 @@ export async function drawInviteCanvas({ theme = 'sage', settings = {}, wedDate 
     ...t.qr,
     panelRadius: 24,
     medallion: 'waw',
+    medallionGlyph: rv.sealGlyph,
+    medallionFont: rv.sealFont,
   })
   const qw = qrCanvasEl.width
   const qx = CX - qw / 2
@@ -442,23 +462,23 @@ export async function drawInviteCanvas({ theme = 'sage', settings = {}, wedDate 
   }
 
   // المكرمة : guest
-  const label = `${s.honoraryLabel} :`
+  const label = `${rv.honorary} :`
   ctx.font = '600 28px Cairo, sans-serif'
   const lw = ctx.measureText(label).width
-  ctx.font = `400 48px ${t.face}, 'Lateef', serif`
+  ctx.font = `400 ${fpx(48)}px ${nameCss}, 'Lateef', serif`
   const gw2 = ctx.measureText(guestName || '').width
   const totalG = lw + 18 + gw2
   ctx.font = '600 28px Cairo, sans-serif'
   ctx.fillStyle = t.muted
   ctx.fillText(label, CX + totalG / 2 - lw / 2, y + 30)
-  ctx.font = `400 48px ${t.face}, 'Lateef', serif`
+  ctx.font = `400 ${fpx(48)}px ${nameCss}, 'Lateef', serif`
   ctx.fillStyle = t.names
   ctx.fillText(guestName || '', CX - totalG / 2 + gw2 / 2, y + 36)
   y += 54 + 30
 
   ctx.font = '400 26px Cairo, sans-serif'
   ctx.fillStyle = t.muted
-  ctx.fillText(STR.footer, CX, Math.min(y + 24, H - 40))
+  ctx.fillText(rv.footer, CX, Math.min(y + 24, H - 40))
 
   return canvas
 }

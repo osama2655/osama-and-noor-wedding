@@ -51,7 +51,7 @@ session_start();
 $action = $_GET['action'] ?? '';
 
 // The only unauthenticated surface: guests submit RSVPs and read invite info by token.
-$publicActions = ['rsvp' => 'handle_rsvp_submit', 'invite_info' => 'handle_invite_info', 'pass_info' => 'handle_pass_info'];
+$publicActions = ['rsvp' => 'handle_rsvp_submit', 'invite_info' => 'handle_invite_info', 'pass_info' => 'handle_pass_info', 'invite_card' => 'handle_invite_card'];
 if (isset($publicActions[$action])) {
     try {
         $publicActions[$action]();

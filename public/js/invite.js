@@ -4,6 +4,7 @@ import {
   DEFAULT_INVITE,
   INVITE_THEMES,
   buildInviteCard,
+  resolveInvite,
 } from './invite-card.js'
 import { qrArtCanvas } from './qr.js'
 import { startScanner } from './scanner.js'
@@ -97,7 +98,9 @@ function invitationStudio() {
       <div class="card-head"><div class="ch-text">
         <h2>Invitation card</h2>
         <p class="hint">Every guest's pass link opens this card with their own QR. Theme and details are shared; edits go live instantly.</p>
-      </div></div>
+      </div>
+      <div class="ch-actions"><a class="btn ghost sm" href="preview.html" target="_blank" rel="noopener">Open invitation builder</a></div>
+      </div>
       <div class="ics-grid">
         <div class="ics-controls">
           <div class="ics-themes">${Object.keys(INVITE_THEMES).map((id) => themeChip(id, id === theme)).join('')}</div>
@@ -130,9 +133,12 @@ function mountPreview(el) {
     guestName: 'اسم الضيف',
     status: 'valid',
   })
+  const rv = resolveInvite(s)
   const qr = qrArtCanvas(`${location.origin}/pass.html`, {
     size: 240,
     ...INVITE_THEMES[theme].qr,
+    medallionGlyph: rv.sealGlyph,
+    medallionFont: rv.sealFont,
   })
   card.querySelector('.ic-qr')?.replaceChildren(qr)
   mount.replaceChildren(card)
@@ -242,9 +248,12 @@ export function renderInvite() {
     </div>`
 
   el.querySelectorAll('.inv-qr').forEach((m) => {
+    const rvq = resolveInvite(cardSettings())
     const c = qrArtCanvas(link(m.dataset.token), {
       size: 180,
       ...INVITE_THEMES[cardTheme()].qr,
+      medallionGlyph: rvq.sealGlyph,
+      medallionFont: rvq.sealFont,
     })
     m.appendChild(c)
   })
@@ -494,12 +503,15 @@ function wire(el) {
       const inv = find(b.dataset.dl)
       if (!inv) return
       const th = INVITE_THEMES[cardTheme()]
+      const rvd = resolveInvite(cardSettings())
       const c = qrArtCanvas(link(inv.token), {
         size: 640,
         dpr: 1,
         ...th.qr,
         panel: th.qr.panel || th.ground,
         panelRadius: 28,
+        medallionGlyph: rvd.sealGlyph,
+        medallionFont: rvd.sealFont,
       })
       const a = document.createElement('a')
       a.href = c.toDataURL('image/png')

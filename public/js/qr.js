@@ -84,6 +84,8 @@ export function qrArtCanvas(text, opts = {}) {
     panel = null,
     panelRadius = 16,
     medallion = 'waw',
+    medallionGlyph = 'و',
+    medallionFont = "'Lateef'",
     ring = null,
     dpr = Math.min(3, window.devicePixelRatio || 1),
     style = QR_ART.style,
@@ -233,16 +235,25 @@ export function qrArtCanvas(text, opts = {}) {
         ctx.lineTo(cx + discR * 0.46, cy - discR * 0.3)
         ctx.stroke()
       } else {
+        // Shrink-to-fit inside the ink disc: the glyph may be swapped for any
+        // short mark, but the disc geometry (and so scannability) never moves.
+        const glyph = String(medallionGlyph || 'و').slice(0, 4)
         ctx.textAlign = 'center'
         ctx.textBaseline = 'middle'
-        ctx.font = `300 ${Math.round(medallionModules * 0.62 * cell)}px Lateef, Georgia, serif`
-        ctx.fillText('و', cx, cy - discR * 0.18)
+        let fs = Math.round(medallionModules * 0.62 * cell)
+        const maxW = (discR - cell) * 1.5
+        ctx.font = `300 ${fs}px ${medallionFont}, Georgia, serif`
+        while (fs > 8 && ctx.measureText(glyph).width > maxW) {
+          fs = Math.floor(fs * 0.9)
+          ctx.font = `300 ${fs}px ${medallionFont}, Georgia, serif`
+        }
+        ctx.fillText(glyph, cx, cy - discR * 0.15)
       }
     }
     drawSeal()
     if (medallion === 'waw' && document.fonts?.load) {
       document.fonts
-        .load(`300 ${Math.round(medallionModules * 0.62 * cell)}px Lateef`, 'و')
+        .load(`300 ${Math.round(medallionModules * 0.62 * cell)}px ${medallionFont}`, String(medallionGlyph || 'و'))
         .then(drawSeal)
         .catch(() => {})
     }

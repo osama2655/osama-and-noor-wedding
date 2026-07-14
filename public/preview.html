@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en" data-theme="gold">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#0e0c0a" />
+<title>Invitation builder · Osama & Noor</title>
+<link rel="preload" href="fonts/lateef-300-arabic.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="fonts/cairo-arabic.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="css/base.css?v=36" />
+<link rel="stylesheet" href="css/themes.css?v=36" />
+<link rel="stylesheet" href="css/fonts.css?v=36" />
+<link rel="stylesheet" href="css/fonts-gallery.css?v=36" />
+<link rel="stylesheet" href="css/invite-card.css?v=36" />
+<link rel="stylesheet" href="css/preview.css?v=36" />
+</head>
+<body>
+<div id="theme-bg"></div>
+<div class="pv-wrap">
+  <header class="pv-header">
+    <div class="pv-title">
+      <h1>Osama <span class="amp">&amp;</span> Noor</h1>
+      <p class="pv-sub">Invitation builder · بطاقة الدخول · everything below is a draft until you apply it</p>
+    </div>
+    <div class="pv-savebar">
+      <span class="pv-status" id="pvStatus">loading…</span>
+      <button class="btn ghost sm" id="pvRevert" disabled>Revert to saved</button>
+      <button class="btn ghost sm" id="pvReset">Reset design</button>
+      <button class="btn sm" id="pvApply" disabled>Apply to live invitations</button>
+    </div>
+  </header>
+
+  <main class="pv-layout">
+    <aside class="pv-panel">
+      <h3>Theme</h3>
+      <div class="ics-themes" id="pvThemes"></div>
+
+      <h3>Typography · خط الأسماء</h3>
+      <div class="pv-faces" id="pvFaces"></div>
+
+      <h3>Names size · حجم الأسماء</h3>
+      <div class="pv-slider">
+        <input type="range" id="pvScale" min="0.7" max="1.4" step="0.05" value="1" />
+        <span id="pvScaleVal">100%</span>
+        <button class="btn ghost sm" id="pvKashida">Kashida ـــ</button>
+      </div>
+
+      <h3>Text · النصوص</h3>
+      <div class="pv-fields" id="pvFields"></div>
+    </aside>
+
+    <section class="pv-stage">
+      <div class="pv-hero" id="pvHero"></div>
+      <div id="pvGrids"></div>
+    </section>
+  </main>
+</div>
+<script src="js/vendor/qrcode.js?v=36"></script>
+<script type="module" src="js/preview.js?v=36"></script>
+</body>
+</html>

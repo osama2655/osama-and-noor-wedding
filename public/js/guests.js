@@ -1,5 +1,5 @@
 import { api } from './api.js'
-import { COUPLE, INVITE_THEMES } from './invite-card.js'
+import { COUPLE, INVITE_THEMES, resolveInvite } from './invite-card.js'
 import { qrArtCanvas } from './qr.js'
 import { guestStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
@@ -86,13 +86,16 @@ function openGuestPass(g) {
   })
   if (!sheet) return
   const th = INVITE_THEMES[inviteTheme()]
+  const rv = resolveInvite(inviteSettings())
   const canvas = qrArtCanvas(linkUrl, {
     size: 240,
     ...th.qr,
     medallion: used ? 'check' : 'waw',
+    medallionGlyph: rv.sealGlyph,
+    medallionFont: rv.sealFont,
   })
   sheet.body.querySelector('.gpass-qr').appendChild(canvas)
-  import('./invite-export.js').then((m) => m.prewarm(inviteTheme())).catch(() => {})
+  import('./invite-export.js').then((m) => m.prewarm(inviteTheme(), inviteSettings())).catch(() => {})
 
   sheet.body.querySelector('[data-inv]').addEventListener('click', async (e) => {
     const b = e.currentTarget
@@ -126,6 +129,8 @@ function openGuestPass(g) {
       ...th.qr,
       panel: th.qr.panel || th.ground,
       panelRadius: 28,
+      medallionGlyph: rv.sealGlyph,
+      medallionFont: rv.sealFont,
       ring: { top: COUPLE.latin, bottom: COUPLE.dateLatin, color: th.qr.ink },
     })
     const a = document.createElement('a')
@@ -174,7 +179,8 @@ function openGuestInvite(g) {
       </div>`,
   })
   if (!sheet) return
-  const canvas = qrArtCanvas(linkUrl, { size: 200, ...INVITE_THEMES[inviteTheme()].qr })
+  const rvi = resolveInvite(inviteSettings())
+  const canvas = qrArtCanvas(linkUrl, { size: 200, ...INVITE_THEMES[inviteTheme()].qr, medallionGlyph: rvi.sealGlyph, medallionFont: rvi.sealFont })
   sheet.body.querySelector('.gpass-qr').appendChild(canvas)
   sheet.body.querySelector('[data-wa]').addEventListener('click', () => {
     window.open(

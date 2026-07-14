@@ -116,6 +116,61 @@ export const DEFAULT_INVITE = {
   timeZaffa: '11:30',
   timeDinner: '12:30',
   honoraryLabel: 'المكرمة',
+  inviteNameFace: '',
+  inviteNameScale: '1',
+  groomFirstAr: '',
+  groomFamilyAr: '',
+  brideFirstAr: '',
+  brideFamilyAr: '',
+  eyebrowText: '',
+  footerText: '',
+  sealGlyph: '',
+}
+
+// The builder's typography gallery: 16 Arabic display faces across the great
+// script families. `scale` normalizes optical size (display faces differ wildly
+// at the same px); `lh` overrides line-height for deep nastaliq swashes.
+export const NAME_FACES = {
+  amiri: { label: 'أميري', tag: 'نسخ كلاسيكي', css: "'Amiri'", weight: 400, scale: 1 },
+  quran: { label: 'أميري قرآني', tag: 'مصحفي', css: "'Amiri Quran'", weight: 400, scale: 0.95, lh: 1.6 },
+  scheherazade: { label: 'شهرزاد', tag: 'نسخ تقليدي', css: "'Scheherazade New'", weight: 400, scale: 1 },
+  lateef: { label: 'لطيف', tag: 'نسخ ممدود رفيع', css: "'Lateef'", weight: 300, scale: 1.05 },
+  harmattan: { label: 'هرمتان', tag: 'نسخ هادئ', css: "'Harmattan'", weight: 500, scale: 0.95 },
+  aref: { label: 'عارف رقعة', tag: 'رقعة احتفالية', css: "'Aref Ruqaa'", weight: 400, scale: 0.9, lh: 1.6 },
+  rakkas: { label: 'رقّاص', tag: 'رقعة استعراضية', css: "'Rakkas'", weight: 400, scale: 0.95, lh: 1.5 },
+  katibeh: { label: 'كاتبة', tag: 'عناوين كلاسيكية', css: "'Katibeh'", weight: 400, scale: 1, lh: 1.5 },
+  jomhuria: { label: 'جمهورية', tag: 'عنوان ثقيل', css: "'Jomhuria'", weight: 400, scale: 0.85, lh: 1.5 },
+  reemkufi: { label: 'ريم كوفي', tag: 'كوفي هندسي', css: "'Reem Kufi'", weight: 500, scale: 0.88 },
+  qahiri: { label: 'قاهري', tag: 'كوفي خطي', css: "'Qahiri'", weight: 400, scale: 0.9 },
+  nastaliq: { label: 'نوتو نستعليق', tag: 'نستعليق انسيابي', css: "'Noto Nastaliq Urdu'", weight: 400, scale: 0.78, lh: 2 },
+  gulzar: { label: 'كلزار', tag: 'نستعليق مزخرف', css: "'Gulzar'", weight: 400, scale: 0.8, lh: 2 },
+  mirza: { label: 'ميرزا', tag: 'نستعليق معاصر', css: "'Mirza'", weight: 500, scale: 0.95, lh: 1.6 },
+  messiri: { label: 'المسيري', tag: 'خط عصري', css: "'El Messiri'", weight: 500, scale: 0.9 },
+  vibes: { label: 'فايبز', tag: 'زخرفي', css: "'Vibes'", weight: 400, scale: 1.1 },
+}
+
+// One resolver used by the DOM card, the canvas compositor, and the QR seal, so
+// every surface renders the identical configuration. Empty fields always fall
+// back to the designed defaults; the card can never go blank.
+export function resolveInvite(settings) {
+  const s = { ...DEFAULT_INVITE, ...settings }
+  const face = NAME_FACES[s.inviteNameFace] || null
+  const scale = Math.min(1.4, Math.max(0.7, parseFloat(s.inviteNameScale) || 1))
+  const txt = (v, d) => (String(v ?? '').trim() ? String(v).trim() : d)
+  return {
+    s,
+    face,
+    scale,
+    groomFirst: txt(s.groomFirstAr, COUPLE.groomFirst),
+    groomFamily: txt(s.groomFamilyAr, COUPLE.groomFamily),
+    brideFirst: txt(s.brideFirstAr, COUPLE.brideFirst),
+    brideFamily: txt(s.brideFamilyAr, COUPLE.brideFamily),
+    eyebrow: txt(s.eyebrowText, STR.eyebrow),
+    footer: txt(s.footerText, STR.footer),
+    sealGlyph: txt(s.sealGlyph, 'و').slice(0, 4),
+    honorary: txt(s.honoraryLabel, 'المكرمة'),
+    sealFont: face ? face.css : "'Lateef'",
+  }
 }
 
 // Deterministic star field for Laylat AlBadr: identical in DOM and canvas,
@@ -164,10 +219,10 @@ const KHATAM_TILE = encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48"><g fill="none" stroke="#c9a24b" stroke-width="1"><rect x="12" y="12" width="24" height="24"/><rect x="12" y="12" width="24" height="24" transform="rotate(45 24 24)"/></g></svg>`,
 )
 
-const seal = () => `
+const seal = (glyph = 'و') => `
   <div class="ic-seal">
     <span class="ic-seal-disc"></span>
-    <span class="ic-seal-waw">و</span>
+    <span class="ic-seal-waw">${esc(glyph)}</span>
   </div>`
 
 const dividers = {
@@ -214,12 +269,23 @@ function stateBand(status, redeemedAt) {
 // the live page, wires [data-retry]. `settings` follows DEFAULT_INVITE keys.
 export function buildInviteCard({ theme = 'sage', settings = {}, wedDate = '2026-08-21', guestName = null, status = 'loading', redeemedAt = null }) {
   const t = INVITE_THEMES[theme] ? theme : 'sage'
-  const s = { ...DEFAULT_INVITE, ...settings }
+  const r = resolveInvite(settings)
+  const s = r.s
   const el = document.createElement('div')
   el.className = 'invite-card'
   el.dataset.inviteTheme = t
   el.dir = 'rtl'
   el.setAttribute('lang', 'ar')
+
+  if (r.face) {
+    el.style.setProperty('--ic-khatt', `${r.face.css}, 'Lateef', serif`)
+    el.style.setProperty('--ic-nameweight', String(r.face.weight))
+    el.style.setProperty('--ic-sealfont', `${r.face.css}, 'Lateef', serif`)
+    if (r.face.lh) el.style.setProperty('--ic-nameline', String(r.face.lh))
+  }
+  const optical = (r.face?.scale || 1) * r.scale
+  if (r.face || r.scale !== 1)
+    el.style.setProperty('--ic-namesize', `calc(${optical.toFixed(3)} * clamp(40px, 12vw, 58px))`)
 
   const loading = status === 'loading'
   const invalid = status === 'invalid'
@@ -231,16 +297,16 @@ export function buildInviteCard({ theme = 'sage', settings = {}, wedDate = '2026
     ${t === 'badr' ? badrOrnaments() : ''}
     <div class="ic-frame"></div>
     <div class="ic-body">
-      ${seal()}
-      <div class="ic-eyebrow">${STR.eyebrow}</div>
+      ${seal(r.sealGlyph)}
+      <div class="ic-eyebrow">${esc(r.eyebrow)}</div>
       <div class="ic-names">
-        <span class="ic-name">${COUPLE.groomFirst}</span>
+        <span class="ic-name">${esc(r.groomFirst)}</span>
         <span class="ic-join">${COUPLE.join}</span>
-        <span class="ic-name">${COUPLE.brideFirst}</span>
+        <span class="ic-name">${esc(r.brideFirst)}</span>
       </div>
       <div class="ic-families">
-        <span>${COUPLE.groomFamily}</span>
-        <span>${COUPLE.brideFamily}</span>
+        <span>${esc(r.groomFamily)}</span>
+        <span>${esc(r.brideFamily)}</span>
       </div>
       ${dividers[t]}
       <div class="ic-dates">
@@ -258,11 +324,11 @@ export function buildInviteCard({ theme = 'sage', settings = {}, wedDate = '2026
         <div class="ic-qr">${loading ? '<span class="ic-skel ic-skel-qr"></span>' : ''}</div>
       </div>
       <div class="ic-guest">
-        <span class="l">${esc(s.honoraryLabel)} :</span>
+        <span class="l">${esc(r.honorary)} :</span>
         ${loading ? '<span class="ic-skel ic-skel-name"></span>' : `<span class="v">${esc(guestName || '')}</span>`}
       </div>`}
       ${stateBand(status, redeemedAt)}
-      <div class="ic-footer">${STR.footer}</div>
+      <div class="ic-footer">${esc(r.footer)}</div>
     </div>`
   return el
 }

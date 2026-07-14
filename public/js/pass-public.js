@@ -6,6 +6,7 @@ import {
   DEFAULT_INVITE,
   INVITE_THEMES,
   STR,
+  resolveInvite,
 } from './invite-card.js'
 import { qrArtCanvas } from './qr.js'
 
@@ -35,12 +36,15 @@ function show(card, actions) {
   root.replaceChildren(frag)
 }
 
-function attachQr(card, theme, status) {
+function attachQr(card, theme, status, settings) {
   const t = INVITE_THEMES[theme] || INVITE_THEMES.sage
+  const rv = resolveInvite(settings || {})
   const qr = qrArtCanvas(location.href, {
     size: 240,
     ...t.qr,
     medallion: status === 'redeemed' ? 'check' : 'waw',
+    medallionGlyph: rv.sealGlyph,
+    medallionFont: rv.sealFont,
   })
   qr.setAttribute('role', 'img')
   qr.setAttribute('aria-label', 'Entrance QR')
@@ -103,7 +107,7 @@ async function load() {
     status,
     redeemedAt: info.redeemedAt,
   })
-  attachQr(card, theme, status)
+  attachQr(card, theme, status, settings)
   const payload = {
     theme,
     settings,
@@ -115,7 +119,7 @@ async function load() {
 
   // Prewarm the export path (module, fonts, artwork) so the save tap itself
   // stays inside iOS Safari's user-gesture window.
-  import('./invite-export.js').then((m) => m.prewarm(theme)).catch(() => {})
+  import('./invite-export.js').then((m) => m.prewarm(theme, settings)).catch(() => {})
 }
 
 load()
