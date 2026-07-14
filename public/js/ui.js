@@ -99,6 +99,11 @@ export function openSheet({
   return sheetState
 }
 
+export function closeSheet() {
+  if (sheetState) sheetState.close()
+}
+export const isSheetOpen = () => !!sheetState
+
 // --- The kebab: one action pattern for every row and card -------------------
 
 const KEBAB_ICON =

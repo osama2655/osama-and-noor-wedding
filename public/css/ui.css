@@ -26,6 +26,27 @@ body.sheet-lock { overflow: hidden; }
 }
 @media (prefers-reduced-motion: reduce) { .sheet, .sheet-backdrop { animation: none; } }
 
+/* Sheet header star + shared sheet content primitives */
+.sheet-star { background: none; border: none; color: var(--faint); font-size: 20px; line-height: 1; cursor: pointer; width: 36px; height: 36px; border-radius: var(--r-1); flex: none; }
+.sheet-star:hover { color: var(--gold); }
+.sheet-star.on { color: var(--gold); }
+
+/* Two-column form grid inside a sheet; short fields pair, collapses under 480px */
+.form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.form-grid .ff-wide { grid-column: 1 / -1; }
+.ff { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.ff > span { font-size: var(--fs-xs); color: var(--muted); font-weight: 600; }
+.ff .field { width: 100%; }
+.ff textarea.field { resize: vertical; min-height: 56px; line-height: 1.45; }
+@media (max-width: 480px) { .form-grid { grid-template-columns: 1fr; } }
+
+/* Segmented control (status pipeline, boolean toggles) */
+.segmented { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg { border: 1px solid var(--line); background: var(--card2); color: var(--muted); border-radius: var(--r-pill); padding: 7px 12px; font: inherit; font-size: var(--fs-xs); font-weight: 600; cursor: pointer; transition: border-color var(--dur-1) var(--ease), color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
+.seg:hover:not(.on) { color: var(--txt); border-color: var(--line2); }
+.seg.on { background: var(--gold); color: var(--on-primary); border-color: var(--gold); }
+.segmented.soft .seg.on { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); }
+
 /* Empty state: centered, full card width, always with a next step. */
 .empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
   text-align: center; padding: var(--sp-7) var(--sp-4); width: 100%; }

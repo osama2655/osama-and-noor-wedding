@@ -2,21 +2,30 @@ import { api } from './api.js'
 import { googleMap, instagramCard } from './embeds.js'
 import { isSaved, toggleSave } from './saves.js'
 import { bumpRev, meId, store } from './store.js'
-import { confirmDelete, toast, undoToast } from './ui.js'
+import {
+  closeSheet,
+  confirmDelete,
+  isSheetOpen,
+  kebabButton,
+  openKebabMenu,
+  openSheet,
+  toast,
+  undoToast,
+} from './ui.js'
 import { debounce, escapeAttr, escapeHtml } from './util.js'
 
-let current = null
+let sheet = null
+let currentId = null
 
 const tel = (p) => p.replace(/\s+/g, '')
 const initials = (name) =>
-  name
+  (name || '?')
     .split(/\s+/)
     .slice(0, 2)
     .map((w) => w[0] || '')
     .join('')
-    .toUpperCase()
+    .toUpperCase() || '?'
 
-// The contact pipeline surfaced on the drawer. Values match VENDOR_STATUSES server-side.
 const STATUS_STEPS = [
   { key: 'todo', label: 'Not contacted' },
   { key: 'contacted', label: 'Contacted' },
@@ -25,8 +34,8 @@ const STATUS_STEPS = [
   { key: 'paid', label: 'Paid' },
 ]
 
-// The live catalog row (with remarks + files), not the possibly-stale opener snapshot.
 const liveRow = (id) => (store.data.catalog || []).find((c) => c.id === id)
+const nameOf = (item) => (liveRow(item.id) || item).name || 'Untitled listing'
 
 const fmtBytes = (n) => {
   if (!n) return ''
@@ -34,7 +43,6 @@ const fmtBytes = (n) => {
   if (n < 1024 * 1024) return `${Math.round(n / 1024)} KB`
   return `${(n / (1024 * 1024)).toFixed(1)} MB`
 }
-
 const fmtWhen = (at) => {
   if (!at) return ''
   const d = new Date(`${String(at).replace(' ', 'T')}Z`)
@@ -43,50 +51,185 @@ const fmtWhen = (at) => {
 
 function chips(item) {
   const c = []
-  if (item.area) c.push(`<span class="dw-chip">${escapeHtml(item.area)}</span>`)
-  if (item.capacity)
-    c.push(`<span class="dw-chip">${item.capacity} guests</span>`)
+  if (item.area) c.push(`<span class="chip">${escapeHtml(item.area)}</span>`)
+  if (item.capacity) c.push(`<span class="chip">${item.capacity} guests</span>`)
   if (item.category === 'venue' && item.segregated)
-    c.push('<span class="dw-chip ok">Segregated layout</span>')
-  if (item.category === 'photo') {
+    c.push('<span class="chip ok">Segregated layout</span>')
+  if (item.category === 'photo')
     c.push(
       item.femaleCrew
-        ? '<span class="dw-chip ok">Female crew confirmed</span>'
-        : '<span class="dw-chip warn">Female crew to confirm</span>',
+        ? '<span class="chip ok">Female crew confirmed</span>'
+        : '<span class="chip warn">Female crew to confirm</span>',
     )
-  }
-  return c.join('')
+  return c.length ? `<div class="cd-chips">${c.join('')}</div>` : ''
 }
 
-const editRow = (label, field, value, ph = '') =>
-  `<label class="dw-edit-row"><span>${label}</span><input data-f="${field}" value="${escapeAttr(value ?? '')}" placeholder="${ph}"></label>`
+const field = (label, f, value, ph = '', wide = false) =>
+  `<label class="ff ${wide ? 'ff-wide' : ''}"><span>${label}</span><input class="field" data-f="${f}" value="${escapeAttr(value ?? '')}" placeholder="${ph}"></label>`
 
-// Editable core identity of a listing. Toggles (featured / segregated) sit below;
-// femaleCrew keeps its own dedicated button in dw-actions.
-function editHTML(row) {
+function detailsForm(row) {
   const isVenue = row.category === 'venue'
-  const toggle = (field, label) =>
-    `<button class="dw-status ${row[field] ? 'on' : ''}" data-toggle="${field}">${label}</button>`
-  return `<div class="dw-section">
-      <div class="dw-section-h">Details</div>
-      <div class="dw-edit">
-        ${editRow('Name', 'name', row.name, 'e.g. Studio Classic')}
-        ${editRow('Instagram', 'instagram', row.instagram, '@handle')}
-        ${editRow('Phone', 'phone', row.phone, '+973 ...')}
-        ${editRow('Area', 'area', row.area, 'e.g. Dumistan')}
-        ${isVenue ? editRow('Capacity', 'capacity', row.capacity, 'guests') : ''}
-        ${isVenue ? editRow('Maps query', 'mapsQuery', row.mapsQuery, 'name or address') : ''}
-        <label class="dw-edit-row col"><span>Note</span><textarea data-f="note" rows="2" placeholder="Short description">${escapeHtml(row.note || '')}</textarea></label>
-        ${editRow('Verify', 'verify', row.verify, 'What still needs confirming')}
+  const toggle = (f, label) =>
+    `<button class="seg ${row[f] ? 'on' : ''}" type="button" data-toggle="${f}">${label}</button>`
+  return `<div class="cd-sec">
+      <div class="cd-h">Details</div>
+      <div class="form-grid">
+        ${field('Name', 'name', row.name, 'e.g. Studio Classic')}
+        ${field('Instagram', 'instagram', row.instagram, '@handle')}
+        ${field('Phone', 'phone', row.phone, '+973 ...')}
+        ${field('Area', 'area', row.area, 'e.g. Dumistan')}
+        ${isVenue ? field('Capacity', 'capacity', row.capacity, 'guests') : ''}
+        ${isVenue ? field('Maps query', 'mapsQuery', row.mapsQuery, 'name or address') : ''}
+        <label class="ff ff-wide"><span>Note</span><textarea class="field" data-f="note" rows="2" placeholder="Short description">${escapeHtml(row.note || '')}</textarea></label>
+        <label class="ff ff-wide"><span>Still to confirm</span><input class="field" data-f="verify" value="${escapeAttr(row.verify ?? '')}" placeholder="What still needs confirming"></label>
       </div>
-      <div class="dw-statusrow" style="margin-top:10px">
+      <div class="segmented soft" style="margin-top:12px">
         ${toggle('featured', 'Start here')}
         ${isVenue ? toggle('segregated', 'Segregated layout') : ''}
       </div>
     </div>`
 }
 
-// Debounced write-back of the whole listing while the couple type.
+function statusSec(row) {
+  const active = row.status || 'todo'
+  return `<div class="cd-sec">
+      <div class="cd-h">Where we are</div>
+      <div class="segmented">${STATUS_STEPS.map((s) => `<button class="seg ${s.key === active ? 'on' : ''}" type="button" data-status="${s.key}">${s.label}</button>`).join('')}</div>
+    </div>`
+}
+
+function remarkHTML(r) {
+  const meta = [r.by, fmtWhen(r.at)].filter(Boolean).join(' &middot; ')
+  return `<div class="cd-remark" data-remark="${r.id}">
+      <div class="cd-remark-body">${escapeHtml(r.body)}</div>
+      <div class="cd-remark-foot"><span class="cd-remark-meta">${meta}</span>${kebabButton('Remark actions')}</div>
+    </div>`
+}
+
+function remarksSec(row) {
+  const list = row.remarks || []
+  const items = list.length
+    ? list.map(remarkHTML).join('')
+    : '<div class="cd-empty">No remarks yet.</div>'
+  return `<div class="cd-sec">
+      <div class="cd-h">Call log</div>
+      <div class="cd-remarks">${items}</div>
+      <div class="cd-add">
+        <textarea class="field" id="cd-remark-input" rows="2" placeholder="Add a remark, e.g. Called, quoted BD 1100, holds our date"></textarea>
+        <button class="btn sm" id="cd-remark-save">Add remark</button>
+      </div>
+    </div>`
+}
+
+function fileHTML(f) {
+  return `<div class="cd-file" data-file="${f.id}">
+      <a class="cd-file-link" href="${escapeAttr(api.catalogFileUrl(f.id))}" target="_blank" rel="noopener">
+        <span class="cd-file-name">${escapeHtml(f.name)}</span>
+        <span class="cd-file-size">${fmtBytes(f.size)}</span>
+      </a>
+      ${kebabButton('File actions')}
+    </div>`
+}
+
+function filesSec(row) {
+  const list = row.files || []
+  const items = list.length
+    ? list.map(fileHTML).join('')
+    : '<div class="cd-empty">No files yet.</div>'
+  return `<div class="cd-sec">
+      <div class="cd-h">Quotes and files</div>
+      <div class="cd-files">${items}</div>
+      <label class="btn ghost sm cd-upload">
+        <span id="cd-upload-label">Upload a file</span>
+        <input type="file" id="cd-file-input" hidden>
+      </label>
+      <div class="cd-hint">PDF, PowerPoint, Word, images. Up to 20 MB each.</div>
+    </div>`
+}
+
+function bodyHTML(item) {
+  const row = liveRow(item.id) || item
+  const showMap = row.category === 'venue' && row.mapsQuery
+  return `
+    <div class="cd-top">
+      <div class="cd-mono">${initials(row.name)}</div>
+      ${chips(row)}
+    </div>
+    <div class="cd-actions">
+      ${row.phone ? `<a class="btn" href="tel:${tel(row.phone)}">Call</a>` : ''}
+      ${showMap ? `<a class="btn ghost" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(row.mapsQuery)}" target="_blank" rel="noopener">Directions</a>` : ''}
+      ${row.category === 'photo' ? `<button class="btn ${row.femaleCrew ? 'ghost' : ''}" type="button" data-female>${row.femaleCrew ? 'Female crew confirmed' : 'Confirm female crew'}</button>` : ''}
+    </div>
+    <div id="cd-ig" class="cd-ig"></div>
+    ${statusSec(row)}
+    ${detailsForm(row)}
+    ${showMap ? `<details class="cd-map-d"><summary>Show location map</summary><div id="cd-map" class="cd-map"></div></details>` : ''}
+    ${remarksSec(row)}
+    ${filesSec(row)}`
+}
+
+// Keep the historical export name so catalog.js/favorites.js call sites do not change.
+export function openDrawer(item, onChange) {
+  currentId = item.id
+  sheet = openSheet({
+    title: nameOf(item),
+    size: 'md',
+    headActions: `<button class="sheet-star" type="button" data-star aria-label="Save">${isSaved(item) ? '★' : '☆'}</button>${kebabButton('Listing actions')}`,
+    content: bodyHTML(item),
+    onClose: () => {
+      currentId = null
+      sheet = null
+    },
+  })
+  if (!sheet) return
+
+  const paint = () => {
+    if (!sheet) return
+    sheet.body.innerHTML = bodyHTML(item)
+    const t = sheet.panel.querySelector('.sheet-title')
+    if (t) t.textContent = nameOf(item)
+    updateStar(item)
+    wireBody(item, onChange, paint)
+    mountEmbeds(item)
+  }
+
+  wireHead(item, onChange, paint)
+  wireBody(item, onChange, paint)
+  mountEmbeds(item)
+}
+
+function updateStar(item) {
+  const b = sheet?.panel.querySelector('[data-star]')
+  if (!b) return
+  const saved = isSaved(item)
+  b.textContent = saved ? '★' : '☆'
+  b.classList.toggle('on', saved)
+}
+
+function mountEmbeds(item) {
+  if (!sheet) return
+  instagramCard(sheet.body.querySelector('#cd-ig'), item.instagram)
+  const d = sheet.body.querySelector('.cd-map-d')
+  if (d)
+    d.addEventListener(
+      'toggle',
+      () => {
+        if (d.open)
+          googleMap(sheet.body.querySelector('#cd-map'), item.mapsQuery)
+      },
+      { once: true },
+    )
+}
+
+function pushName(item) {
+  const row = liveRow(item.id)
+  if (row) {
+    row.by = 'You'
+    row.byId = meId()
+  }
+  pushCatalog(item.id)
+}
+
 const pushCatalog = debounce(async (id) => {
   const row = liveRow(id)
   if (!row) return
@@ -97,158 +240,40 @@ const pushCatalog = debounce(async (id) => {
   }
 }, 500)
 
-function statusHTML(row) {
-  const active = row.status || 'todo'
-  const btns = STATUS_STEPS.map(
-    (s) =>
-      `<button class="dw-status ${s.key === active ? 'on' : ''}" data-status="${s.key}">${s.label}</button>`,
-  ).join('')
-  return `<div class="dw-section">
-      <div class="dw-section-h">Where we are</div>
-      <div class="dw-statusrow">${btns}</div>
-    </div>`
-}
-
-function remarkHTML(r) {
-  const meta = [r.by, fmtWhen(r.at)].filter(Boolean).join(' &middot; ')
-  return `<div class="dw-remark" data-remark="${r.id}">
-      <div class="dw-remark-body">${escapeHtml(r.body)}</div>
-      <div class="dw-remark-foot"><span class="dw-remark-meta">${meta}</span><span class="dw-remark-tools"><button class="dw-mini-x" data-remark-edit="${r.id}" title="Edit">✎</button><button class="dw-mini-x" data-remark-del="${r.id}" title="Delete">&times;</button></span></div>
-    </div>`
-}
-
-function remarkEditHTML(r) {
-  return `<textarea class="field" style="width:100%;resize:vertical" rows="3">${escapeHtml(r.body)}</textarea>
-      <div class="dw-remark-foot" style="justify-content:flex-end">
-        <button class="dw-btn ghost sm" type="button" data-remark-edit-cancel>Cancel</button>
-        <button class="dw-btn sm" type="button" data-remark-edit-save>Save</button>
-      </div>`
-}
-
-function remarksHTML(row) {
-  const list = row.remarks || []
-  const items = list.length
-    ? list.map(remarkHTML).join('')
-    : '<div class="dw-empty">No remarks yet.</div>'
-  return `<div class="dw-section">
-      <div class="dw-section-h">Remarks</div>
-      <div class="dw-remarks">${items}</div>
-      <div class="dw-remark-add">
-        <textarea id="dw-remark-input" rows="2" placeholder="Add a remark, e.g. Called, quoted BD 1100, holds our date"></textarea>
-        <button class="dw-btn sm" id="dw-remark-save">Add remark</button>
-      </div>
-    </div>`
-}
-
-function fileHTML(f) {
-  return `<div class="dw-file" data-file="${f.id}">
-      <a class="dw-file-link" href="${escapeAttr(api.catalogFileUrl(f.id))}" target="_blank" rel="noopener">
-        <span class="dw-file-name">${escapeHtml(f.name)}</span>
-        <span class="dw-file-size">${fmtBytes(f.size)}</span>
-      </a>
-      <button class="dw-mini-x" data-file-del="${f.id}" title="Delete">&times;</button>
-    </div>`
-}
-
-function filesHTML(row) {
-  const list = row.files || []
-  const items = list.length
-    ? list.map(fileHTML).join('')
-    : '<div class="dw-empty">No files yet.</div>'
-  return `<div class="dw-section">
-      <div class="dw-section-h">Files</div>
-      <div class="dw-files">${items}</div>
-      <label class="dw-btn ghost sm dw-upload">
-        <span id="dw-upload-label">Upload a file</span>
-        <input type="file" id="dw-file-input" hidden>
-      </label>
-      <div class="dw-hint-sm">PDF, PowerPoint, Word, images. Up to 20 MB each.</div>
-    </div>`
-}
-
-function drawerHTML(item) {
-  const row = liveRow(item.id) || item
-  const saved = isSaved(item)
-  const showMap = item.category === 'venue' && item.mapsQuery
-  return `
-    <div class="dw-backdrop" data-close></div>
-    <aside class="dw-panel" role="dialog" aria-label="${escapeHtml(item.name)}">
-      <div class="dw-hero">
-        <button class="dw-x" data-close aria-label="Close">&times;</button>
-        <div class="dw-monogram">${initials(item.name)}</div>
-        <button class="dw-star ${saved ? 'on' : ''}" data-star aria-label="Save">${saved ? '★' : '☆'}</button>
-      </div>
-      <div class="dw-body">
-        <div class="dw-titlerow">
-          <h2>${escapeHtml(item.name)}</h2>
-          ${item.featured ? '<span class="dw-badge">Start here</span>' : ''}
-        </div>
-        <div class="dw-chips">${chips(item)}</div>
-        ${item.note ? `<p class="dw-note">${escapeHtml(item.note)}</p>` : ''}
-        ${item.verify ? `<div class="dw-verify"><b>Verify</b> ${escapeHtml(item.verify)}</div>` : ''}
-        <div id="dw-ig" class="dw-ig"></div>
-        ${showMap ? '<div id="dw-map" class="dw-map"></div>' : ''}
-        <div class="dw-actions">
-          ${item.phone ? `<a class="dw-btn" href="tel:${tel(item.phone)}">Call ${escapeHtml(item.phone)}</a>` : ''}
-          ${showMap ? `<a class="dw-btn ghost" href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(item.mapsQuery)}" target="_blank" rel="noopener">Directions</a>` : ''}
-          ${item.category === 'photo' ? `<button class="dw-btn ${item.femaleCrew ? 'ghost' : ''}" data-female>${item.femaleCrew ? 'Female crew confirmed' : 'Mark female crew confirmed'}</button>` : ''}
-        </div>
-        ${editHTML(row)}
-        ${statusHTML(row)}
-        ${remarksHTML(row)}
-        ${filesHTML(row)}
-        <div class="dw-section">
-          <button class="dw-btn danger sm" data-delete>Delete this listing</button>
-        </div>
-      </div>
-    </aside>`
-}
-
-export function openDrawer(item, onChange) {
-  current = item
-  const root = document.getElementById('drawer-root')
-  if (!root) return
-  root.innerHTML = drawerHTML(item)
-  root.classList.add('open')
-  document.body.style.overflow = 'hidden'
-
-  instagramCard(root.querySelector('#dw-ig'), item.instagram)
-  googleMap(root.querySelector('#dw-map'), item.mapsQuery)
-
-  root
-    .querySelectorAll('[data-close]')
-    .forEach((el) => el.addEventListener('click', closeDrawer))
-  root.querySelector('[data-star]')?.addEventListener('click', async (e) => {
-    const picked = await toggleSave(item)
-    e.currentTarget.classList.toggle('on', picked)
-    e.currentTarget.textContent = picked ? '★' : '☆'
+function wireHead(item, onChange, paint) {
+  sheet.panel.querySelector('[data-star]')?.addEventListener('click', async () => {
+    await toggleSave(item)
+    updateStar(item)
     onChange?.()
   })
-  root.querySelector('[data-female]')?.addEventListener('click', () => {
-    markFemaleConfirmed(item, onChange)
+  sheet.panel.querySelector('[data-kebab]')?.addEventListener('click', (e) => {
+    e.stopPropagation()
+    openKebabMenu(e.currentTarget, [
+      {
+        label: 'Delete listing',
+        destructive: true,
+        onClick: () => deleteListing(item, onChange),
+      },
+    ])
   })
-
-  wireEdit(root, item, onChange)
-  wireStatus(root, item, onChange)
-  wireRemarks(root, item, onChange)
-  wireFiles(root, item, onChange)
 }
 
-function wireEdit(root, item, onChange) {
+function wireBody(item, onChange, paint) {
+  const root = sheet.body
+
   root.querySelectorAll('[data-f]').forEach((inp) =>
     inp.addEventListener('input', (e) => {
       const f = e.target.dataset.f
       const val = e.target.value
       const row = liveRow(item.id)
-      if (row) {
-        row[f] = val
-        row.by = 'You'
-        row.byId = meId()
-      }
+      if (row) row[f] = val
       item[f] = val
-      pushCatalog(item.id)
-      // Keep the grid card label in step while typing the name.
-      if (f === 'name') onChange?.()
+      pushName(item)
+      if (f === 'name') {
+        const t = sheet.panel.querySelector('.sheet-title')
+        if (t) t.textContent = val || 'Untitled listing'
+        onChange?.()
+      }
     }),
   )
 
@@ -259,7 +284,7 @@ function wireEdit(root, item, onChange) {
       const row = liveRow(item.id)
       if (row) row[f] = next
       item[f] = next
-      openDrawer(item, onChange)
+      paint()
       onChange?.()
       try {
         bumpRev(await api.catalog({ ...item, [f]: next }))
@@ -269,35 +294,10 @@ function wireEdit(root, item, onChange) {
     }),
   )
 
-  root.querySelector('[data-delete]')?.addEventListener('click', async () => {
-    if (!(await confirmDelete('this listing'))) return
-    const snap = { ...(liveRow(item.id) || item) }
-    store.data.catalog = (store.data.catalog || []).filter(
-      (c) => c.id !== item.id,
-    )
-    closeDrawer()
-    onChange?.()
-    undoToast('Listing deleted', async () => {
-      const { id, remarks, files, by, byId, at, ...fields } = snap
-      const r = await api.catalog(fields)
-      bumpRev(r)
-      ;(store.data.catalog || (store.data.catalog = [])).push({
-        ...fields,
-        id: r.id,
-        remarks: [],
-        files: [],
-      })
-      onChange?.()
-    })
-    try {
-      bumpRev(await api.catalogDelete(item.id))
-    } catch (_) {
-      /* next poll reconciles */
-    }
-  })
-}
+  root.querySelector('[data-female]')?.addEventListener('click', () =>
+    markFemaleConfirmed(item, onChange, paint),
+  )
 
-function wireStatus(root, item, onChange) {
   root.querySelectorAll('[data-status]').forEach((b) =>
     b.addEventListener('click', async () => {
       const status = b.dataset.status
@@ -308,7 +308,7 @@ function wireStatus(root, item, onChange) {
         row.byId = meId()
       }
       item.status = status
-      openDrawer(item, onChange)
+      paint()
       onChange?.()
       try {
         bumpRev(await api.catalog({ ...item, status }))
@@ -317,11 +317,15 @@ function wireStatus(root, item, onChange) {
       }
     }),
   )
+
+  wireRemarks(item, onChange, paint)
+  wireFiles(item, onChange, paint)
 }
 
-function wireRemarks(root, item, onChange) {
-  const input = root.querySelector('#dw-remark-input')
-  root.querySelector('#dw-remark-save')?.addEventListener('click', async () => {
+function wireRemarks(item, onChange, paint) {
+  const root = sheet.body
+  const input = root.querySelector('#cd-remark-input')
+  root.querySelector('#cd-remark-save')?.addEventListener('click', async () => {
     const body = (input?.value || '').trim()
     if (!body) return
     try {
@@ -338,73 +342,82 @@ function wireRemarks(root, item, onChange) {
           at: new Date().toISOString(),
         })
       }
-      openDrawer(item, onChange)
+      paint()
       onChange?.()
     } catch (_) {
       /* ignore */
     }
   })
 
-  root.querySelectorAll('[data-remark-del]').forEach((b) =>
-    b.addEventListener('click', async () => {
-      const id = Number(b.dataset.remarkDel)
-      const row = liveRow(item.id)
-      if (row) row.remarks = (row.remarks || []).filter((x) => x.id !== id)
-      openDrawer(item, onChange)
-      onChange?.()
-      try {
-        bumpRev(await api.catalogRemarkDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
-      }
-    }),
-  )
-
-  root.querySelectorAll('[data-remark-edit]').forEach((b) =>
-    b.addEventListener('click', () => {
-      const id = Number(b.dataset.remarkEdit)
-      const remark = (liveRow(item.id)?.remarks || []).find((x) => x.id === id)
-      const box = root.querySelector(`.dw-remark[data-remark="${id}"]`)
-      if (!remark || !box) return
-      box.innerHTML = remarkEditHTML(remark)
-      const field = box.querySelector('textarea')
-      field.focus()
-      box
-        .querySelector('[data-remark-edit-cancel]')
-        .addEventListener('click', () => openDrawer(item, onChange))
-      box
-        .querySelector('[data-remark-edit-save]')
-        .addEventListener('click', async () => {
-          const body = field.value.trim()
-          if (!body) {
-            toast({
-              type: 'err',
-              message: 'A remark cannot be empty. Use Delete to remove it instead.',
-            })
-            return
-          }
-          const target = (liveRow(item.id)?.remarks || []).find(
-            (x) => x.id === id,
-          )
-          if (target) target.body = body
-          openDrawer(item, onChange)
-          onChange?.()
-          try {
-            bumpRev(await api.catalogRemarkUpdate(id, body))
-          } catch (_) {
-            /* next poll reconciles */
-          }
-        })
+  root.querySelectorAll('.cd-remark [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = Number(b.closest('.cd-remark').dataset.remark)
+      openKebabMenu(b, [
+        { label: 'Edit', onClick: () => editRemark(item, id, onChange, paint) },
+        {
+          label: 'Delete',
+          destructive: true,
+          separatorBefore: true,
+          onClick: () => deleteRemark(item, id, onChange, paint),
+        },
+      ])
     }),
   )
 }
 
-function wireFiles(root, item, onChange) {
-  const fileInput = root.querySelector('#dw-file-input')
+function editRemark(item, id, onChange, paint) {
+  const box = sheet.body.querySelector(`.cd-remark[data-remark="${id}"]`)
+  const remark = (liveRow(item.id)?.remarks || []).find((x) => x.id === id)
+  if (!box || !remark) return
+  box.innerHTML = `<textarea class="field" rows="3">${escapeHtml(remark.body)}</textarea>
+    <div class="cd-remark-foot" style="justify-content:flex-end;margin-top:8px">
+      <button class="btn ghost sm" type="button" data-c>Cancel</button>
+      <button class="btn sm" type="button" data-s>Save</button>
+    </div>`
+  const ta = box.querySelector('textarea')
+  ta.focus()
+  box.querySelector('[data-c]').addEventListener('click', paint)
+  box.querySelector('[data-s]').addEventListener('click', async () => {
+    const body = ta.value.trim()
+    if (!body) {
+      toast({
+        type: 'err',
+        message: 'A remark cannot be empty. Delete it instead.',
+      })
+      return
+    }
+    const target = (liveRow(item.id)?.remarks || []).find((x) => x.id === id)
+    if (target) target.body = body
+    paint()
+    onChange?.()
+    try {
+      bumpRev(await api.catalogRemarkUpdate(id, body))
+    } catch (_) {
+      /* next poll reconciles */
+    }
+  })
+}
+
+async function deleteRemark(item, id, onChange, paint) {
+  const row = liveRow(item.id)
+  if (row) row.remarks = (row.remarks || []).filter((x) => x.id !== id)
+  paint()
+  onChange?.()
+  try {
+    bumpRev(await api.catalogRemarkDelete(id))
+  } catch (_) {
+    /* next poll reconciles */
+  }
+}
+
+function wireFiles(item, onChange, paint) {
+  const root = sheet.body
+  const fileInput = root.querySelector('#cd-file-input')
   fileInput?.addEventListener('change', async () => {
     const file = fileInput.files?.[0]
     if (!file) return
-    const label = root.querySelector('#dw-upload-label')
+    const label = root.querySelector('#cd-upload-label')
     if (label) label.textContent = 'Uploading...'
     try {
       const r = await api.catalogFileUpload(item.id, file)
@@ -420,43 +433,64 @@ function wireFiles(root, item, onChange) {
           at: new Date().toISOString(),
         })
       }
-      openDrawer(item, onChange)
+      paint()
       onChange?.()
     } catch (err) {
-      const label2 = root.querySelector('#dw-upload-label')
-      if (label2) label2.textContent = err.message || 'Upload failed'
+      if (label) label.textContent = err.message || 'Upload failed'
     }
   })
 
-  root.querySelectorAll('[data-file-del]').forEach((b) =>
-    b.addEventListener('click', async () => {
-      const id = Number(b.dataset.fileDel)
-      const row = liveRow(item.id)
-      if (row) row.files = (row.files || []).filter((x) => x.id !== id)
-      openDrawer(item, onChange)
-      onChange?.()
-      try {
-        bumpRev(await api.catalogFileDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
-      }
+  root.querySelectorAll('.cd-file [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = Number(b.closest('.cd-file').dataset.file)
+      openKebabMenu(b, [
+        {
+          label: 'Delete file',
+          destructive: true,
+          onClick: async () => {
+            const row = liveRow(item.id)
+            if (row) row.files = (row.files || []).filter((x) => x.id !== id)
+            paint()
+            onChange?.()
+            try {
+              bumpRev(await api.catalogFileDelete(id))
+            } catch (_) {
+              /* next poll reconciles */
+            }
+          },
+        },
+      ])
     }),
   )
 }
 
-export function closeDrawer() {
-  current = null
-  const root = document.getElementById('drawer-root')
-  if (!root) return
-  root.classList.remove('open')
-  root.innerHTML = ''
-  document.body.style.overflow = ''
+async function deleteListing(item, onChange) {
+  if (!(await confirmDelete('this listing'))) return
+  const snap = { ...(liveRow(item.id) || item) }
+  store.data.catalog = (store.data.catalog || []).filter((c) => c.id !== item.id)
+  closeSheet()
+  onChange?.()
+  undoToast('Listing deleted', async () => {
+    const { id, remarks, files, by, byId, at, ...fields } = snap
+    const r = await api.catalog(fields)
+    bumpRev(r)
+    ;(store.data.catalog || (store.data.catalog = [])).push({
+      ...fields,
+      id: r.id,
+      remarks: [],
+      files: [],
+    })
+    onChange?.()
+  })
+  try {
+    bumpRev(await api.catalogDelete(item.id))
+  } catch (_) {
+    /* next poll reconciles */
+  }
 }
 
-export const isDrawerOpen = () => !!current
-
-// Confirming a female crew is a real catalog edit.
-async function markFemaleConfirmed(item, onChange) {
+async function markFemaleConfirmed(item, onChange, paint) {
   const row = liveRow(item.id)
   if (row) {
     row.femaleCrew = true
@@ -465,7 +499,7 @@ async function markFemaleConfirmed(item, onChange) {
     row.at = new Date().toISOString()
   }
   item.femaleCrew = true
-  openDrawer(item, onChange)
+  paint()
   onChange?.()
   try {
     bumpRev(await api.catalog({ ...item, femaleCrew: true }))
@@ -474,6 +508,7 @@ async function markFemaleConfirmed(item, onChange) {
   }
 }
 
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && current) closeDrawer()
-})
+export function closeDrawer() {
+  if (currentId != null) closeSheet()
+}
+export const isDrawerOpen = () => isSheetOpen()

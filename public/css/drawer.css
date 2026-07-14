@@ -1,73 +1,40 @@
-#drawer-root { position: fixed; inset: 0; z-index: 100; display: none; }
-#drawer-root.open { display: block; }
-.dw-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); animation: dw-fade var(--dur-3) var(--ease); }
-.dw-panel { position: absolute; top: 0; right: 0; bottom: 0; width: min(460px, 100%); background: var(--bg); border-left: 1px solid var(--line); overflow-y: auto; animation: dw-slide var(--dur-3) var(--ease); }
-@keyframes dw-fade { from { opacity: 0 } to { opacity: 1 } }
-@keyframes dw-slide { from { transform: translateX(30px); opacity: .4 } to { transform: none; opacity: 1 } }
-.dw-hero { position: relative; height: 150px; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, var(--gold2), var(--gold)); }
-.dw-monogram { font-family: Georgia, serif; font-size: 54px; color: var(--bg); opacity: .9; }
-.dw-x, .dw-star { position: absolute; top: 12px; background: rgba(0, 0, 0, .28); color: #fff; border: none; border-radius: 999px; width: 34px; height: 34px; cursor: pointer; }
-.dw-x { left: 12px; font-size: 20px; }
-.dw-star { right: 12px; font-size: 18px; }
-.dw-star.on { color: var(--gold); }
-.dw-body { padding: 18px 20px 44px; }
-.dw-titlerow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.dw-titlerow h2 { margin: 0; font-size: 22px; }
-.dw-badge { font-size: 10px; letter-spacing: .05em; text-transform: uppercase; font-weight: 700; padding: 3px 9px; border-radius: 999px; background: var(--gold); color: var(--bg); }
-.dw-chips { display: flex; flex-wrap: wrap; gap: 7px; margin: 12px 0; }
-.dw-chip { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; background: var(--card2); border: 1px solid var(--line); color: var(--muted); }
-.dw-chip.ok { background: rgba(63, 174, 130, .16); color: var(--emerald); border-color: transparent; }
-.dw-chip.warn { background: rgba(224, 169, 74, .16); color: var(--amber); border-color: transparent; }
-.dw-note { font-size: 14px; color: var(--muted); line-height: 1.5; }
-.dw-verify { font-size: 12.5px; color: var(--muted); background: rgba(224, 169, 74, .10); border: 1px solid rgba(224, 169, 74, .3); border-radius: 10px; padding: 10px 12px; margin: 12px 0; }
-.dw-verify b { color: var(--amber); text-transform: uppercase; font-size: 10px; letter-spacing: .06em; margin-right: 6px; }
-.dw-map, .dw-ig { margin: 14px 0; }
-.dw-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
-.dw-btn { display: inline-flex; align-items: center; justify-content: center; gap: var(--sp-2); background: var(--btn-bg); color: var(--on-primary); border: 1px solid transparent; border-radius: var(--r-2); padding: 11px 16px; font: inherit; font-weight: 700; font-size: var(--fs-sm); cursor: pointer; text-decoration: none; transition: filter var(--dur-1) var(--ease), transform var(--dur-1) var(--ease); }
-.dw-btn:hover { filter: brightness(1.06); }
-.dw-btn:active { transform: translateY(1px); filter: brightness(.96); }
-.dw-btn:focus-visible { outline: 2px solid var(--ring); outline-offset: 2px; }
-.dw-btn:disabled { opacity: .5; cursor: default; filter: none; transform: none; }
-.dw-btn.ghost { background: var(--card); color: var(--txt); border-color: var(--line); }
-.dw-btn.ghost:hover { background: var(--card2); border-color: var(--line2); filter: none; }
-.dw-btn.sm { padding: 8px 13px; font-size: var(--fs-xs); }
-.dw-btn.danger { background: transparent; color: var(--red); border: 1px solid var(--red); width: 100%; }
-.dw-btn.danger:hover { filter: none; background: color-mix(in srgb, var(--red) 10%, transparent); }
+/* Catalog listing detail, rendered inside the shared Sheet (openSheet). */
+.cd-top { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.cd-mono { width: 48px; height: 48px; border-radius: var(--r-2); background: color-mix(in srgb, var(--gold) 16%, transparent); color: var(--gold); display: flex; align-items: center; justify-content: center; font-family: Georgia, serif; font-weight: 700; font-size: 18px; flex: none; }
+.cd-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font-size: 11px; font-weight: 700; letter-spacing: .03em; padding: 4px 9px; border-radius: var(--r-pill); background: var(--card2); border: 1px solid var(--line); color: var(--muted); }
+.chip.ok { background: rgba(63,174,130,.16); border-color: transparent; color: var(--emerald); }
+.chip.warn { background: rgba(224,169,74,.16); border-color: transparent; color: var(--amber); }
 
-/* Editable core fields */
-.dw-edit { display: flex; flex-direction: column; gap: 10px; }
-.dw-edit-row { display: flex; align-items: center; gap: 10px; }
-.dw-edit-row.col { flex-direction: column; align-items: stretch; gap: 5px; }
-.dw-edit-row > span { flex: 0 0 84px; font-size: 12px; color: var(--faint); }
-.dw-edit-row.col > span { flex: none; }
-.dw-edit-row input, .dw-edit-row textarea { flex: 1; min-width: 0; background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 8px; padding: 8px 10px; font: inherit; font-size: 14px; }
-.dw-edit-row input:focus, .dw-edit-row textarea:focus { outline: none; border-color: var(--gold); }
-.dw-edit-row textarea { resize: vertical; }
+.cd-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: var(--sp-4); }
+.cd-actions .btn { flex: 1; min-width: 120px; }
 
-/* Working sections: status pipeline, remarks log, file attachments */
-.dw-section { margin-top: 20px; border-top: 1px solid var(--line); padding-top: 16px; }
-.dw-section-h { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); font-weight: 700; margin-bottom: 10px; }
-.dw-statusrow { display: flex; flex-wrap: wrap; gap: 6px; }
-.dw-status { background: var(--card2); border: 1px solid var(--line); color: var(--muted); border-radius: 999px; padding: 6px 12px; font-size: 12.5px; font-family: inherit; cursor: pointer; }
-.dw-status.on { background: var(--gold); border-color: transparent; color: var(--bg); font-weight: 700; }
-.dw-empty { font-size: 13px; color: var(--faint); padding: 4px 0; }
-.dw-remarks { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
-.dw-remark { background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; }
-.dw-remark-body { font-size: 13.5px; color: var(--txt); line-height: 1.45; white-space: pre-wrap; }
-.dw-remark-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
-.dw-remark-meta { font-size: 11.5px; color: var(--faint); }
-.dw-mini-x { background: transparent; border: none; color: var(--faint); font-size: 16px; line-height: 1; cursor: pointer; padding: 0 2px; }
-.dw-mini-x:hover { color: var(--red); }
-.dw-remark-add { display: flex; flex-direction: column; gap: 8px; }
-.dw-remark-add textarea { width: 100%; background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 10px; padding: 10px 12px; font: inherit; font-size: 14px; resize: vertical; }
-.dw-remark-add textarea:focus { outline: none; border-color: var(--gold); }
-.dw-remark-add .dw-btn { align-self: flex-start; }
-.dw-files { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
-.dw-file { display: flex; align-items: center; gap: 8px; background: var(--card2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; }
-.dw-file-link { flex: 1; min-width: 0; display: flex; align-items: baseline; gap: 8px; text-decoration: none; color: var(--txt); }
-.dw-file-name { font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.dw-file-size { font-size: 11.5px; color: var(--faint); flex-shrink: 0; }
-.dw-upload { display: inline-flex; align-items: center; cursor: pointer; }
-.dw-hint-sm { font-size: 11.5px; color: var(--faint); margin-top: 6px; }
+.cd-ig:empty { display: none; }
+.cd-ig { margin-top: var(--sp-4); }
 
-@media (prefers-reduced-motion: reduce) { .dw-backdrop, .dw-panel { animation: none; } }
+.cd-sec { margin-top: var(--sp-6); }
+.cd-h { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
+
+.cd-map-d { margin-top: var(--sp-5); }
+.cd-map-d summary { cursor: pointer; color: var(--gold); font-size: var(--fs-sm); font-weight: 600; list-style: none; }
+.cd-map-d summary::-webkit-details-marker { display: none; }
+.cd-map { margin-top: 10px; border-radius: var(--r-2); overflow: hidden; }
+.cd-map iframe { width: 100%; height: 220px; border: 0; display: block; }
+
+.cd-remarks { display: flex; flex-direction: column; gap: 8px; }
+.cd-remark { background: var(--card2); border: 1px solid var(--line); border-radius: var(--r-2); padding: 10px 12px; }
+.cd-remark-body { font-size: var(--fs-sm); color: var(--txt); line-height: 1.45; white-space: pre-wrap; }
+.cd-remark-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 6px; }
+.cd-remark-meta { font-size: 11px; color: var(--faint); }
+.cd-add { display: flex; gap: 8px; align-items: flex-end; margin-top: 10px; }
+.cd-add .field { flex: 1; resize: vertical; }
+.cd-add .btn { flex: none; }
+
+.cd-files { display: flex; flex-direction: column; gap: 6px; }
+.cd-file { display: flex; align-items: center; gap: 8px; background: var(--card2); border: 1px solid var(--line); border-radius: var(--r-2); padding: 4px 6px 4px 12px; }
+.cd-file-link { flex: 1; display: flex; align-items: baseline; gap: 8px; min-width: 0; text-decoration: none; }
+.cd-file-name { color: var(--txt); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cd-file-size { color: var(--faint); font-size: 11px; flex: none; }
+.cd-upload { margin-top: 10px; display: inline-flex; }
+.cd-hint { color: var(--faint); font-size: 11px; margin-top: 8px; }
+.cd-empty { color: var(--faint); font-size: 13px; padding: 6px 0; }
