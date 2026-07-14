@@ -1,10 +1,18 @@
 import { api } from './api.js'
 import { setData, store } from './store.js'
+import { isOverlayOpen } from './ui.js'
 
 let started = false
 
-// Re-render, but never clobber a field the user is actively editing. Defer to its blur.
+// Re-render, but never clobber an open overlay (sheet/menu/confirm) or a field
+// the user is actively editing. Defer to the overlay's close or the field's blur.
 function safeRender(renderAll) {
+  if (isOverlayOpen()) {
+    window.addEventListener('overlay:closed', () => safeRender(renderAll), {
+      once: true,
+    })
+    return
+  }
   const a = document.activeElement
   const editing =
     a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && a.closest('#app')

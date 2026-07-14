@@ -13,6 +13,10 @@
   --ease:cubic-bezier(.2,.8,.2,1); --dur-1:120ms; --dur-2:160ms; --dur-3:220ms; --dur-4:320ms;
   --ring:var(--gold); --btn-bg:var(--gold); --on-primary:#1a1206;
   --field-rest:color-mix(in srgb, var(--line) 65%, transparent);
+  --z-nav:40; --z-menu:120; --z-tabbar:140; --z-toast:150; --z-sheet:190; --z-modal:200; --z-boot:300;
+  --hit:44px; --row-h:48px; --control-h:36px;
+  --backdrop:rgba(0,0,0,.5);
+  --red-bg:color-mix(in srgb, var(--red) 12%, transparent);
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
@@ -24,11 +28,11 @@ a:hover{text-decoration:underline}
 
 .empty{color:var(--faint);font-size:13px;padding:14px 4px;text-align:center}
 .foot{color:var(--faint);font-size:12px;text-align:center;margin-top:30px}
-.savebar{position:fixed;left:0;right:0;bottom:0;background:var(--card);border-top:1px solid var(--line);
-  padding:8px 16px;font-size:12px;color:var(--faint);text-align:center;z-index:30}
-.savebar b{color:var(--emerald)}
-.savebar.err b{color:var(--red)}
 [hidden]{display:none !important}
+
+/* Sync state dot in the app bar (replaces the old fixed savebar) */
+.sync-dot{width:8px;height:8px;border-radius:var(--r-pill);background:var(--emerald);display:inline-block;flex:none}
+.sync-dot.err{background:var(--red)}
 
 :focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 :focus:not(:focus-visible){outline:none}

@@ -169,10 +169,10 @@ async function boot() {
       showLogin(true)
       return
     }
-    const tick = document.getElementById('saveTick')
-    if (tick) {
-      tick.textContent = '⚠ offline'
-      tick.closest('.savebar').classList.add('err')
+    const dot = document.getElementById('syncDot')
+    if (dot) {
+      dot.classList.add('err')
+      dot.title = 'Offline, retrying'
     }
   } finally {
     hideBoot()

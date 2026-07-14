@@ -24,6 +24,7 @@
 <link rel="stylesheet" href="css/invite.css" />
 <link rel="stylesheet" href="css/passes.css" />
 <link rel="stylesheet" href="css/ui.css" />
+<link rel="stylesheet" href="css/menu.css" />
 <link rel="stylesheet" href="css/attribution.css" />
 <link rel="stylesheet" href="css/login.css" />
 <link rel="stylesheet" href="css/themes.css" />
@@ -60,19 +61,20 @@
   <header class="top">
     <span class="appbar-title">Osama <span class="amp">&amp;</span> Noor</span>
     <div class="appbar-right">
+      <span class="sync-dot" id="syncDot" title="Live &middot; synced"></span>
       <span class="whoami"><span id="whoami"></span></span>
       <button class="icon-btn" id="themeBtn" title="Themes">◐</button>
       <button class="icon-btn" id="logoutBtn" title="Sign out">Sign out</button>
     </div>
   </header>
 
-  <div class="wrap">
+  <div class="navbar"><div class="navwrap">
     <nav class="navgroups" id="navGroups">
-      <button data-group="home" class="active">Home</button>
-      <button data-group="plan">Plan</button>
-      <button data-group="vendors">Vendors</button>
-      <button data-group="money">Money &amp; Guests</button>
-      <button data-group="more">More</button>
+      <button data-group="home" class="active"><span class="g-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg></span><span class="g-lab">Home</span><span class="g-lab-s">Home</span></button>
+      <button data-group="plan"><span class="g-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6h12M9 12h12M9 18h12"/><path d="M3 6l1.5 1.5L7 5"/><path d="M3 12l1.5 1.5L7 11"/><path d="M3 18l1.5 1.5L7 17"/></svg></span><span class="g-lab">Plan</span><span class="g-lab-s">Plan</span></button>
+      <button data-group="vendors"><span class="g-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 10v10h16V10"/><path d="M3 10l1.5-6h15L21 10"/><path d="M9 20v-6h6v6"/></svg></span><span class="g-lab">Vendors</span><span class="g-lab-s">Vendors</span></button>
+      <button data-group="money"><span class="g-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M15 15h3"/></svg></span><span class="g-lab">Money &amp; Guests</span><span class="g-lab-s">Money</span></button>
+      <button data-group="more"><span class="g-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="12" r="1.6" fill="currentColor" stroke="none"/></svg></span><span class="g-lab">More</span><span class="g-lab-s">More</span></button>
     </nav>
     <nav class="tabs" id="tabs">
       <button data-tab="dash" data-group="home" class="active">Dashboard</button>
@@ -91,7 +93,9 @@
       <button data-tab="resources" data-group="more">Resources</button>
       <button data-tab="themes" data-group="more">Themes</button>
     </nav>
+  </div></div>
 
+  <div class="wrap">
     <section class="panel active" id="tab-dash"></section>
 
     <section class="panel" id="tab-facts"></section>
@@ -155,9 +159,9 @@
 
     <div class="foot">Shared planner for Osama &amp; Noor · saved to your wedding database · <a id="exportBtn" href="#">export backup</a></div>
   </div>
-  <div class="savebar">Shared &amp; synced · <b id="saveTick">✓ live</b></div>
 </div>
 <div id="drawer-root"></div>
+<div id="sheet-root"></div>
 <div id="modal-root"></div>
 <div id="toast-root"></div>
 

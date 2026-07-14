@@ -1,5 +1,41 @@
+/* The Sheet: the one overlay for detail views and forms.
+   Bottom sheet on mobile, centered modal from 720px up. Confirm dialogs
+   (#modal-root, higher z) may stack above an open sheet. */
+#sheet-root { position: fixed; inset: 0; z-index: var(--z-sheet); display: none; }
+#sheet-root.open { display: flex; align-items: flex-end; justify-content: center; }
+.sheet-backdrop { position: absolute; inset: 0; background: var(--backdrop); backdrop-filter: blur(2px); animation: sheet-fade var(--dur-3) var(--ease); }
+@keyframes sheet-fade { from { opacity: 0 } to { opacity: 1 } }
+.sheet { position: relative; z-index: 1; background: var(--card); border: 1px solid var(--line); width: 100%;
+  max-height: 92dvh; display: flex; flex-direction: column; border-radius: 20px 20px 0 0; box-shadow: var(--shadow);
+  animation: modal-up var(--dur-3) var(--ease); }
+.sheet-grab { width: 36px; height: 4px; border-radius: var(--r-pill); background: var(--line2); margin: 8px auto 0; flex: none; }
+.sheet-head { display: flex; align-items: center; gap: 8px; min-height: 56px; padding: 0 var(--sp-5); border-bottom: 1px solid var(--line); flex: none; }
+.sheet-title { margin: 0; font-size: var(--fs-h2); flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sheet-actions { display: flex; gap: 4px; align-items: center; }
+.sheet-x { background: none; border: none; color: var(--muted); font-size: 22px; line-height: 1; cursor: pointer;
+  width: 36px; height: 36px; border-radius: var(--r-1); display: flex; align-items: center; justify-content: center; flex: none; }
+.sheet-x:hover { background: var(--card2); color: var(--txt); }
+.sheet-body { padding: var(--sp-5); overflow-y: auto; }
+.sheet-foot { display: flex; justify-content: flex-end; gap: 10px; padding-top: var(--sp-4); }
+body.sheet-lock { overflow: hidden; }
+@media (min-width: 720px) {
+  #sheet-root.open { align-items: center; }
+  .sheet { border-radius: var(--r-4); max-height: 85vh; }
+  .sheet-sm { width: 400px; } .sheet-md { width: 560px; }
+  .sheet-grab { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .sheet, .sheet-backdrop { animation: none; } }
+
+/* Empty state: centered, full card width, always with a next step. */
+.empty-state { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  text-align: center; padding: var(--sp-7) var(--sp-4); width: 100%; }
+.es-ico { font-size: 26px; color: var(--faint); line-height: 1; }
+.es-title { font-size: var(--fs-body); font-weight: 600; }
+.es-sub { font-size: var(--fs-sm); color: var(--muted); }
+.empty-state .btn { margin-top: 8px; }
+
 /* Confirm modal. Mobile: sheet from the bottom. Desktop: centered card. */
-#modal-root { position: fixed; inset: 0; z-index: 200; display: none; }
+#modal-root { position: fixed; inset: 0; z-index: var(--z-modal); display: none; }
 #modal-root.open { display: flex; align-items: flex-end; justify-content: center; }
 @media (min-width: 520px) { #modal-root.open { align-items: center; } }
 .modal-backdrop { position: absolute; inset: 0; background: rgba(0, 0, 0, .5); backdrop-filter: blur(2px); animation: dw-fade var(--dur-3) var(--ease); }
@@ -13,8 +49,9 @@
 .modal-label { display: block; font-size: var(--fs-sm); color: var(--muted); margin: 16px 0 0; }
 .modal-input { width: 100%; margin-top: 6px; padding: 11px 12px; font-size: 15px; }
 
-/* Undo toast, above the savebar */
-#toast-root { position: fixed; left: 0; right: 0; bottom: 0; z-index: 150; display: none; justify-content: center; pointer-events: none; padding: 0 12px 46px; }
+/* Undo toast */
+#toast-root { position: fixed; left: 0; right: 0; bottom: 0; z-index: var(--z-toast); display: none; justify-content: center; pointer-events: none; padding: 0 12px 20px; }
+@media (max-width: 719px) { #toast-root { padding-bottom: calc(76px + env(safe-area-inset-bottom)); } }
 #toast-root.show { display: flex; }
 .toast { pointer-events: auto; display: flex; align-items: center; gap: 14px; background: var(--txt); color: var(--bg); border-radius: 12px; padding: 11px 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .3); max-width: 420px; width: 100%; animation: modal-up var(--dur-3) var(--ease); }
 .toast.ok { border-left: 3px solid var(--emerald); }
