@@ -38,9 +38,11 @@ CREATE TABLE IF NOT EXISTS vendors (
   deposit     DECIMAL(10,3) NULL,
   balance     DECIMAL(10,3) NULL,
   balance_due DATE NULL,
+  catalog_id  INT NULL,
   sort        INT NOT NULL DEFAULT 100,
   updated_by  INT NULL,
-  updated_at  TIMESTAMP NULL DEFAULT NULL
+  updated_at  TIMESTAMP NULL DEFAULT NULL,
+  KEY idx_vendors_catalog (catalog_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS guests (
@@ -50,8 +52,12 @@ CREATE TABLE IF NOT EXISTS guests (
   seats      INT NOT NULL DEFAULT 1,
   rsvp       ENUM('pending','yes','no') NOT NULL DEFAULT 'pending',
   notes      VARCHAR(255) NOT NULL DEFAULT '',
+  token      VARCHAR(32) NULL,
+  replied_at TIMESTAMP NULL DEFAULT NULL,
+  message    VARCHAR(500) NOT NULL DEFAULT '',
   updated_by INT NULL,
-  updated_at TIMESTAMP NULL DEFAULT NULL
+  updated_at TIMESTAMP NULL DEFAULT NULL,
+  UNIQUE KEY uniq_guests_token (token)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 CREATE TABLE IF NOT EXISTS picks (
@@ -99,6 +105,8 @@ CREATE TABLE IF NOT EXISTS catalog (
   status      VARCHAR(16)  NOT NULL DEFAULT 'todo',
   note        TEXT,
   verify      VARCHAR(255) NOT NULL DEFAULT '',
+  price_min   DECIMAL(10,3) NULL,
+  price_max   DECIMAL(10,3) NULL,
   sort        INT NOT NULL DEFAULT 100,
   updated_by  INT NULL,
   updated_at  TIMESTAMP NULL DEFAULT NULL

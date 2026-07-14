@@ -62,6 +62,45 @@ function ensure_schema(): void
                  WHERE NOT EXISTS (SELECT 1 FROM passes p WHERE p.guest_id = g.id)"
             );
         }
+        // Sprint 4 — Guests hub: each guest party mints its OWN RSVP link, and the
+        // public reply writes back to the guest row (rsvp/seats/message + replied_at).
+        $hasTok = (int) db()->query(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'guests' AND COLUMN_NAME = 'token'"
+        )->fetchColumn();
+        if ($hasTok === 0) {
+            db()->exec(
+                "ALTER TABLE guests
+                   ADD COLUMN token VARCHAR(32) NULL,
+                   ADD COLUMN replied_at TIMESTAMP NULL DEFAULT NULL,
+                   ADD COLUMN message VARCHAR(500) NOT NULL DEFAULT '',
+                   ADD UNIQUE KEY uniq_guests_token (token)"
+            );
+            // Backfill a unique RSVP token for every existing guest party.
+            db()->exec(
+                "UPDATE guests SET token = LOWER(HEX(RANDOM_BYTES(16))) WHERE token IS NULL OR token = ''"
+            );
+        }
+
+        // Sprint 4 — Vendor journey: link a Payments row back to the Shortlist listing
+        // it was booked from (nullable; a manual row simply has no link).
+        $hasCat = (int) db()->query(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'vendors' AND COLUMN_NAME = 'catalog_id'"
+        )->fetchColumn();
+        if ($hasCat === 0) {
+            db()->exec('ALTER TABLE vendors ADD COLUMN catalog_id INT NULL, ADD KEY idx_vendors_catalog (catalog_id)');
+        }
+
+        // Sprint 4 — Price band on listings so the Shortlist can filter by budget.
+        $hasPrice = (int) db()->query(
+            "SELECT COUNT(*) FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'catalog' AND COLUMN_NAME = 'price_min'"
+        )->fetchColumn();
+        if ($hasPrice === 0) {
+            db()->exec('ALTER TABLE catalog ADD COLUMN price_min DECIMAL(10,3) NULL, ADD COLUMN price_max DECIMAL(10,3) NULL');
+        }
+
         // Seed a starter shortlist of Bahrain caterers, guarded per name (a count
         // guard once lost the whole seed to a single user-created empty row).
         $caterers = [

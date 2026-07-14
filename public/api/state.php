@@ -22,6 +22,7 @@ function vendor_row(array $r, array $users): array
         'deposit' => num_out($r['deposit']),
         'balance' => num_out($r['balance']),
         'balance_due' => $r['balance_due'] ?? '',
+        'catalogId' => isset($r['catalog_id']) && $r['catalog_id'] !== null ? (int) $r['catalog_id'] : null,
     ], $r, $users, 'updated_by');
 }
 
@@ -34,6 +35,9 @@ function guest_row(array $r, array $users): array
         'seats' => (string) (int) $r['seats'],
         'rsvp' => $r['rsvp'],
         'notes' => $r['notes'],
+        'token' => $r['token'] ?? null,
+        'repliedAt' => $r['replied_at'] ?? null,
+        'message' => $r['message'] ?? '',
     ], $r, $users, 'updated_by');
 }
 
@@ -54,6 +58,8 @@ function catalog_row(array $r, array $users): array
         'status' => $r['status'],
         'note' => $r['note'],
         'verify' => $r['verify'],
+        'priceMin' => isset($r['price_min']) && $r['price_min'] !== null ? num_out($r['price_min']) : '',
+        'priceMax' => isset($r['price_max']) && $r['price_max'] !== null ? num_out($r['price_max']) : '',
     ], $r, $users, 'updated_by');
 }
 
