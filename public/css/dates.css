@@ -6,8 +6,7 @@
 .dt-row { display: flex; align-items: center; gap: 12px; background: var(--card2); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
 .dt-row.past { opacity: .55; }
 .dt-main { flex: 1; display: grid; grid-template-columns: 1.2fr 150px 1fr; gap: 8px; min-width: 0; }
-.dt-main input { background: transparent; border: 1px solid var(--field-rest); color: var(--txt); border-radius: var(--r-1); padding: 6px 8px; font: inherit; font-size: 13px; font-variant-numeric: tabular-nums; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
-.dt-main input:focus { border-color: var(--gold); background: var(--card2); outline: none; }
+.dt-main input { font-size: 13px; font-variant-numeric: tabular-nums; }
 .dt-label { font-weight: 600; }
 .dt-side { display: flex; align-items: center; gap: 8px; flex: 0 0 auto; }
 .dt-count { font-size: 12px; font-weight: 700; color: var(--gold); white-space: nowrap; font-variant-numeric: tabular-nums; }

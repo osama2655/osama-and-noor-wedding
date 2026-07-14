@@ -1,29 +1,24 @@
-.facts { display: flex; flex-direction: column; gap: 2px; }
-.fact { display: grid; grid-template-columns: 130px 1fr auto auto; gap: 8px; align-items: start; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.facts { display: flex; flex-direction: column; margin-top: 10px; }
+.fact { display: grid; grid-template-columns: 130px 1fr var(--control-h); gap: 8px; align-items: start; padding: 6px 0; border-bottom: 1px solid var(--line); min-height: var(--row-h); }
 .fact:last-child { border-bottom: none; }
-.fact-k { background: transparent; border: 1px solid var(--field-rest); color: var(--gold); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding: 7px 6px; border-radius: var(--r-1); font-family: inherit; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
-.fact-k:focus { border-color: var(--gold); background: var(--card2); outline: none; }
-.fact-v { background: transparent; border: 1px solid var(--field-rest); color: var(--txt); font-size: 14.5px; padding: 7px 6px; border-radius: var(--r-1); font-family: inherit; resize: vertical; min-height: 36px; line-height: 1.45; transition: border-color var(--dur-1) var(--ease), background var(--dur-1) var(--ease); }
-.fact-v:focus { border-color: var(--gold); background: var(--card2); outline: none; }
-@media (max-width: 560px) {
-  .fact { grid-template-columns: 1fr auto auto; gap: 3px 6px; }
-  .fact-k { grid-column: 1; }
-  .fact .reorder { grid-row: 1; grid-column: 2; align-self: center; }
-  .fact .row-x { grid-row: 1; grid-column: 3; align-self: center; }
-  .fact-v { grid-column: 1 / -1; }
-}
+.fact-k { color: var(--gold); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding-top: 10px; }
+.fact-v { font-size: 14.5px; resize: none; overflow: hidden; min-height: 36px; line-height: 1.5; }
+.fact .kebab { align-self: center; }
 
-.open-list { display: flex; flex-direction: column; gap: 6px; }
-.open-item { display: grid; grid-template-columns: auto 1fr 1.4fr auto auto; gap: 8px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.open-list { display: flex; flex-direction: column; margin-top: 10px; }
+.open-item { display: grid; grid-template-columns: auto 1fr 1.4fr var(--control-h); gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); min-height: var(--row-h); }
 .open-item:last-child { border-bottom: none; }
-.open-owner { border: none; border-radius: 999px; padding: 4px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-family: inherit; cursor: pointer; }
-.open-title { background: var(--card2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; color: var(--txt); font-weight: 600; font-size: 13.5px; font-family: inherit; }
-.open-detail { background: var(--card2); border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; color: var(--muted); font-size: 13px; font-family: inherit; }
-.open-title:focus, .open-detail:focus { border-color: var(--line2); outline: none; }
+.open-owner { border: none; border-radius: var(--r-pill); padding: 4px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-family: inherit; cursor: pointer; }
+.open-title { font-weight: 600; font-size: 13.5px; }
+.open-detail { color: var(--muted); font-size: 13px; }
+
 @media (max-width: 560px) {
-  .open-item { grid-template-columns: 1fr auto auto; gap: 6px; }
+  .fact { grid-template-columns: 1fr var(--control-h); gap: 2px 6px; }
+  .fact-k { grid-column: 1; padding-top: 6px; }
+  .fact .kebab { grid-row: 1; grid-column: 2; }
+  .fact-v { grid-column: 1 / -1; }
+  .open-item { grid-template-columns: 1fr var(--control-h); gap: 4px 6px; }
   .open-owner { grid-column: 1; justify-self: start; }
-  .open-item .reorder { grid-row: 1; grid-column: 2; align-self: center; }
-  .open-item .row-x { grid-row: 1; grid-column: 3; }
+  .open-item .kebab { grid-row: 1; grid-column: 2; }
   .open-title, .open-detail { grid-column: 1 / -1; }
 }

@@ -1,14 +1,14 @@
 import { api } from './api.js'
 import { OWNERS } from './content.js'
 import { bumpRev, meId, store } from './store.js'
-import { confirmDelete, undoToast } from './ui.js'
 import {
-  debounce,
-  escapeAttr,
-  escapeHtml,
-  reorderBtns,
-  reorderBySort,
-} from './util.js'
+  confirmDelete,
+  emptyState,
+  kebabButton,
+  openKebabMenu,
+  undoToast,
+} from './ui.js'
+import { debounce, escapeAttr, escapeHtml, reorderBySort } from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
 const ownerClass = (o) =>
@@ -36,22 +36,27 @@ const pushOpen = debounce(async (id) => {
   }
 }, 500)
 
+// Hidden panels report scrollHeight 0; skip until laid out (regrown on tab:shown).
+const autoGrow = (ta) => {
+  ta.style.height = 'auto'
+  const h = ta.scrollHeight
+  if (h) ta.style.height = `${h}px`
+}
+
 function factRow(f) {
   return `<div class="fact" data-id="${f.id}">
-      <input class="fact-k" data-f="label" value="${escapeAttr(f.label)}" placeholder="Label">
-      <textarea class="fact-v" data-f="value" rows="1" placeholder="Value">${escapeHtml(f.value || '')}</textarea>
-      ${reorderBtns(f.id)}
-      <button class="row-x" data-delf="${f.id}" title="Delete">&times;</button>
+      <input class="fact-k inline-edit" data-f="label" value="${escapeAttr(f.label)}" placeholder="Label">
+      <textarea class="fact-v inline-edit" data-f="value" rows="1" placeholder="Value">${escapeHtml(f.value || '')}</textarea>
+      ${kebabButton('Fact actions')}
     </div>`
 }
 
 function openRow(o) {
   return `<div class="open-item" data-id="${o.id}">
       <select class="open-owner t-${ownerClass(o.owner)}" data-f="owner">${OWNER_KEYS.map((k) => `<option value="${k}" ${o.owner === k ? 'selected' : ''}>${OWNERS[k]}</option>`).join('')}</select>
-      <input class="open-title" data-f="title" value="${escapeAttr(o.title)}" placeholder="Title">
-      <input class="open-detail" data-f="detail" value="${escapeAttr(o.detail)}" placeholder="Detail">
-      ${reorderBtns(o.id)}
-      <button class="row-x" data-delo="${o.id}" title="Delete">&times;</button>
+      <input class="open-title inline-edit" data-f="title" value="${escapeAttr(o.title)}" placeholder="Title">
+      <input class="open-detail inline-edit" data-f="detail" value="${escapeAttr(o.detail)}" placeholder="Detail">
+      ${kebabButton('Item actions')}
     </div>`
 }
 
@@ -60,68 +65,139 @@ export function renderFacts() {
   if (!el) return
   el.innerHTML = `
     <div class="card">
-      <h2>The plan, locked</h2>
-      <p class="hint">These are settled. Edit any value, or add your own. Tap a field to change it.</p>
-      <div class="facts">${facts().map(factRow).join('')}</div>
-      <div class="toolbar" style="margin-top:14px"><button class="btn ghost sm" id="addFact">+ Add fact</button></div>
+      <div class="card-head">
+        <div class="ch-text">
+          <h2>The plan, locked</h2>
+          <p class="hint">These are settled. Tap any value to change it.</p>
+        </div>
+        <div class="ch-actions"><button class="btn ghost sm" id="addFact">+ Add fact</button></div>
+      </div>
+      <div class="facts">${facts().map(factRow).join('') || emptyState({ title: 'Nothing locked yet', sub: 'Add the decisions you have already made.', cta: '+ Add fact', ctaId: 'addFactEmpty' })}</div>
     </div>
     <div class="card">
-      <h2>Still open</h2>
-      <p class="hint">Loose threads. Do not lose them.</p>
-      <div class="open-list">${opens().map(openRow).join('') || '<div class="empty">Nothing open. Add a thread.</div>'}</div>
-      <div class="toolbar" style="margin-top:14px"><button class="btn ghost sm" id="addOpen">+ Add item</button></div>
+      <div class="card-head">
+        <div class="ch-text">
+          <h2>Still open</h2>
+          <p class="hint">Loose threads. Do not lose them.</p>
+        </div>
+        <div class="ch-actions"><button class="btn ghost sm" id="addOpen">+ Add item</button></div>
+      </div>
+      <div class="open-list">${opens().map(openRow).join('') || emptyState({ title: 'Nothing open', sub: 'Park a loose thread here so it is not forgotten.', cta: '+ Add item', ctaId: 'addOpenEmpty' })}</div>
     </div>`
   wire(el)
 }
 
-function wire(el) {
-  el.querySelector('#addFact')?.addEventListener('click', async () => {
-    try {
-      const r = await api.fact({
-        label: '',
-        value: '',
-        sort: facts().length + 1,
-      })
-      bumpRev(r)
-      facts().push({
-        id: r.id,
-        label: '',
-        value: '',
-        by: 'You',
-        byId: meId(),
-        at: new Date().toISOString(),
-      })
-      renderFacts()
-      el.querySelector(`.fact[data-id="${r.id}"] .fact-k`)?.focus()
-    } catch (_) {
-      /* ignore */
-    }
-  })
+async function addFact(el) {
+  try {
+    const r = await api.fact({ label: '', value: '', sort: facts().length + 1 })
+    bumpRev(r)
+    facts().push({
+      id: r.id,
+      label: '',
+      value: '',
+      by: 'You',
+      byId: meId(),
+      at: new Date().toISOString(),
+    })
+    renderFacts()
+    el.querySelector(`.fact[data-id="${r.id}"] .fact-k`)?.focus()
+  } catch (_) {
+    /* ignore */
+  }
+}
 
-  el.querySelector('#addOpen')?.addEventListener('click', async () => {
-    try {
-      const r = await api.openItem({
-        title: '',
-        detail: '',
-        owner: 'you',
-        sort: opens().length + 1,
-      })
-      bumpRev(r)
-      opens().push({
-        id: r.id,
-        title: '',
-        detail: '',
-        owner: 'you',
-        by: 'You',
-        byId: meId(),
-        at: new Date().toISOString(),
-      })
-      renderFacts()
-      el.querySelector(`.open-item[data-id="${r.id}"] .open-title`)?.focus()
-    } catch (_) {
-      /* ignore */
-    }
+async function addOpen(el) {
+  try {
+    const r = await api.openItem({
+      title: '',
+      detail: '',
+      owner: 'you',
+      sort: opens().length + 1,
+    })
+    bumpRev(r)
+    opens().push({
+      id: r.id,
+      title: '',
+      detail: '',
+      owner: 'you',
+      by: 'You',
+      byId: meId(),
+      at: new Date().toISOString(),
+    })
+    renderFacts()
+    el.querySelector(`.open-item[data-id="${r.id}"] .open-title`)?.focus()
+  } catch (_) {
+    /* ignore */
+  }
+}
+
+async function deleteFact(id) {
+  const snap = facts().find((x) => x.id === id)
+  if (!snap || !(await confirmDelete('this fact'))) return
+  const data = { label: snap.label, value: snap.value }
+  store.data.facts = facts().filter((x) => x.id !== id)
+  renderFacts()
+  undoToast('Fact deleted', async () => {
+    const r = await api.fact({ ...data, sort: 100 })
+    bumpRev(r)
+    facts().push({
+      id: r.id,
+      ...data,
+      by: 'You',
+      byId: meId(),
+      at: new Date().toISOString(),
+    })
+    renderFacts()
   })
+  try {
+    bumpRev(await api.factDelete(id))
+  } catch (_) {
+    /* next poll reconciles */
+  }
+}
+
+async function deleteOpen(id) {
+  const snap = opens().find((x) => x.id === id)
+  if (!snap || !(await confirmDelete('this item'))) return
+  const data = { title: snap.title, detail: snap.detail, owner: snap.owner }
+  store.data.openItems = opens().filter((x) => x.id !== id)
+  renderFacts()
+  undoToast('Item deleted', async () => {
+    const r = await api.openItem({ ...data, sort: 100 })
+    bumpRev(r)
+    opens().push({
+      id: r.id,
+      ...data,
+      by: 'You',
+      byId: meId(),
+      at: new Date().toISOString(),
+    })
+    renderFacts()
+  })
+  try {
+    bumpRev(await api.openItemDelete(id))
+  } catch (_) {
+    /* next poll reconciles */
+  }
+}
+
+const moveFact = (id, dir) =>
+  reorderBySort(facts(), id, dir, (f) =>
+    api.fact(f).then(bumpRev).catch(() => {}),
+  ) && renderFacts()
+
+const moveOpen = (id, dir) =>
+  reorderBySort(opens(), id, dir, (o) =>
+    api.openItem(o).then(bumpRev).catch(() => {}),
+  ) && renderFacts()
+
+function wire(el) {
+  el.querySelector('#addFact')?.addEventListener('click', () => addFact(el))
+  el.querySelector('#addFactEmpty')?.addEventListener('click', () => addFact(el))
+  el.querySelector('#addOpen')?.addEventListener('click', () => addOpen(el))
+  el.querySelector('#addOpenEmpty')?.addEventListener('click', () => addOpen(el))
+
+  el.querySelectorAll('.fact .fact-v').forEach(autoGrow)
 
   el.querySelectorAll('.fact input, .fact textarea').forEach((inp) =>
     inp.addEventListener('input', (e) => {
@@ -129,6 +205,7 @@ function wire(el) {
         (x) => String(x.id) === e.target.closest('.fact').dataset.id,
       )
       if (!f) return
+      if (e.target.tagName === 'TEXTAREA') autoGrow(e.target)
       f[e.target.dataset.f] = e.target.value
       f.by = 'You'
       f.byId = meId()
@@ -154,81 +231,43 @@ function wire(el) {
     }),
   )
 
-  el.querySelectorAll('[data-delf]').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const id = Number(e.currentTarget.dataset.delf)
-      const snap = facts().find((x) => x.id === id)
-      if (!snap || !(await confirmDelete('this fact'))) return
-      const data = { label: snap.label, value: snap.value }
-      store.data.facts = facts().filter((x) => x.id !== id)
-      renderFacts()
-      undoToast('Fact deleted', async () => {
-        const r = await api.fact({ ...data, sort: 100 })
-        bumpRev(r)
-        facts().push({
-          id: r.id,
-          ...data,
-          by: 'You',
-          byId: meId(),
-          at: new Date().toISOString(),
-        })
-        renderFacts()
-      })
-      try {
-        bumpRev(await api.factDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
-      }
+  el.querySelectorAll('.fact [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = Number(b.closest('.fact').dataset.id)
+      openKebabMenu(b, [
+        { label: 'Move up', onClick: () => moveFact(id, -1) },
+        { label: 'Move down', onClick: () => moveFact(id, 1) },
+        {
+          label: 'Delete fact',
+          destructive: true,
+          separatorBefore: true,
+          onClick: () => deleteFact(id),
+        },
+      ])
     }),
   )
 
-  el.querySelectorAll('[data-delo]').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const id = Number(e.currentTarget.dataset.delo)
-      const snap = opens().find((x) => x.id === id)
-      if (!snap || !(await confirmDelete('this item'))) return
-      const data = { title: snap.title, detail: snap.detail, owner: snap.owner }
-      store.data.openItems = opens().filter((x) => x.id !== id)
-      renderFacts()
-      undoToast('Item deleted', async () => {
-        const r = await api.openItem({ ...data, sort: 100 })
-        bumpRev(r)
-        opens().push({
-          id: r.id,
-          ...data,
-          by: 'You',
-          byId: meId(),
-          at: new Date().toISOString(),
-        })
-        renderFacts()
-      })
-      try {
-        bumpRev(await api.openItemDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
-      }
-    }),
-  )
-
-  el.querySelectorAll('.fact .reord').forEach((b) =>
-    b.addEventListener('click', () => {
-      const dir = b.dataset.up != null ? -1 : 1
-      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
-      const ok = reorderBySort(facts(), id, dir, (f) =>
-        api.fact(f).then(bumpRev).catch(() => {}),
-      )
-      if (ok) renderFacts()
-    }),
-  )
-
-  el.querySelectorAll('.open-item .reord').forEach((b) =>
-    b.addEventListener('click', () => {
-      const dir = b.dataset.up != null ? -1 : 1
-      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
-      const ok = reorderBySort(opens(), id, dir, (o) =>
-        api.openItem(o).then(bumpRev).catch(() => {}),
-      )
-      if (ok) renderFacts()
+  el.querySelectorAll('.open-item [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = Number(b.closest('.open-item').dataset.id)
+      openKebabMenu(b, [
+        { label: 'Move up', onClick: () => moveOpen(id, -1) },
+        { label: 'Move down', onClick: () => moveOpen(id, 1) },
+        {
+          label: 'Delete item',
+          destructive: true,
+          separatorBefore: true,
+          onClick: () => deleteOpen(id),
+        },
+      ])
     }),
   )
 }
+
+// Textareas sized while the panel was hidden report 0; regrow once visible.
+window.addEventListener('tab:shown', (e) => {
+  if (e.detail !== 'facts') return
+  document.querySelectorAll('#tab-facts .fact-v').forEach(autoGrow)
+})

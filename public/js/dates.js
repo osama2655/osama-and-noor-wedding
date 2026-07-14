@@ -1,14 +1,14 @@
 import { api } from './api.js'
 import { WED_DEFAULT } from './content.js'
 import { bumpRev, meId, store } from './store.js'
-import { confirmDelete, undoToast } from './ui.js'
 import {
-  byTag,
-  debounce,
-  escapeAttr,
-  reorderBtns,
-  reorderBySort,
-} from './util.js'
+  confirmDelete,
+  emptyState,
+  kebabButton,
+  openKebabMenu,
+  undoToast,
+} from './ui.js'
+import { byTag, debounce, escapeAttr, reorderBySort } from './util.js'
 
 const dates = () => store.data.dates || (store.data.dates = [])
 const find = (id) => dates().find((d) => String(d.id) === String(id))
@@ -52,15 +52,14 @@ function dateRow(d) {
   const cd = countdownLabel(d.date)
   return `<div class="dt-row ${d.date && daysUntil(d.date) < 0 ? 'past' : ''}" data-id="${d.id}">
       <div class="dt-main">
-        <input class="dt-label" data-f="label" value="${escapeAttr(d.label)}" placeholder="Label, e.g. Milcha">
-        <input class="dt-date" data-f="date" type="date" value="${escapeAttr(d.date)}">
-        <input class="dt-note" data-f="note" value="${escapeAttr(d.note)}" placeholder="Note">
+        <input class="dt-label inline-edit" data-f="label" value="${escapeAttr(d.label)}" placeholder="Label, e.g. Milcha">
+        <input class="dt-date inline-edit" data-f="date" type="date" value="${escapeAttr(d.date)}">
+        <input class="dt-note inline-edit" data-f="note" value="${escapeAttr(d.note)}" placeholder="Note">
       </div>
       <div class="dt-side">
         ${cd ? `<span class="dt-count">${cd}</span>` : ''}
-        ${byTag(d, meId())}
-        ${reorderBtns(d.id)}
-        <button class="del" data-del="${d.id}" title="Delete">&times;</button>
+        <span class="lmeta">${byTag(d, meId())}</span>
+        ${kebabButton('Date actions')}
       </div>
     </div>`
 }
@@ -71,8 +70,13 @@ export function renderDates() {
   const wed = store.data.wedDate || WED_DEFAULT
   el.innerHTML = `
     <div class="card">
-      <h2>The timeline</h2>
-      <p class="hint">Milcha, the henna night, the reception, deposit deadlines. Add each date as you lock it.</p>
+      <div class="card-head">
+        <div class="ch-text">
+          <h2>The timeline</h2>
+          <p class="hint">Milcha, the henna night, the reception, deposit deadlines.</p>
+        </div>
+        <div class="ch-actions"><button class="btn sm" id="addDate">+ Add a date</button></div>
+      </div>
       <div class="dt-wed">
         <div>
           <div class="dt-wed-l">Wedding day</div>
@@ -80,11 +84,10 @@ export function renderDates() {
         </div>
         <div class="dt-wed-c">${countdownLabel(wed)}</div>
       </div>
-      <div class="toolbar" style="margin-top:16px"><button class="btn sm" id="addDate">+ Add a date</button></div>
-      <div class="dt-list">${dates().map(dateRow).join('') || '<div class="empty">No dates yet. Add the first milestone.</div>'}</div>
+      <div class="dt-list">${dates().map(dateRow).join('') || emptyState({ title: 'No dates yet', sub: 'Add the first milestone as you lock it.', cta: '+ Add a date', ctaId: 'addDateEmpty' })}</div>
     </div>`
 
-  el.querySelector('#addDate')?.addEventListener('click', async () => {
+  const addDate = async () => {
     try {
       const r = await api.importantDate({
         label: '',
@@ -103,10 +106,15 @@ export function renderDates() {
         at: new Date().toISOString(),
       })
       renderDates()
+      document
+        .querySelector(`#tab-dates .dt-row[data-id="${r.id}"] .dt-label`)
+        ?.focus()
     } catch (_) {
       /* ignore */
     }
-  })
+  }
+  el.querySelector('#addDate')?.addEventListener('click', addDate)
+  el.querySelector('#addDateEmpty')?.addEventListener('click', addDate)
 
   el.querySelectorAll('.dt-row input').forEach((inp) => {
     inp.addEventListener('input', (e) => {
@@ -122,39 +130,44 @@ export function renderDates() {
     if (inp.dataset.f === 'date') inp.addEventListener('change', renderDates)
   })
 
-  el.querySelectorAll('[data-del]').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const id = e.target.dataset.del
-      const snap = find(id)
-      if (!snap || !(await confirmDelete('this date'))) return
-      const data = { ...snap }
-      store.data.dates = dates().filter((d) => String(d.id) !== String(id))
+  const deleteDate = async (id) => {
+    const snap = find(id)
+    if (!snap || !(await confirmDelete('this date'))) return
+    const data = { ...snap }
+    store.data.dates = dates().filter((d) => String(d.id) !== String(id))
+    renderDates()
+    undoToast('Date deleted', async () => {
+      const r = await api.importantDate(data)
+      bumpRev(r)
+      dates().push({ ...data, id: r.id })
       renderDates()
-      undoToast('Date deleted', async () => {
-        const r = await api.importantDate(data)
-        bumpRev(r)
-        dates().push({ ...data, id: r.id })
-        renderDates()
-      })
-      try {
-        bumpRev(await api.importantDateDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
-      }
-    }),
-  )
+    })
+    try {
+      bumpRev(await api.importantDateDelete(id))
+    } catch (_) {
+      /* next poll reconciles */
+    }
+  }
 
-  el.querySelectorAll('.dt-row .reord').forEach((b) =>
-    b.addEventListener('click', () => {
-      const dir = b.dataset.up != null ? -1 : 1
-      const id = b.dataset.up != null ? b.dataset.up : b.dataset.down
-      const ok = reorderBySort(dates(), id, dir, (d) =>
-        api
-          .importantDate(d)
-          .then(bumpRev)
-          .catch(() => {}),
-      )
-      if (ok) renderDates()
+  const moveDate = (id, dir) =>
+    reorderBySort(dates(), id, dir, (d) =>
+      api.importantDate(d).then(bumpRev).catch(() => {}),
+    ) && renderDates()
+
+  el.querySelectorAll('.dt-row [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = b.closest('.dt-row').dataset.id
+      openKebabMenu(b, [
+        { label: 'Move up', onClick: () => moveDate(id, -1) },
+        { label: 'Move down', onClick: () => moveDate(id, 1) },
+        {
+          label: 'Delete date',
+          destructive: true,
+          separatorBefore: true,
+          onClick: () => deleteDate(id),
+        },
+      ])
     }),
   )
 }

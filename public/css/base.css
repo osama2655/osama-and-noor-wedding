@@ -43,6 +43,22 @@ a:hover{text-decoration:underline}
 .field:focus{outline:none;border-color:var(--gold);background:var(--card2)}
 .field::placeholder{color:var(--faint)}
 
+/* Edit-in-place: invisible at rest, reveals on hover, lights up on focus.
+   Turns list screens from walls of boxes into calm lists that stay tap-to-edit. */
+.inline-edit{background:transparent;border:1px solid transparent;border-radius:var(--r-1);color:var(--txt);font:inherit;padding:6px 8px;
+  transition:border-color var(--dur-1) var(--ease),background var(--dur-1) var(--ease)}
+.inline-edit:hover{border-color:var(--line2)}
+.inline-edit:focus{outline:none;border-color:var(--gold);background:var(--card2)}
+.inline-edit::placeholder{color:var(--faint)}
+
+/* Card header: title + hint left, actions right. Add lives HERE, never under a list. */
+.card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.card-head .ch-text{flex:1;min-width:0}
+.card-head .ch-actions{display:flex;gap:8px;align-items:center;flex:none;padding-top:2px}
+
+/* List row meta cluster: tags + attribution live right of the content, never beneath it. */
+.lmeta{display:flex;align-items:center;gap:8px;flex:none;max-width:220px;overflow:hidden;white-space:nowrap}
+
 .boot{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-5);
   background:var(--bg);transition:opacity var(--dur-4) var(--ease)}
 .boot.boot-hide{opacity:0;pointer-events:none}

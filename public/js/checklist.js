@@ -3,14 +3,13 @@ import { CHECKLIST, OWNERS } from './content.js'
 import { renderDash, renderOverall } from './dashboard.js'
 import { weekStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
-import { confirmDelete, undoToast } from './ui.js'
 import {
-  byTag,
-  debounce,
-  escapeAttr,
-  escapeHtml,
-  reorderBtns,
-} from './util.js'
+  confirmDelete,
+  kebabButton,
+  openKebabMenu,
+  undoToast,
+} from './ui.js'
+import { byTag, debounce, escapeAttr, escapeHtml } from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
 const ownerLabel = (o) => OWNERS[o] || ''
@@ -52,13 +51,19 @@ function saveOverride(key, text) {
   }, 500)
 }
 
-// A hidden panel (display:none) reports scrollHeight 0; setting height to 0 would
-// collapse the textarea and hide its text. Skip until the element is laid out; the
-// tab:shown listener at the bottom re-grows these once the panel is visible.
+// Hidden panels report scrollHeight 0; skip until laid out (regrown on tab:shown).
 const autoGrow = (ta) => {
   ta.style.height = 'auto'
   const h = ta.scrollHeight
   if (h) ta.style.height = `${h}px`
+}
+
+function metaCluster(owner, who) {
+  const tag = owner
+    ? `<span class="owner-tag t-${ownerClass(owner)}">${ownerLabel(owner)}</span>`
+    : ''
+  if (!tag && !who) return ''
+  return `<span class="lmeta">${tag}${who}</span>`
 }
 
 function staticRow(w, i) {
@@ -66,19 +71,14 @@ function staticRow(w, i) {
   const it = w.items[i]
   const e = store.data.checks?.[key]
   const on = !!e?.done
-  const owner = it[1]
-  const ownerTag = owner
-    ? `<span class="owner-tag t-${ownerClass(owner)}">${ownerLabel(owner)}</span>`
-    : ''
   const who = on ? byTag(e, meId()) : ''
   const text = overrideText(key, it[0])
-  const reset = hasOverride(key)
-    ? `<button class="row-x" data-reset="${key}" title="Reset to original wording">↺</button>`
-    : ''
-  return `<li class="${on ? 'done' : ''}">
+  return `<li class="${on ? 'done' : ''}" data-key="${key}">
       <input type="checkbox" class="cbx ${w.gate ? 'gold' : ''}" data-key="${key}" ${on ? 'checked' : ''}>
-      <span class="txt"><textarea class="co-text" data-okey="${key}" rows="1">${escapeHtml(text)}</textarea>${ownerTag}${who}</span>
-      ${reset}<button class="row-x" data-hide="${key}" title="Remove this row">&times;</button></li>`
+      <span class="txt"><textarea class="co-text inline-edit" data-okey="${key}" rows="1">${escapeHtml(text)}</textarea></span>
+      ${metaCluster(it[1], who)}
+      ${kebabButton('Task actions')}
+    </li>`
 }
 
 function customRow(w, c) {
@@ -89,12 +89,14 @@ function customRow(w, c) {
   return `<li class="ci ${on ? 'done' : ''}" data-ci="${c.id}">
       <input type="checkbox" class="cbx ${w.gate ? 'gold' : ''}" data-key="${key}" ${on ? 'checked' : ''}>
       <span class="txt">
-        <input class="ci-text" data-f="text" value="${escapeAttr(c.text)}" placeholder="Add your own task">
+        <input class="ci-text inline-edit" data-f="text" value="${escapeAttr(c.text)}" placeholder="Add your own task">
+      </span>
+      <span class="lmeta">
         <select class="ci-owner" data-f="owner">${OWNER_KEYS.map((o) => `<option value="${o}" ${c.owner === o ? 'selected' : ''}>${OWNERS[o]}</option>`).join('')}</select>
         ${who}
       </span>
-      ${reorderBtns(c.id)}
-      <button class="row-x" data-delci="${c.id}" title="Delete this row">&times;</button></li>`
+      ${kebabButton('Task actions')}
+    </li>`
 }
 
 export function renderChecklist() {
@@ -111,14 +113,18 @@ export function renderChecklist() {
       customFor(w.id)
         .map((c) => customRow(w, c))
         .join('')
-    return `<div class="card ${w.gate ? 'gate' : ''}">
-        <div class="week-head"><h2>${w.title}</h2><span class="badge">${w.sub}</span></div>
-        <div class="mini-progress"><div class="bar ${w.gate ? 'gold' : ''}"><span style="width:${p}%"></span></div><div class="lab">${s.done}/${s.total}</div></div>
-        <ul class="checks">${rows || '<li class="empty-li">No items here. Add one below.</li>'}</ul>
-        <div class="check-tools">
-          <button class="btn ghost sm" data-add="${w.id}">+ Add item</button>
-          ${hiddenCount ? `<button class="btn ghost sm" data-restore="${w.id}">Restore ${hiddenCount} removed</button>` : ''}
+    return `<div class="card ${w.gate ? 'gate' : ''}" data-phase="${w.id}">
+        <div class="card-head">
+          <div class="ch-text">
+            <div class="week-head"><h2>${w.title}</h2><span class="badge">${w.sub}</span></div>
+          </div>
+          <div class="ch-actions">
+            <button class="btn ghost sm" data-add="${w.id}">+ Add</button>
+            ${hiddenCount ? kebabButton('Phase actions') : ''}
+          </div>
         </div>
+        <div class="mini-progress"><div class="bar ${w.gate ? 'gold' : ''}"><span style="width:${p}%"></span></div><div class="lab">${s.done}/${s.total}</div></div>
+        <ul class="checks">${rows || '<li class="empty-li">No items here. Add one above.</li>'}</ul>
       </div>`
   }).join('')
   wire(el)
@@ -128,6 +134,100 @@ function refresh() {
   renderChecklist()
   renderDash()
   renderOverall()
+}
+
+async function hideRow(key) {
+  store.data.hiddenChecks = store.data.hiddenChecks || {}
+  store.data.hiddenChecks[key] = true
+  refresh()
+  try {
+    bumpRev(await api.hideCheck(key, true))
+  } catch (_) {
+    /* next poll reconciles */
+  }
+}
+
+async function resetRow(key) {
+  // Cancel any in-flight debounced save of the edit we are discarding, or it
+  // would re-create the override on the server right after we delete it.
+  clearTimeout(overTimers[key])
+  if (store.data.checkOverrides) delete store.data.checkOverrides[key]
+  refresh()
+  try {
+    bumpRev(await api.checkOverrideDelete(key))
+  } catch (_) {
+    /* next poll reconciles */
+  }
+}
+
+async function restorePhase(pid) {
+  const w = CHECKLIST.find((x) => x.id === pid)
+  const keys = w.items.map((_, i) => `${pid}-${i}`).filter((k) => hidden(k))
+  keys.forEach((k) => delete store.data.hiddenChecks[k])
+  refresh()
+  for (const k of keys) {
+    try {
+      bumpRev(await api.hideCheck(k, false))
+    } catch (_) {
+      /* ignore */
+    }
+  }
+}
+
+async function deleteCustom(id) {
+  const snap = (store.data.checkItems || []).find((c) => c.id === id)
+  if (!snap || !(await confirmDelete('this item'))) return
+  const data = { phase: snap.phase, text: snap.text, owner: snap.owner }
+  store.data.checkItems = (store.data.checkItems || []).filter(
+    (c) => c.id !== id,
+  )
+  refresh()
+  undoToast('Item deleted', async () => {
+    const r = await api.checkItem({ ...data, sort: 100 })
+    bumpRev(r)
+    ;(store.data.checkItems || (store.data.checkItems = [])).push({
+      id: r.id,
+      ...data,
+      by: 'You',
+      byId: meId(),
+      at: new Date().toISOString(),
+    })
+    refresh()
+  })
+  try {
+    bumpRev(await api.checkItemDelete(id))
+  } catch (_) {
+    /* next poll reconciles */
+  }
+}
+
+// Reorder a custom item within its phase; built-in rows keep the plan's order.
+function moveCustom(id, dir) {
+  const items = store.data.checkItems || []
+  const it = items.find((c) => c.id === id)
+  if (!it) return
+  const sibs = items.filter((c) => c.phase === it.phase)
+  const pos = sibs.findIndex((c) => c.id === id)
+  const j = pos + dir
+  if (j < 0 || j >= sibs.length) return
+  sibs.splice(pos, 1)
+  sibs.splice(j, 0, it)
+  sibs.forEach((c, idx) => {
+    const s = idx + 1
+    if (c.sort !== s) {
+      c.sort = s
+      api
+        .checkItem(c)
+        .then(bumpRev)
+        .catch(() => {})
+    }
+  })
+  items.sort(
+    (a, cc) =>
+      String(a.phase).localeCompare(String(cc.phase)) ||
+      (a.sort || 0) - (cc.sort || 0),
+  )
+  refresh()
 }
 
 function wire(el) {
@@ -146,53 +246,6 @@ function wire(el) {
         bumpRev(await api.check(key, done))
       } catch (_) {
         /* next poll reconciles */
-      }
-    }),
-  )
-
-  el.querySelectorAll('[data-hide]').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const key = e.currentTarget.dataset.hide
-      store.data.hiddenChecks = store.data.hiddenChecks || {}
-      store.data.hiddenChecks[key] = true
-      refresh()
-      try {
-        bumpRev(await api.hideCheck(key, true))
-      } catch (_) {
-        /* next poll reconciles */
-      }
-    }),
-  )
-
-  el.querySelectorAll('[data-reset]').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const key = e.currentTarget.dataset.reset
-      // Cancel any in-flight debounced save of the edit we are discarding, or it
-      // would re-create the override on the server right after we delete it.
-      clearTimeout(overTimers[key])
-      if (store.data.checkOverrides) delete store.data.checkOverrides[key]
-      refresh()
-      try {
-        bumpRev(await api.checkOverrideDelete(key))
-      } catch (_) {
-        /* next poll reconciles */
-      }
-    }),
-  )
-
-  el.querySelectorAll('[data-restore]').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const pid = e.currentTarget.dataset.restore
-      const w = CHECKLIST.find((x) => x.id === pid)
-      const keys = w.items.map((_, i) => `${pid}-${i}`).filter((k) => hidden(k))
-      keys.forEach((k) => delete store.data.hiddenChecks[k])
-      refresh()
-      for (const k of keys) {
-        try {
-          bumpRev(await api.hideCheck(k, false))
-        } catch (_) {
-          /* ignore */
-        }
       }
     }),
   )
@@ -218,39 +271,11 @@ function wire(el) {
           at: new Date().toISOString(),
         })
         refresh()
-        el.querySelector(`li[data-ci="${r.id}"] .ci-text`)?.focus()
+        document
+          .querySelector(`#tab-checklist li[data-ci="${r.id}"] .ci-text`)
+          ?.focus()
       } catch (_) {
         /* ignore */
-      }
-    }),
-  )
-
-  el.querySelectorAll('[data-delci]').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const id = Number(e.currentTarget.dataset.delci)
-      const snap = (store.data.checkItems || []).find((c) => c.id === id)
-      if (!snap || !(await confirmDelete('this item'))) return
-      const data = { phase: snap.phase, text: snap.text, owner: snap.owner }
-      store.data.checkItems = (store.data.checkItems || []).filter(
-        (c) => c.id !== id,
-      )
-      refresh()
-      undoToast('Item deleted', async () => {
-        const r = await api.checkItem({ ...data, sort: 100 })
-        bumpRev(r)
-        ;(store.data.checkItems || (store.data.checkItems = [])).push({
-          id: r.id,
-          ...data,
-          by: 'You',
-          byId: meId(),
-          at: new Date().toISOString(),
-        })
-        refresh()
-      })
-      try {
-        bumpRev(await api.checkItemDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
       }
     }),
   )
@@ -276,43 +301,64 @@ function wire(el) {
     }),
   )
 
-  // Reorder custom items within their phase (built-in rows keep the plan's order).
-  el.querySelectorAll('.ci .reord').forEach((b) =>
-    b.addEventListener('click', () => {
-      const id = Number(b.dataset.up != null ? b.dataset.up : b.dataset.down)
-      const dir = b.dataset.up != null ? -1 : 1
-      const items = store.data.checkItems || []
-      const it = items.find((c) => c.id === id)
-      if (!it) return
-      const sibs = items.filter((c) => c.phase === it.phase)
-      const pos = sibs.findIndex((c) => c.id === id)
-      const j = pos + dir
-      if (j < 0 || j >= sibs.length) return
-      sibs.splice(pos, 1)
-      sibs.splice(j, 0, it)
-      sibs.forEach((c, idx) => {
-        const s = idx + 1
-        if (c.sort !== s) {
-          c.sort = s
-          api
-            .checkItem(c)
-            .then(bumpRev)
-            .catch(() => {})
-        }
+  // Built-in row kebab: reset wording (when overridden) + remove.
+  el.querySelectorAll('li[data-key] [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const key = b.closest('li').dataset.key
+      const items = []
+      if (hasOverride(key))
+        items.push({
+          label: 'Reset to original wording',
+          onClick: () => resetRow(key),
+        })
+      items.push({
+        label: 'Remove from checklist',
+        destructive: true,
+        separatorBefore: items.length > 0,
+        onClick: () => hideRow(key),
       })
-      items.sort(
-        (a, cc) =>
-          String(a.phase).localeCompare(String(cc.phase)) ||
-          (a.sort || 0) - (cc.sort || 0),
-      )
-      refresh()
+      openKebabMenu(b, items)
+    }),
+  )
+
+  // Custom row kebab: move + delete.
+  el.querySelectorAll('li[data-ci] [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = Number(b.closest('li').dataset.ci)
+      openKebabMenu(b, [
+        { label: 'Move up', onClick: () => moveCustom(id, -1) },
+        { label: 'Move down', onClick: () => moveCustom(id, 1) },
+        {
+          label: 'Delete item',
+          destructive: true,
+          separatorBefore: true,
+          onClick: () => deleteCustom(id),
+        },
+      ])
+    }),
+  )
+
+  // Phase-header kebab: restore removed rows.
+  el.querySelectorAll('.ch-actions [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const pid = b.closest('.card').dataset.phase
+      const w = CHECKLIST.find((x) => x.id === pid)
+      const n = w.items.filter((_, i) => hidden(`${pid}-${i}`)).length
+      openKebabMenu(b, [
+        {
+          label: `Restore ${n} removed item${n === 1 ? '' : 's'}`,
+          onClick: () => restorePhase(pid),
+        },
+      ])
     }),
   )
 }
 
 // Built-in rows use auto-growing textareas sized from scrollHeight, which reads 0
-// while the Checklist panel is hidden, so the text renders collapsed until the tab
-// is opened. Re-grow every row the moment the panel becomes visible.
+// while the Checklist panel is hidden. Re-grow every row once the panel shows.
 window.addEventListener('tab:shown', (e) => {
   if (e.detail !== 'checklist') return
   document
