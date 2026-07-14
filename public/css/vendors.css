@@ -7,9 +7,9 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 /* Widths are percentages summing to exactly 100 (kebab included) so the fixed
    layout never overflows its container — no stray horizontal scrollbar. */
 .pay .c-cat{width:12%}.pay .c-name{width:14%}.pay .c-contact{width:13%}.pay .c-status{width:11%}
-.pay .c-num{width:7%}.pay .c-due{width:9%}.pay .c-upd{width:15%}.pay .c-kebab{width:5%}
-.guest .g-name{width:22%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
-.guest .g-notes{width:14%}.guest .g-pass{width:10%}.guest .g-upd{width:14%}.guest .g-kebab{width:5%}
+.pay .c-num{width:7%}.pay .c-due{width:9%}.pay .c-upd{width:14%}.pay .c-kebab{width:6%}
+.guest .g-name{width:21%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
+.guest .g-notes{width:14%}.guest .g-pass{width:10%}.guest .g-upd{width:14%}.guest .g-kebab{width:6%}
 th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
 th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
 tbody tr{transition:background var(--dur-1) var(--ease)}
@@ -50,7 +50,7 @@ td select.stat:focus{outline:2px solid var(--ring);outline-offset:1px}
 .vendor-call{flex:none;text-decoration:none;font-size:15px;line-height:1}
 
 /* Kebab column: the row's action menu, right-aligned in the last cell */
-.kebab-cell{text-align:right;white-space:nowrap;padding-right:6px}
+.kebab-cell{text-align:right;white-space:nowrap;padding-left:4px;padding-right:6px}
 .kebab-cell .kebab{color:var(--muted)}
 
 /* Mobile: each table row becomes a stacked card (no horizontal scroll-within-scroll) */
