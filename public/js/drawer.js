@@ -1,7 +1,9 @@
 import { api } from './api.js'
+import { renderDash } from './dashboard.js'
 import { googleMap, instagramCard } from './embeds.js'
 import { isSaved, toggleSave } from './saves.js'
 import { bumpRev, meId, store } from './store.js'
+import { renderMoney, renderVendors } from './vendors.js'
 import {
   closeSheet,
   confirmDelete,
@@ -33,6 +35,22 @@ const STATUS_STEPS = [
   { key: 'booked', label: 'Booked' },
   { key: 'paid', label: 'Paid' },
 ]
+
+// Map a catalog category to the closest Payments-tracker category label.
+const PAY_CATEGORY = {
+  venue: 'Venue',
+  photo: 'Photo + video',
+  hmua: 'HMUA (hair & makeup)',
+  henna: 'Henna artist',
+  cake: 'Cake',
+  caterer: 'Catering / menu',
+  transport: 'Wedding car / transport',
+  car: 'Wedding car / transport',
+  other: '',
+}
+
+const linkedVendor = (id) =>
+  (store.data.vendors || []).find((v) => Number(v.catalogId) === Number(id))
 
 const liveRow = (id) => (store.data.catalog || []).find((c) => c.id === id)
 const nameOf = (item) => (liveRow(item.id) || item).name || 'Untitled listing'
@@ -95,6 +113,27 @@ function statusSec(row) {
   return `<div class="cd-sec">
       <div class="cd-h">Where we are</div>
       <div class="segmented">${STATUS_STEPS.map((s) => `<button class="seg ${s.key === active ? 'on' : ''}" type="button" data-status="${s.key}">${s.label}</button>`).join('')}</div>
+      ${bookingBar(row)}
+    </div>`
+}
+
+// The bridge to the Payments tracker: create a linked payment row, or jump to it.
+function bookingBar(row) {
+  const v = linkedVendor(row.id)
+  if (v) {
+    const bits = []
+    if (v.quote) bits.push(`Quote BD ${v.quote}`)
+    if (v.deposit) bits.push(`Deposit BD ${v.deposit}`)
+    if (v.balance) bits.push(`Balance BD ${v.balance}`)
+    return `<div class="cd-book linked">
+        <div class="cd-book-txt"><strong>Tracked in Payments</strong><span>${bits.length ? bits.join(' &middot; ') : 'No amounts entered yet'}</span></div>
+        <button class="btn ghost sm" type="button" data-viewpay>Open</button>
+      </div>`
+  }
+  const booked = row.status === 'booked' || row.status === 'paid'
+  return `<div class="cd-book">
+      <div class="cd-book-txt"><strong>${booked ? 'Booked &mdash; track the money' : 'Add to Payments'}</strong><span>Create a Payments row for the deposit and balance.</span></div>
+      <button class="btn sm" type="button" data-addpay>Add to Payments</button>
     </div>`
 }
 
@@ -318,6 +357,14 @@ function wireBody(item, onChange, paint) {
     }),
   )
 
+  root
+    .querySelector('[data-addpay]')
+    ?.addEventListener('click', () => addToPayments(item, paint))
+  root.querySelector('[data-viewpay]')?.addEventListener('click', () => {
+    closeSheet()
+    goToPayments()
+  })
+
   wireRemarks(item, onChange, paint)
   wireFiles(item, onChange, paint)
 }
@@ -506,6 +553,56 @@ async function markFemaleConfirmed(item, onChange, paint) {
   } catch (_) {
     /* next poll reconciles */
   }
+}
+
+// Create a Payments row pre-filled from this listing and link the two together.
+async function addToPayments(item, paint) {
+  const row = liveRow(item.id) || item
+  const data = {
+    category: PAY_CATEGORY[row.category] || '',
+    name: row.name || 'Untitled listing',
+    contact: row.phone || row.instagram || '',
+    status: 'booked',
+    quote: '',
+    deposit: '',
+    balance: '',
+    balance_due: '',
+    catalog_id: item.id,
+  }
+  try {
+    const r = await api.vendor(data)
+    bumpRev(r)
+    ;(store.data.vendors || (store.data.vendors = [])).push({
+      id: r.id,
+      category: data.category,
+      name: data.name,
+      contact: data.contact,
+      status: 'booked',
+      quote: '',
+      deposit: '',
+      balance: '',
+      balance_due: '',
+      catalogId: item.id,
+      by: 'You',
+      byId: meId(),
+      at: new Date().toISOString(),
+    })
+    toast({ type: 'ok', message: 'Added to Payments tracker' })
+    paint()
+    renderVendors()
+    renderMoney()
+    renderDash()
+  } catch (_) {
+    toast({ type: 'err', message: 'Could not add to Payments' })
+  }
+}
+
+// Jump to the Payments tab (money group). Simulates the two-level nav clicks so
+// no new nav export / import cycle is needed.
+function goToPayments() {
+  document.querySelector('#navGroups button[data-group="money"]')?.click()
+  document.querySelector('#tabs button[data-tab="vendors"]')?.click()
+  window.scrollTo(0, 0)
 }
 
 export function closeDrawer() {

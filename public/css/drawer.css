@@ -15,6 +15,14 @@
 .cd-sec { margin-top: var(--sp-6); }
 .cd-h { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--gold); font-weight: 700; margin-bottom: 10px; }
 
+/* Booking bridge to the Payments tracker */
+.cd-book { display: flex; align-items: center; gap: 12px; margin-top: var(--sp-4); padding: 11px 14px; border: 1px solid var(--line); border-radius: var(--r-2); background: var(--card2); }
+.cd-book.linked { border-color: color-mix(in srgb, var(--emerald) 40%, transparent); background: rgba(63, 174, 130, .08); }
+.cd-book-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cd-book-txt strong { font-size: var(--fs-sm); font-weight: 700; color: var(--txt); }
+.cd-book-txt span { font-size: 11px; color: var(--muted); }
+.cd-book .btn { flex: none; }
+
 .cd-map-d { margin-top: var(--sp-5); }
 .cd-map-d summary { cursor: pointer; color: var(--gold); font-size: var(--fs-sm); font-weight: 600; list-style: none; }
 .cd-map-d summary::-webkit-details-marker { display: none; }

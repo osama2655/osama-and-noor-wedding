@@ -2,11 +2,13 @@ import { api } from './api.js'
 import { STATUS } from './content.js'
 import { renderDash } from './dashboard.js'
 import { moneyTotals } from './stats.js'
+import { openDrawer } from './drawer.js'
 import { bumpRev, meId, store } from './store.js'
 import {
   confirmDelete,
   kebabButton,
   openKebabMenu,
+  toast,
   undoToast,
 } from './ui.js'
 import { byTag, debounce, escapeAttr, escapeHtml, fmt } from './util.js'
@@ -143,17 +145,41 @@ export function renderVendors() {
     b.addEventListener('click', (e) => {
       e.stopPropagation()
       const id = b.closest('tr').dataset.id
-      openKebabMenu(b, [
-        {
-          label: 'Delete row',
-          destructive: true,
-          onClick: () => deleteVendor(id),
-        },
-      ])
+      const v = find(id)
+      const items = []
+      if (v?.catalogId) {
+        items.push({
+          label: 'View listing',
+          onClick: () => openListing(v.catalogId),
+        })
+      }
+      items.push({
+        label: 'Delete row',
+        destructive: true,
+        separatorBefore: items.length > 0,
+        onClick: () => deleteVendor(id),
+      })
+      openKebabMenu(b, items)
     }),
   )
 
   renderMoney()
+}
+
+// Open the Shortlist listing a Payments row was booked from (the reverse of the
+// drawer's "Add to Payments").
+function openListing(catalogId) {
+  const c = (store.data.catalog || []).find((x) => x.id === Number(catalogId))
+  if (!c) {
+    toast({ type: 'err', message: 'That listing was removed.' })
+    return
+  }
+  document
+    .querySelector('#navGroups button[data-group="vendors"]')
+    ?.click()
+  document.querySelector('#tabs button[data-tab="shortlist"]')?.click()
+  window.scrollTo(0, 0)
+  openDrawer(c, renderVendors)
 }
 
 async function deleteVendor(id) {

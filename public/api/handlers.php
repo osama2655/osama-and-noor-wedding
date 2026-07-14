@@ -45,6 +45,10 @@ function handle_vendor(): void
     $u = require_user();
     $b = body();
     $status = in_array($b['status'] ?? '', VENDOR_STATUSES, true) ? $b['status'] : 'todo';
+    // A Payments row may be linked to the Shortlist listing it was booked from.
+    // Accept either key so the camelCase store object round-trips without unlinking.
+    $catRaw = $b['catalog_id'] ?? $b['catalogId'] ?? null;
+    $catalogId = !empty($catRaw) ? (int) $catRaw : null;
     $args = [
         (string) ($b['category'] ?? ''),
         (string) ($b['name'] ?? ''),
@@ -54,6 +58,7 @@ function handle_vendor(): void
         num_in($b['deposit'] ?? ''),
         num_in($b['balance'] ?? ''),
         num_in($b['balance_due'] ?? ''),
+        $catalogId,
         $u['id'],
     ];
 
@@ -61,13 +66,13 @@ function handle_vendor(): void
         $args[] = (int) $b['id'];
         db()->prepare(
             'UPDATE vendors SET category=?, name=?, contact=?, status=?, quote=?, deposit=?, balance=?,
-             balance_due=?, updated_by=?, updated_at=NOW() WHERE id=?'
+             balance_due=?, catalog_id=?, updated_by=?, updated_at=NOW() WHERE id=?'
         )->execute($args);
         $id = (int) $b['id'];
     } else {
         db()->prepare(
-            'INSERT INTO vendors(category, name, contact, status, quote, deposit, balance, balance_due, updated_by, updated_at)
-             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
+            'INSERT INTO vendors(category, name, contact, status, quote, deposit, balance, balance_due, catalog_id, updated_by, updated_at)
+             VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())'
         )->execute($args);
         $id = (int) db()->lastInsertId();
     }
