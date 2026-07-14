@@ -69,7 +69,7 @@ CREATE TABLE IF NOT EXISTS picks (
 INSERT INTO users (name, display_name) VALUES ('osama', 'Osama'), ('noor', 'Noor')
   ON DUPLICATE KEY UPDATE display_name = VALUES(display_name);
 
-INSERT INTO settings (k, v) VALUES ('rev', '0'), ('wedDate', '2026-08-14')
+INSERT INTO settings (k, v) VALUES ('rev', '0'), ('wedDate', '2026-08-21')
   ON DUPLICATE KEY UPDATE v = v;
 
 INSERT INTO vendors (category, status, sort)

@@ -2,7 +2,7 @@
 // (checks, vendor rows, payments) lives in the database; this structure is
 // fixed and shared by both users.
 
-export const WED_DEFAULT = '2026-08-14'
+export const WED_DEFAULT = '2026-08-21'
 
 // Owner tags used across CHECKLIST and LANES.
 // you  = the groom

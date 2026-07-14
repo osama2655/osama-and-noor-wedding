@@ -1,6 +1,11 @@
 import { api } from './api.js'
 import { WED_DEFAULT } from './content.js'
-import { qrCanvas } from './qr.js'
+import {
+  DEFAULT_INVITE,
+  INVITE_THEMES,
+  buildInviteCard,
+} from './invite-card.js'
+import { qrArtCanvas } from './qr.js'
 import { startScanner } from './scanner.js'
 import { bumpRev, meId, store } from './store.js'
 import { confirmDelete, toast, undoToast } from './ui.js'
@@ -67,6 +72,70 @@ function queueRsvp(inviteId, rsvpId) {
       }
     }, 500),
   )
+}
+
+const cardSettings = () => ({ ...DEFAULT_INVITE, ...(store.data.inviteCard || {}) })
+const cardTheme = () => {
+  const t = cardSettings().inviteTheme
+  return INVITE_THEMES[t] ? t : 'sage'
+}
+
+function themeChip(id, active) {
+  const t = INVITE_THEMES[id]
+  return `<button class="ics-theme ${active ? 'active' : ''}" data-ictheme="${id}" title="${t.name}">
+      <span class="ics-sw" style="background:${t.ground}"><i style="background:${t.names}"></i><i style="background:${t.accent}"></i><i style="background:${t.gold}"></i></span>
+      <span class="ics-name">${t.nameAr}</span>
+    </button>`
+}
+
+// The بطاقة دخول studio: theme + shared details, applied to every guest's pass
+// page and exported card the moment they change.
+function invitationStudio() {
+  const s = cardSettings()
+  const theme = cardTheme()
+  return `<div class="card ics-card">
+      <div class="card-head"><div class="ch-text">
+        <h2>Invitation card</h2>
+        <p class="hint">Every guest's pass link opens this card with their own QR. Theme and details are shared; edits go live instantly.</p>
+      </div></div>
+      <div class="ics-grid">
+        <div class="ics-controls">
+          <div class="ics-themes">${Object.keys(INVITE_THEMES).map((id) => themeChip(id, id === theme)).join('')}</div>
+          <label class="ics-l">Venue (Arabic)</label>
+          <input class="field" data-ics="venueAr" dir="rtl" value="${escapeAttr(s.venueAr)}" placeholder="قاعة ...">
+          <label class="ics-l">Hijri date (empty = automatic Umm al-Qura)</label>
+          <input class="field" data-ics="hijriDateAr" dir="rtl" value="${escapeAttr(s.hijriDateAr)}" placeholder="auto">
+          <div class="ics-times">
+            <div><label class="ics-l">الاستقبال</label><input class="field" data-ics="timeReception" value="${escapeAttr(s.timeReception)}"></div>
+            <div><label class="ics-l">الزفة</label><input class="field" data-ics="timeZaffa" value="${escapeAttr(s.timeZaffa)}"></div>
+            <div><label class="ics-l">العشاء</label><input class="field" data-ics="timeDinner" value="${escapeAttr(s.timeDinner)}"></div>
+          </div>
+          <label class="ics-l">Guest line label</label>
+          <input class="field" data-ics="honoraryLabel" dir="rtl" value="${escapeAttr(s.honoraryLabel)}">
+        </div>
+        <div class="ics-preview" id="icsPreview"></div>
+      </div>
+    </div>`
+}
+
+function mountPreview(el) {
+  const mount = el.querySelector('#icsPreview')
+  if (!mount) return
+  const s = cardSettings()
+  const theme = cardTheme()
+  const card = buildInviteCard({
+    theme,
+    settings: s,
+    wedDate: store.data.wedDate || WED_DEFAULT,
+    guestName: 'اسم الضيف',
+    status: 'valid',
+  })
+  const qr = qrArtCanvas(`${location.origin}/pass.html`, {
+    size: 240,
+    ...INVITE_THEMES[theme].qr,
+  })
+  card.querySelector('.ic-qr')?.replaceChildren(qr)
+  mount.replaceChildren(card)
 }
 
 function summary() {
@@ -154,6 +223,7 @@ export function renderInvite() {
   if (!el) return
   const s = summary()
   el.innerHTML = `
+    ${invitationStudio()}
     <div class="card">
       <h2>Invites</h2>
       <p class="hint">Make an invite, share the link or the QR. Guests RSVP without logging in, and the replies land here. You can also log replies that arrive by phone or WhatsApp.</p>
@@ -172,14 +242,58 @@ export function renderInvite() {
     </div>`
 
   el.querySelectorAll('.inv-qr').forEach((m) => {
-    const c = qrCanvas(link(m.dataset.token))
-    c.className = 'qr-canvas'
+    const c = qrArtCanvas(link(m.dataset.token), {
+      size: 180,
+      ...INVITE_THEMES[cardTheme()].qr,
+    })
     m.appendChild(c)
   })
+  mountPreview(el)
   wire(el)
 }
 
+const icsTimers = new Map()
+
 function wire(el) {
+  el.querySelectorAll('[data-ictheme]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const s = store.data.inviteCard || (store.data.inviteCard = {})
+      s.inviteTheme = b.dataset.ictheme
+      el.querySelectorAll('[data-ictheme]').forEach((x) =>
+        x.classList.toggle('active', x === b),
+      )
+      mountPreview(el)
+      try {
+        bumpRev(await api.setting('inviteTheme', b.dataset.ictheme))
+      } catch (_) {
+        /* next poll reconciles */
+      }
+    }),
+  )
+
+  el.querySelectorAll('[data-ics]').forEach((inp) =>
+    inp.addEventListener('input', (e) => {
+      const k = e.target.dataset.ics
+      const v = e.target.value
+      const s = store.data.inviteCard || (store.data.inviteCard = {})
+      s[k] = v
+      clearTimeout(icsTimers.get(k))
+      icsTimers.set(
+        k,
+        setTimeout(async () => {
+          icsTimers.delete(k)
+          try {
+            bumpRev(await api.setting(k, v))
+          } catch (_) {
+            /* next poll reconciles */
+          }
+        }, 500),
+      )
+      clearTimeout(icsTimers.get('__preview'))
+      icsTimers.set('__preview', setTimeout(() => mountPreview(el), 400))
+    }),
+  )
+
   el.querySelector('#addInvite')?.addEventListener('click', async () => {
     try {
       const r = await api.invite({ label: '' })
@@ -379,7 +493,14 @@ function wire(el) {
     b.addEventListener('click', () => {
       const inv = find(b.dataset.dl)
       if (!inv) return
-      const c = qrCanvas(link(inv.token), 600)
+      const th = INVITE_THEMES[cardTheme()]
+      const c = qrArtCanvas(link(inv.token), {
+        size: 640,
+        dpr: 1,
+        ...th.qr,
+        panel: th.qr.panel || th.ground,
+        panelRadius: 28,
+      })
       const a = document.createElement('a')
       a.href = c.toDataURL('image/png')
       a.download = `invite-${(inv.label || inv.token).slice(0, 20).replace(/\s+/g, '-')}.png`

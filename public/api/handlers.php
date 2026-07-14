@@ -496,7 +496,7 @@ function handle_rsvp_submit(): void
 function handle_invite_info(): void
 {
     $token = (string) ($_GET['token'] ?? '');
-    $wed = setting_get('wedDate') ?: '2026-08-14';
+    $wed = setting_get('wedDate') ?: '2026-08-21';
 
     $g = db()->prepare('SELECT name, side, seats, rsvp, message FROM guests WHERE token = ? LIMIT 1');
     $g->execute([$token]);
@@ -773,8 +773,24 @@ function handle_pass_info(): void
         'label' => (string) $p['label'],
         'status' => $p['status'],
         'redeemedAt' => $p['redeemed_at'],
-        'wedDate' => setting_get('wedDate') ?: '2026-08-14',
+        'wedDate' => setting_get('wedDate') ?: '2026-08-21',
+        'invite' => invite_card_settings(),
     ]);
+}
+
+// Shared invitation-card settings (theme, venue, times). Identical for every
+// guest; safe to expose to any token holder alongside their pass.
+function invite_card_settings(): array
+{
+    return [
+        'inviteTheme' => setting_get('inviteTheme') ?: 'sage',
+        'venueAr' => setting_get('venueAr') ?: '',
+        'hijriDateAr' => setting_get('hijriDateAr') ?: '',
+        'timeReception' => setting_get('timeReception') ?: '9:30',
+        'timeZaffa' => setting_get('timeZaffa') ?: '11:30',
+        'timeDinner' => setting_get('timeDinner') ?: '12:30',
+        'honoraryLabel' => setting_get('honoraryLabel') ?: 'المكرمة',
+    ];
 }
 
 const OWNERS = ['you', 'men', 'her', 'hall'];

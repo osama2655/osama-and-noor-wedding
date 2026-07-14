@@ -1,5 +1,6 @@
 import { api } from './api.js'
-import { qrCanvas } from './qr.js'
+import { COUPLE, INVITE_THEMES } from './invite-card.js'
+import { qrArtCanvas } from './qr.js'
 import { guestStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
 import {
@@ -50,6 +51,12 @@ const wedDateLabel = () => {
 const waMessage = (g) =>
   `Hi ${g.name || 'there'}! Here is your personal entry pass for Osama & Noor's wedding, ${wedDateLabel()}. Show this QR at the door, it works once: ${guestPassLink(g.pass.token)}`
 
+const inviteSettings = () => store.data.inviteCard || {}
+const inviteTheme = () => {
+  const t = inviteSettings().inviteTheme
+  return INVITE_THEMES[t] ? t : 'sage'
+}
+
 const inviteMessage = (g) =>
   `Hi ${g.name || 'there'}! You're invited to Osama & Noor's wedding, ${wedDateLabel()}. Please let us know if you can make it: ${guestRsvpLink(g.token)}`
 
@@ -70,17 +77,41 @@ function openGuestPass(g) {
       <div class="gpass-sub">Single-use entry pass${used ? ' &middot; already checked in' : ''}</div>
       <div class="gpass-qr"></div>
       <div class="gpass-actions">
-        <button class="btn" data-wa>Share on WhatsApp</button>
+        <button class="btn" data-inv>Share invitation card</button>
+        <button class="btn ghost" data-wa>WhatsApp link</button>
         <button class="btn ghost" data-copy>Copy link</button>
         <button class="btn ghost" data-dl>Download QR</button>
         ${used ? '<button class="btn ghost" data-undo>Undo check-in</button>' : ''}
       </div>`,
   })
   if (!sheet) return
-  const canvas = qrCanvas(linkUrl, 240)
-  canvas.className = 'qr-canvas'
+  const th = INVITE_THEMES[inviteTheme()]
+  const canvas = qrArtCanvas(linkUrl, {
+    size: 240,
+    ...th.qr,
+    medallion: used ? 'check' : 'waw',
+  })
   sheet.body.querySelector('.gpass-qr').appendChild(canvas)
+  import('./invite-export.js').then((m) => m.prewarm(inviteTheme())).catch(() => {})
 
+  sheet.body.querySelector('[data-inv]').addEventListener('click', async (e) => {
+    const b = e.currentTarget
+    b.disabled = true
+    try {
+      const mod = await import('./invite-export.js')
+      await mod.shareInviteCard({
+        theme: inviteTheme(),
+        settings: inviteSettings(),
+        wedDate: store.data.wedDate || '2026-08-21',
+        guestName: g.name || '',
+        tokenUrl: linkUrl,
+      })
+    } catch (_) {
+      toast({ type: 'err', message: 'Could not build the invitation image' })
+    } finally {
+      b.disabled = false
+    }
+  })
   sheet.body.querySelector('[data-wa]').addEventListener('click', () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(waMessage(g))}`, '_blank')
   })
@@ -89,7 +120,14 @@ function openGuestPass(g) {
     toast({ type: 'ok', message: 'Pass link copied' })
   })
   sheet.body.querySelector('[data-dl]').addEventListener('click', () => {
-    const c = qrCanvas(linkUrl, 600)
+    const c = qrArtCanvas(linkUrl, {
+      size: 640,
+      dpr: 1,
+      ...th.qr,
+      panel: th.qr.panel || th.ground,
+      panelRadius: 28,
+      ring: { top: COUPLE.latin, bottom: COUPLE.dateLatin, color: th.qr.ink },
+    })
     const a = document.createElement('a')
     a.href = c.toDataURL('image/png')
     a.download = `pass-${(g.name || g.pass.token).slice(0, 20).replace(/\s+/g, '-')}.png`
@@ -136,8 +174,7 @@ function openGuestInvite(g) {
       </div>`,
   })
   if (!sheet) return
-  const canvas = qrCanvas(linkUrl, 200)
-  canvas.className = 'qr-canvas'
+  const canvas = qrArtCanvas(linkUrl, { size: 200, ...INVITE_THEMES[inviteTheme()].qr })
   sheet.body.querySelector('.gpass-qr').appendChild(canvas)
   sheet.body.querySelector('[data-wa]').addEventListener('click', () => {
     window.open(

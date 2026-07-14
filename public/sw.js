@@ -1,9 +1,10 @@
 // Shell-only cache. The API is always network (never cached) so shared data stays fresh.
-const CACHE = 'wedding-shell-v34'
+const CACHE = 'wedding-shell-v35'
 const SHELL = [
   './',
   './index.html',
   './manifest.webmanifest',
+  './pass.html',
   './css/base.css',
   './css/layout.css',
   './css/dashboard.css',
@@ -18,6 +19,10 @@ const SHELL = [
   './css/dates.css',
   './css/boards.css',
   './css/invite.css',
+  './css/lanes.css',
+  './css/passes.css',
+  './css/fonts.css',
+  './css/invite-card.css',
   './css/ui.css',
   './css/menu.css',
   './css/attribution.css',
@@ -47,6 +52,9 @@ const SHELL = [
   './js/dates.js',
   './js/boards.js',
   './js/invite.js',
+  './js/invite-card.js',
+  './js/invite-export.js',
+  './js/pass-public.js',
   './js/ui.js',
   './js/qr.js',
   './js/scanner.js',
@@ -54,6 +62,16 @@ const SHELL = [
   './js/resources.js',
   './js/sync.js',
   './js/themes.js',
+  './fonts/lateef-300-arabic.woff2',
+  './fonts/lateef-300-latin.woff2',
+  './fonts/lateef-400-arabic.woff2',
+  './fonts/lateef-400-latin.woff2',
+  './fonts/cairo-arabic.woff2',
+  './fonts/cairo-latin.woff2',
+  './images/invite-sage-br.png',
+  './images/invite-sage-bl.png',
+  './images/invite-rose-br.png',
+  './images/invite-rose-bl.png',
 ]
 
 self.addEventListener('install', (e) => {

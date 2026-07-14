@@ -1,0 +1,104 @@
+/* Self-hosted invitation faces. Lateef carries the Arabic display (thin, kashida-capable
+   extended Naskh); Cairo (variable, one file per script) carries labels and Western digits. */
+
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../fonts/lateef-300-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC, U+200C-200E, U+2010-2011;
+}
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url('../fonts/lateef-300-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/lateef-400-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC, U+200C-200E, U+2010-2011;
+}
+@font-face {
+  font-family: 'Lateef';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/lateef-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/amiri-400-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC, U+200C-200E, U+2010-2011;
+}
+@font-face {
+  font-family: 'Amiri';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/amiri-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+@font-face {
+  font-family: 'Scheherazade New';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/scheherazade-400-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC, U+200C-200E, U+2010-2011;
+}
+@font-face {
+  font-family: 'Scheherazade New';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('../fonts/scheherazade-400-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+@font-face {
+  font-family: 'El Messiri';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('../fonts/elmessiri-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC, U+200C-200E, U+2010-2011;
+}
+@font-face {
+  font-family: 'El Messiri';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('../fonts/elmessiri-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/cairo-arabic.woff2') format('woff2');
+  unicode-range: U+0600-06FF, U+0750-077F, U+FB50-FDFF, U+FE70-FEFC, U+200C-200E, U+2010-2011;
+}
+@font-face {
+  font-family: 'Cairo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+  src: url('../fonts/cairo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+2000-206F;
+}
+
+:root {
+  --font-khatt: 'Lateef', 'Scheherazade New', 'Amiri', 'Noto Naskh Arabic', 'Geeza Pro', serif;
+  --font-label: 'Cairo', 'Tajawal', 'Noto Kufi Arabic', -apple-system, 'Segoe UI', sans-serif;
+}

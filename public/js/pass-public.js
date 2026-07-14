@@ -1,89 +1,121 @@
-// Standalone page a guest lands on when they scan their entrance pass. Read-only:
-// it shows the pass and whether it is still valid, but never redeems it. Redemption
-// only happens at the door via the authenticated check-in scanner.
-const token = new URLSearchParams(location.search).get('token') || ''
+// Standalone page a guest lands on from their WhatsApp link. Renders the full
+// بطاقة دخول invitation card with their personal QR. Read-only: it never
+// redeems; redemption only happens at the door via the check-in scanner.
+import {
+  buildInviteCard,
+  DEFAULT_INVITE,
+  INVITE_THEMES,
+  STR,
+} from './invite-card.js'
+import { qrArtCanvas } from './qr.js'
 
-function call(action) {
-  return fetch(
-    `api/index.php?action=${action}&token=${encodeURIComponent(token)}`,
-  ).then((r) => r.json())
+const token = new URLSearchParams(location.search).get('token') || ''
+const root = document.getElementById('pass-root')
+
+const themeHint = () => {
+  try {
+    const t = localStorage.getItem('on-invite-theme')
+    return INVITE_THEMES[t] ? t : 'sage'
+  } catch (_) {
+    return 'sage'
+  }
+}
+const rememberTheme = (t) => {
+  try {
+    localStorage.setItem('on-invite-theme', t)
+  } catch (_) {
+    /* private mode */
+  }
 }
 
-const esc = (s) =>
-  String(s ?? '').replace(
-    /[&<>"]/g,
-    (m) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[m],
-  )
+function show(card, actions) {
+  const frag = document.createDocumentFragment()
+  frag.appendChild(card)
+  if (actions) frag.appendChild(actions)
+  root.replaceChildren(frag)
+}
 
-async function init() {
-  const root = document.getElementById('pass-root')
+function attachQr(card, theme, status) {
+  const t = INVITE_THEMES[theme] || INVITE_THEMES.sage
+  const qr = qrArtCanvas(location.href, {
+    size: 240,
+    ...t.qr,
+    medallion: status === 'redeemed' ? 'check' : 'waw',
+  })
+  qr.setAttribute('role', 'img')
+  qr.setAttribute('aria-label', 'Entrance QR')
+  card.querySelector('.ic-qr')?.replaceChildren(qr)
+}
+
+function saveActions(payload) {
+  const wrap = document.createElement('div')
+  wrap.className = 'ic-page-actions'
+  wrap.innerHTML = `<button class="ic-save-btn" type="button">${STR.save}</button>`
+  const btn = wrap.querySelector('button')
+  btn.addEventListener('click', async () => {
+    btn.disabled = true
+    try {
+      const mod = await import('./invite-export.js')
+      await mod.shareInviteCard(payload)
+    } catch (_) {
+      /* export is best-effort; the live card is the pass */
+    } finally {
+      btn.disabled = false
+    }
+  })
+  return wrap
+}
+
+async function load() {
   if (!token) {
-    root.innerHTML =
-      '<div class="rsvp-card"><h1>Invalid pass</h1><p>This pass link is missing its code.</p></div>'
+    show(buildInviteCard({ theme: themeHint(), status: 'invalid' }))
     return
   }
+  show(buildInviteCard({ theme: themeHint(), status: 'loading' }))
+
   let info
   try {
-    info = await call('pass_info')
+    const r = await fetch(
+      `api/index.php?action=pass_info&token=${encodeURIComponent(token)}`,
+    )
+    info = await r.json()
   } catch (_) {
-    /* handled below */
-  }
-  if (!info || info.error) {
-    root.innerHTML =
-      '<div class="rsvp-card"><h1>Pass not found</h1><p>This code is not a valid entrance pass.</p></div>'
+    const card = buildInviteCard({ theme: themeHint(), status: 'offline' })
+    card.querySelector('[data-retry]')?.addEventListener('click', load)
+    show(card)
     return
   }
-  const wed = new Date(`${info.wedDate}T00:00:00`).toLocaleDateString(
-    undefined,
-    {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric',
-    },
-  )
-  const used = info.status === 'redeemed'
-  const state = used
-    ? `<div class="pass-state used"><div class="pass-state-t">Already checked in</div><div class="pass-state-s">This pass has been used at the entrance.</div></div>`
-    : `<div class="pass-state ok"><div class="pass-state-t">Valid pass</div><div class="pass-state-s">Show this screen at the entrance. It works once.</div></div>`
-  root.innerHTML = `<div class="rsvp-card">
-      <div class="eyebrow">Your entrance pass</div>
-      <h1>Osama <span class="amp">and</span> Noor</h1>
-      <p class="rsvp-date">${esc(wed)}</p>
-      ${info.label ? `<p class="pass-for">For ${esc(info.label)}</p>` : ''}
-      <div class="pass-qr-big" id="passQr"></div>
-      ${state}
-    </div>`
 
-  if (window.qrcode) {
-    document.getElementById('passQr').appendChild(buildQr(location.href))
+  if (!info || info.error) {
+    show(buildInviteCard({ theme: themeHint(), status: 'invalid' }))
+    return
   }
+
+  const settings = { ...DEFAULT_INVITE, ...(info.invite || {}) }
+  const theme = INVITE_THEMES[settings.inviteTheme] ? settings.inviteTheme : 'sage'
+  rememberTheme(theme)
+  const status = info.status === 'redeemed' ? 'redeemed' : 'valid'
+  const card = buildInviteCard({
+    theme,
+    settings,
+    wedDate: info.wedDate || '2026-08-21',
+    guestName: info.label || '',
+    status,
+    redeemedAt: info.redeemedAt,
+  })
+  attachQr(card, theme, status)
+  const payload = {
+    theme,
+    settings,
+    wedDate: info.wedDate || '2026-08-21',
+    guestName: info.label || '',
+    tokenUrl: location.href,
+  }
+  show(card, saveActions(payload))
+
+  // Prewarm the export path (module, fonts, artwork) so the save tap itself
+  // stays inside iOS Safari's user-gesture window.
+  import('./invite-export.js').then((m) => m.prewarm(theme)).catch(() => {})
 }
 
-// Minimal inline QR (this page does not load the app bundle).
-function buildQr(text, size = 220) {
-  const canvas = document.createElement('canvas')
-  if (!window.qrcode) return canvas
-  const qr = window.qrcode(0, 'M')
-  qr.addData(text)
-  qr.make()
-  const n = qr.getModuleCount()
-  const quiet = 2
-  const cell = Math.max(2, Math.floor(size / (n + quiet * 2)))
-  const dim = cell * (n + quiet * 2)
-  canvas.width = dim
-  canvas.height = dim
-  const ctx = canvas.getContext('2d')
-  ctx.fillStyle = '#ffffff'
-  ctx.fillRect(0, 0, dim, dim)
-  ctx.fillStyle = '#141414'
-  for (let r = 0; r < n; r++) {
-    for (let c = 0; c < n; c++) {
-      if (qr.isDark(r, c))
-        ctx.fillRect((c + quiet) * cell, (r + quiet) * cell, cell, cell)
-    }
-  }
-  return canvas
-}
-
-init()
+load()
