@@ -92,7 +92,7 @@ function card(item) {
         : ''
   return `<div class="cat-card ${item.featured ? 'featured' : ''}" data-id="${item.id}">
       <button class="cat-star ${saved ? 'on' : ''}" data-star="${item.id}" aria-label="Save">${saved ? '★' : '☆'}</button>
-      <div class="cat-name">${escapeHtml(item.name)}</div>
+      <div class="cat-name">${item.name ? escapeHtml(item.name) : '<span class="cat-untitled">Untitled</span>'}</div>
       <div class="cat-meta">${escapeHtml(meta)}</div>
       ${item.note ? `<div class="cat-note">${escapeHtml(item.note)}</div>` : ''}
       <div class="cat-foot">${flag}<span class="cat-open">Open &rarr;</span></div>

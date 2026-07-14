@@ -38,7 +38,8 @@ export function confirmDialog({
       .querySelectorAll('[data-cancel]')
       .forEach((el) => (el.onclick = () => close(false)))
     root.querySelector('[data-ok]').onclick = () => close(true)
-    root.querySelector('[data-ok]').focus()
+    // Safety: focus starts on Cancel, never on the destructive action.
+    root.querySelector('button[data-cancel]').focus()
   })
 }
 

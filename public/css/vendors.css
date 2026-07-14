@@ -43,6 +43,8 @@ td select.stat:focus{outline:2px solid var(--ring);outline-offset:1px}
 @media (max-width: 560px) {
   .tablewrap { border: none; overflow: visible; }
   table { min-width: 0; width: 100%; }
+  /* Must out-specificity .grid.pay/.grid.guest min-widths or phones scroll sideways */
+  .tablewrap .grid { min-width: 0; }
   thead { display: none; }
   table, tbody, tr, td { display: block; width: auto; }
   tr { border: 1px solid var(--line); border-radius: 12px; background: var(--card2); margin-bottom: 10px; padding: 4px 12px; }

@@ -25,6 +25,18 @@ function body(): array
     return $b;
 }
 
+// The session cookie lives 90 days but PHP's default gc reaped server-side data
+// after ~24 idle minutes, silently logging the couple out. Match the cookie, and
+// use our own session dir so another app's gc settings cannot reap ours.
+ini_set('session.gc_maxlifetime', (string) (60 * 60 * 24 * 90));
+$sessDir = __DIR__ . '/../../sessions';
+if (!is_dir($sessDir)) {
+    @mkdir($sessDir, 0700, true);
+}
+if (is_dir($sessDir) && is_writable($sessDir)) {
+    session_save_path($sessDir);
+}
+
 $https = (($_SERVER['HTTPS'] ?? '') !== '') || (($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https');
 session_set_cookie_params([
     'lifetime' => 60 * 60 * 24 * 90,

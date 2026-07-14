@@ -14,6 +14,8 @@
 .pass-when { font-size: 11.5px; color: var(--faint); text-align: center; }
 .pass-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin-top: 12px; }
 
+#passCount { width: 84px; }
+
 /* Add a single named pass, alongside the bulk generate control */
 .pass-add-one { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 10px; }
 .pass-add-one .field { flex: 1; min-width: 180px; }

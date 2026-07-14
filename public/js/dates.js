@@ -35,6 +35,7 @@ function countdownLabel(iso) {
   if (d > 1) return `${d} days`
   if (d === 1) return 'Tomorrow'
   if (d === 0) return 'Today'
+  if (d === -1) return 'Yesterday'
   return `${-d} days ago`
 }
 

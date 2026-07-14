@@ -87,14 +87,14 @@ function initTabs() {
     const g = e.target.closest('button[data-group]')
     if (!g) return
     showGroup(g.dataset.group)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo(0, 0)
   })
 
   tabs.addEventListener('click', (e) => {
     const b = e.target.closest('button[data-tab]')
     if (!b) return
     openTab(b.dataset.tab)
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    window.scrollTo(0, 0)
   })
 
   showGroup('home')

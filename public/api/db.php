@@ -62,23 +62,23 @@ function ensure_schema(): void
                  WHERE NOT EXISTS (SELECT 1 FROM passes p WHERE p.guest_id = g.id)"
             );
         }
-        // Seed a starter shortlist of Bahrain caterers once, so the Caterer category is not empty.
-        if ((int) db()->query("SELECT COUNT(*) FROM catalog WHERE category = 'caterer'")->fetchColumn() === 0) {
-            $caterers = [
-                ['Villa Mamas', 'Adliya', 'villamamas', 'Signature Bahraini and Middle Eastern; a favourite for weddings and events.'],
-                ['Arabella Catering', 'Bahrain', '', 'Premier caterer since 2005; fresh seasonal cuisine, plus table, decor and lighting rentals.'],
-                ['Dar Al Wasmiya', 'Bahrain', '', 'Arabic, Continental and finger food; weddings and full event management (alwasmiya.com).'],
-                ['Global Events Tent', 'Bahrain', '', 'Wedding catering plus tents and event equipment; traditional Bahraini menus.'],
-                ['Professional Caterers Bahrain', 'Bahrain', '', 'Catering for tents and events since 2015 (professionalcateringbahrain.com).'],
-            ];
-            $ins = db()->prepare(
-                "INSERT INTO catalog (category, name, area, instagram, note, verify, status, sort)
-                 VALUES ('caterer', ?, ?, ?, ?, 'Confirm phone and wedding availability', 'todo', ?)"
-            );
-            $sort = 100;
-            foreach ($caterers as $c) {
-                $ins->execute([$c[0], $c[1], $c[2], $c[3], $sort++]);
-            }
+        // Seed a starter shortlist of Bahrain caterers, guarded per name (a count
+        // guard once lost the whole seed to a single user-created empty row).
+        $caterers = [
+            ['Villa Mamas', 'Adliya', 'villamamas', 'Signature Bahraini and Middle Eastern; a favourite for weddings and events.'],
+            ['Arabella Catering', 'Bahrain', '', 'Premier caterer since 2005; fresh seasonal cuisine, plus table, decor and lighting rentals.'],
+            ['Dar Al Wasmiya', 'Bahrain', '', 'Arabic, Continental and finger food; weddings and full event management (alwasmiya.com).'],
+            ['Global Events Tent', 'Bahrain', '', 'Wedding catering plus tents and event equipment; traditional Bahraini menus.'],
+            ['Professional Caterers Bahrain', 'Bahrain', '', 'Catering for tents and events since 2015 (professionalcateringbahrain.com).'],
+        ];
+        $ins = db()->prepare(
+            "INSERT INTO catalog (category, name, area, instagram, note, verify, status, sort)
+             SELECT 'caterer', ?, ?, ?, ?, 'Confirm phone and wedding availability', 'todo', ?
+             WHERE NOT EXISTS (SELECT 1 FROM catalog WHERE category = 'caterer' AND name = ?)"
+        );
+        $sort = 100;
+        foreach ($caterers as $c) {
+            $ins->execute([$c[0], $c[1], $c[2], $c[3], $sort++, $c[0]]);
         }
     } catch (Throwable $e) {
         error_log('[wedding-api] ensure_schema: ' . $e->getMessage());

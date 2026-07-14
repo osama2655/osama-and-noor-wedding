@@ -43,7 +43,7 @@ Cap concurrency at what the task list genuinely needs. Independent items only �
 - **QA / verification pass** → the QA specialist (see `weaam.md`).
 - **Security review / hardening** → the security engineer (see `hussain.md`).
 - **Monitoring / incident triage** → the DevOps specialist (see `divea.md`).
-- **Design / visual polish** → the design lead (see `mun.md`).
+- **Design / visual polish** → the design lead (see `ahmed.md`).
 - **Product scoping / backlog grooming** → the head of product (see `jehad.md`).
 
 When a single task has both a backend and a frontend half that can land in separate PRs, prefer two workers; when they must ship atomically, give it to one full-stack worker.

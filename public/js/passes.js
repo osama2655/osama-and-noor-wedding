@@ -69,7 +69,7 @@ export function renderPasses() {
         <div class="money"><div class="l">Not yet arrived</div><div class="v">${c.unused}</div></div>
       </div>
       <div class="toolbar" style="margin-top:14px;flex-wrap:wrap;gap:8px">
-        <input id="passCount" type="number" min="1" max="${cap()}" value="${c.room > 0 ? c.room : 0}" style="width:84px" ${c.room <= 0 ? 'disabled' : ''}>
+        <input id="passCount" class="field" type="number" min="1" max="${cap()}" value="${c.room > 0 ? c.room : 0}" ${c.room <= 0 ? 'disabled' : ''}>
         <button class="btn sm" id="genPasses" ${c.room <= 0 ? 'disabled' : ''}>Generate passes</button>
         <button class="btn ghost sm" id="doorScan">Door check-in</button>
         <button class="btn ghost sm" id="printPasses" ${c.issued === 0 ? 'disabled' : ''}>Print all</button>

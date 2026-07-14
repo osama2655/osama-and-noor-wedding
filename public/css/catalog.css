@@ -6,6 +6,7 @@
 .cat-star:hover { color: var(--gold); transform: scale(1.15); }
 .cat-star.on { color: var(--gold); }
 .cat-name { font-weight: 700; font-size: 15px; color: var(--txt); padding-right: 26px; }
+.cat-untitled { color: var(--faint); font-style: italic; font-weight: 400; }
 .cat-meta { font-size: 12px; color: var(--faint); margin-top: 3px; }
 .cat-note { font-size: 13px; color: var(--muted); margin-top: 8px; line-height: 1.4; }
 .cat-foot { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-top: 12px; }
