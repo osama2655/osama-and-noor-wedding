@@ -16,7 +16,7 @@ import { byTag, debounce, escapeAttr, escapeHtml, fmt } from './util.js'
 const vendors = () => store.data.vendors || (store.data.vendors = [])
 const find = (id) => vendors().find((v) => String(v.id) === String(id))
 
-const NUMERIC = new Set(['quote', 'deposit', 'balance'])
+const NUMERIC = new Set(['quote', 'deposit'])
 
 // Short pill labels for the status select; the full STATUS label is the option title.
 const STATUS_SHORT = {
@@ -42,15 +42,52 @@ const CATEGORIES = [
   'Honeymoon',
 ]
 
+// Short display labels so the category column never truncates. The stored VALUE
+// stays the full string (compatible with the booking-handoff category mapping);
+// only the option text shown in the closed select is shortened.
+const CAT_SHORT = {
+  'Planner': 'Planner',
+  'Venue': 'Venue',
+  'Photo + video': 'Photo',
+  'HMUA (hair & makeup)': 'HMUA',
+  'Henna artist': 'Henna',
+  'Décor / flowers / kosha': 'Décor',
+  'Catering / menu': 'Catering',
+  'Cake': 'Cake',
+  'Entertainment (DJ / ardha)': 'DJ / ardha',
+  'Wedding car / transport': 'Car',
+  'Invitations': 'Invites',
+  'Your attire (thobe/bisht)': 'Attire',
+  'Honeymoon': 'Honeymoon',
+}
+const catShort = (c) => CAT_SHORT[c] || c
+
 function catOptions(cur) {
   const list = !cur || CATEGORIES.includes(cur) ? CATEGORIES : [cur, ...CATEGORIES]
   return (
     `<option value="" ${!cur ? 'selected' : ''}>Category…</option>` +
     list
-      .map((c) => `<option ${c === cur ? 'selected' : ''}>${escapeHtml(c)}</option>`)
+      .map(
+        (c) =>
+          `<option value="${escapeAttr(c)}" ${c === cur ? 'selected' : ''}>${escapeHtml(catShort(c))}</option>`,
+      )
       .join('')
   )
 }
+
+// Money still owed on a row, derived from quote and paid (never negative).
+// Empty when there is no quote yet, so un-started rows stay quiet.
+function owedCell(v) {
+  const q = Number(v.quote)
+  if (!v.quote || Number.isNaN(q)) return '<span class="bal muted">—</span>'
+  const owed = Math.max(0, q - (Number(v.deposit) || 0))
+  return `<span class="bal${owed === 0 ? ' muted' : ''}">${fmt(owed)}</span>`
+}
+
+// A row with no vendor name and no money yet is "not started" — rendered muted
+// so the rows that carry real data lead the eye.
+const isBlankRow = (v) =>
+  !(v.name || '').trim() && !v.quote && !v.deposit && !v.balance_due
 
 // A free-text contact is dialable when it is +-prefixed or mostly digits; an
 // @handle, name, or email is not. Phone -> tel: mirrors drawer.js locally.
@@ -83,10 +120,10 @@ export function renderMoney() {
   const el = document.getElementById('moneyRow')
   if (!el) return
   el.innerHTML = `
-    <div class="money"><div class="l">Vendors booked</div><div class="v pos">${m.booked}<small>/${vendors().length}</small></div></div>
-    <div class="money"><div class="l">Total quoted</div><div class="v">BD ${fmt(m.quote)}</div></div>
-    <div class="money"><div class="l">Deposits paid</div><div class="v pos">BD ${fmt(m.deposit)}</div></div>
-    <div class="money"><div class="l">Balance due</div><div class="v warn">BD ${fmt(m.balance)}</div></div>`
+    <div class="money"><div class="l">Booked</div><div class="v pos">${m.booked}<small>/${vendors().length}</small></div></div>
+    <div class="money"><div class="l">Committed</div><div class="v">BD ${fmt(m.quote)}</div></div>
+    <div class="money"><div class="l">Paid</div><div class="v pos">BD ${fmt(m.deposit)}</div></div>
+    <div class="money"><div class="l">Outstanding</div><div class="v warn">BD ${fmt(m.balance)}</div></div>`
 }
 
 export function renderVendors() {
@@ -100,7 +137,7 @@ export function renderVendors() {
     body.innerHTML = rows
       .map(
         (v) => `
-      <tr data-id="${v.id}">
+      <tr data-id="${v.id}" class="${isBlankRow(v) ? 'row-muted' : ''}">
         <td data-label="Category"><select data-f="category" class="cat-select">${catOptions(v.category)}</select></td>
         <td data-label="Vendor"><input value="${escapeAttr(v.name)}" data-f="name" placeholder="Name / IG"></td>
         <td data-label="Contact">${contactCell(v)}</td>
@@ -110,10 +147,10 @@ export function renderVendors() {
               `<option value="${k}" ${v.status === k ? 'selected' : ''} title="${escapeAttr(STATUS[k])}">${STATUS_SHORT[k]}</option>`,
           )
           .join('')}</select></div></td>
-        <td data-label="Quote"><input value="${escapeAttr(v.quote)}" data-f="quote" inputmode="decimal" placeholder="0"></td>
-        <td data-label="Deposit"><input value="${escapeAttr(v.deposit)}" data-f="deposit" inputmode="decimal" placeholder="0"></td>
-        <td data-label="Balance"><input value="${escapeAttr(v.balance)}" data-f="balance" inputmode="decimal" placeholder="0"></td>
-        <td data-label="Balance due"><input value="${escapeAttr(v.balance_due)}" data-f="balance_due" type="text" placeholder="date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'"></td>
+        <td data-label="Quote" class="num"><input value="${escapeAttr(v.quote)}" data-f="quote" inputmode="decimal" placeholder="—"></td>
+        <td data-label="Paid" class="num"><input value="${escapeAttr(v.deposit)}" data-f="deposit" inputmode="decimal" placeholder="—"></td>
+        <td data-label="Owed" class="num owed">${owedCell(v)}</td>
+        <td data-label="Due"><input value="${escapeAttr(v.balance_due)}" data-f="balance_due" type="text" placeholder="—" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'"></td>
         <td data-label="Updated" class="upd">${byTag(v, meId())}</td>
         <td class="kebab-cell">${kebabButton('Row actions')}</td>
       </tr>`,
@@ -127,12 +164,17 @@ export function renderVendors() {
       const v = find(tr.dataset.id)
       if (!v) return
       const f = e.target.dataset.f
-      v[f] = NUMERIC.has(f) ? e.target.value : e.target.value
+      v[f] = e.target.value
       v.by = 'You'
       v.byId = meId()
       v.at = new Date().toISOString()
       tr.querySelector('.upd').innerHTML = byTag(v, meId())
       if (f === 'status') e.target.className = `stat s-${e.target.value}`
+      // Owed is derived: recompute its cell live as quote / paid change.
+      if (f === 'quote' || f === 'deposit') {
+        const cell = tr.querySelector('.owed')
+        if (cell) cell.innerHTML = owedCell(v)
+      }
       if (f === 'status' || NUMERIC.has(f)) {
         renderMoney()
         renderDash()

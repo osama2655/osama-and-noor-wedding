@@ -6,14 +6,24 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 .grid.guest{min-width:760px}
 /* Widths are percentages summing to exactly 100 (kebab included) so the fixed
    layout never overflows its container — no stray horizontal scrollbar. */
-.pay .c-cat{width:12%}.pay .c-name{width:14%}.pay .c-contact{width:13%}.pay .c-status{width:11%}
-.pay .c-num{width:7%}.pay .c-due{width:9%}.pay .c-upd{width:14%}.pay .c-kebab{width:6%}
+.pay .c-cat{width:10%}.pay .c-name{width:15%}.pay .c-contact{width:14%}.pay .c-status{width:10%}
+.pay .c-num{width:7%}.pay .c-due{width:10%}.pay .c-upd{width:14%}.pay .c-kebab{width:6%}
 .guest .g-name{width:21%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
 .guest .g-notes{width:14%}.guest .g-pass{width:10%}.guest .g-upd{width:14%}.guest .g-kebab{width:6%}
 th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
-th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
+th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;white-space:nowrap}
 tbody tr{transition:background var(--dur-1) var(--ease)}
 tbody tr:hover{background:color-mix(in srgb,var(--card2) 45%,transparent)}
+/* Numeric money columns read right-aligned; the header aligns with them. */
+.pay th.c-num,.pay td.num{text-align:right}
+.pay td.num input{text-align:right}
+/* Owed is derived (quote - paid), shown read-only, right-aligned, muted at zero. */
+td.owed .bal{display:inline-block;width:100%;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;color:var(--txt);padding-right:1px}
+td.owed .bal.muted{color:var(--faint);font-weight:400}
+/* A not-started row recedes so rows with real data lead. */
+tbody tr.row-muted td input::placeholder{color:color-mix(in srgb,var(--faint) 60%,transparent)}
+tbody tr.row-muted{opacity:.62}
+tbody tr.row-muted:hover,tbody tr.row-muted:focus-within{opacity:1}
 td.upd{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 td input,td select{width:100%;background:transparent;border:1px solid var(--field-rest);color:var(--txt);
   border-radius:var(--r-1);padding:6px 7px;font:inherit;font-size:13px;font-variant-numeric:tabular-nums;

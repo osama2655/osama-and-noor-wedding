@@ -173,7 +173,7 @@ export function renderGuests() {
     body.innerHTML = rows
       .map(
         (g) => `
-      <tr data-id="${g.id}">
+      <tr data-id="${g.id}" class="${!(g.name || '').trim() ? 'row-muted' : ''}">
         <td data-label="Name"><input value="${escapeAttr(g.name)}" data-f="name" placeholder="Name / family"></td>
         <td data-label="Side"><select data-f="side">
           <option value="you" ${g.side === 'you' ? 'selected' : ''}>Your side</option>

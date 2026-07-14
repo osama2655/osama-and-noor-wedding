@@ -44,9 +44,12 @@ export function moneyTotals() {
     balance = 0,
     booked = 0
   ;(data().vendors || []).forEach((r) => {
-    quote += Number(r.quote) || 0
-    deposit += Number(r.deposit) || 0
-    balance += Number(r.balance) || 0
+    const q = Number(r.quote) || 0
+    const p = Number(r.deposit) || 0
+    quote += q
+    deposit += p
+    // Outstanding = what is still owed, derived (quote - paid), never negative.
+    balance += Math.max(0, q - p)
     if (r.status === 'booked' || r.status === 'paid') booked += 1
   })
   return { quote, deposit, balance, booked }
