@@ -53,8 +53,10 @@ export async function prewarm(theme, settings) {
         .catch(() => null),
     )
   }
+  // The explicit per-face loads above are the readiness guarantee. Never await
+  // the global document.fonts.ready here: it also waits for every unrelated
+  // face the typography gallery streams in, stalling the first export.
   await Promise.all(jobs)
-  if (document.fonts?.ready) await document.fonts.ready.catch?.(() => {})
   if (t.art) await artCache.get(t.art)
 }
 
