@@ -3,11 +3,13 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 /* Fixed layout so columns always fit the card (no right-edge cut-off); scrolls only below min-width, cards below 560px */
 .grid{table-layout:fixed}
 .grid.pay{min-width:880px}
-.grid.guest{min-width:720px}
-.pay .c-cat{width:13%}.pay .c-name{width:14%}.pay .c-contact{width:13%}.pay .c-status{width:11%}
-.pay .c-num{width:7%}.pay .c-due{width:10%}.pay .c-upd{width:13%}.pay .c-kebab{width:48px}
+.grid.guest{min-width:760px}
+/* Widths are percentages summing to exactly 100 (kebab included) so the fixed
+   layout never overflows its container — no stray horizontal scrollbar. */
+.pay .c-cat{width:12%}.pay .c-name{width:14%}.pay .c-contact{width:13%}.pay .c-status{width:11%}
+.pay .c-num{width:7%}.pay .c-due{width:9%}.pay .c-upd{width:15%}.pay .c-kebab{width:5%}
 .guest .g-name{width:22%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
-.guest .g-notes{width:15%}.guest .g-pass{width:11%}.guest .g-upd{width:13%}.guest .g-kebab{width:48px}
+.guest .g-notes{width:14%}.guest .g-pass{width:10%}.guest .g-upd{width:14%}.guest .g-kebab{width:5%}
 th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
 th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
 tbody tr{transition:background var(--dur-1) var(--ease)}
