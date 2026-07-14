@@ -1,5 +1,5 @@
 // Shell-only cache. The API is always network (never cached) so shared data stays fresh.
-const CACHE = 'wedding-shell-v36'
+const CACHE = 'wedding-shell-v37'
 const SHELL = [
   './',
   './index.html',
@@ -24,6 +24,7 @@ const SHELL = [
   './css/fonts.css',
   './css/fonts-gallery.css',
   './css/invite-card.css',
+  './css/invitation.css',
   './css/ui.css',
   './css/menu.css',
   './css/attribution.css',
@@ -52,7 +53,7 @@ const SHELL = [
   './js/notes.js',
   './js/dates.js',
   './js/boards.js',
-  './js/invite.js',
+  './js/invitation.js',
   './js/invite-card.js',
   './js/invite-export.js',
   './js/pass-public.js',

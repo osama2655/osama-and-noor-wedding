@@ -9,7 +9,7 @@ import { renderDates } from './dates.js'
 import { renderFacts } from './facts.js'
 import { renderSaved } from './favorites.js'
 import { initGuestControls, renderGuests } from './guests.js'
-import { renderInvite } from './invite.js'
+import { renderInvitation } from './invitation.js'
 import { renderLanes } from './lanes.js'
 import { renderNotes } from './notes.js'
 import { renderPasses } from './passes.js'
@@ -39,7 +39,7 @@ function renderAll() {
   renderShortlist()
   renderSaved()
   renderBoards()
-  renderInvite()
+  renderInvitation()
   renderPasses()
   renderDates()
   renderNotes()

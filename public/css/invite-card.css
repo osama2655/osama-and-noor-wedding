@@ -160,23 +160,6 @@
 @keyframes ic-sweep { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) { .ic-skel::after { animation: none; } }
 
-/* Invitation studio (Invites tab, couple side) */
-.ics-card { margin-bottom: 14px; }
-.ics-grid { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(300px, 440px); gap: 24px; margin-top: 14px; align-items: start; }
-@media (max-width: 860px) { .ics-grid { grid-template-columns: 1fr; } }
-.ics-controls { display: flex; flex-direction: column; gap: 6px; }
-.ics-l { font-size: 12px; color: var(--muted); margin-top: 10px; }
-.ics-times { display: flex; gap: 8px; }
-.ics-times > div { flex: 1; display: flex; flex-direction: column; gap: 4px; min-width: 0; }
-.ics-themes { display: flex; gap: 8px; flex-wrap: wrap; }
-.ics-theme { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--card2); cursor: pointer; color: var(--txt); min-width: 76px; transition: border-color var(--dur-1) var(--ease); }
-.ics-theme:hover { border-color: var(--line2); }
-.ics-theme.active { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold); }
-.ics-sw { width: 46px; height: 30px; border-radius: 8px; display: flex; align-items: center; justify-content: center; gap: 3px; border: 1px solid rgba(0, 0, 0, .12); }
-.ics-sw i { width: 8px; height: 8px; border-radius: 50%; }
-.ics-name { font-size: 12px; font-weight: 600; }
-.ics-preview { display: flex; justify-content: center; }
-
 /* Page shell for the public pass page */
 .ic-page-actions { display: flex; justify-content: center; margin: 18px auto 0; }
 .ic-save-btn { min-height: 44px; padding: 0 26px; border-radius: 999px; border: 1px solid var(--line, #4a3c2c); background: var(--gold, #d8b072); color: var(--on-primary, #1a1206); font-family: var(--font-label); font-weight: 700; font-size: 14px; cursor: pointer; }

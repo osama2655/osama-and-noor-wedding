@@ -1,5 +1,6 @@
 import { api } from './api.js'
-import { qrCanvas } from './qr.js'
+import { qrArtCanvas, qrCanvas } from './qr.js'
+import { INVITE_THEMES, resolveInvite } from './invite-card.js'
 import { startScanner } from './scanner.js'
 import { bumpRev, store } from './store.js'
 import { confirmDelete, confirmDialog, toast, undoToast } from './ui.js'
@@ -83,9 +84,20 @@ export function renderPasses() {
       <div class="pass-grid">${passes().map(passCard).join('') || '<div class="empty">No passes yet. Generate your first batch.</div>'}</div>
     </div>`
 
+  const cardCfg = () => {
+    const s = store.data.inviteCard || {}
+    const theme = INVITE_THEMES[s.inviteTheme] ? s.inviteTheme : 'sage'
+    const rv = resolveInvite(s)
+    return { theme, rv }
+  }
   el.querySelectorAll('.pass-qr').forEach((m) => {
-    const canvas = qrCanvas(link(m.dataset.token))
-    canvas.className = 'qr-canvas'
+    const { theme, rv } = cardCfg()
+    const canvas = qrArtCanvas(link(m.dataset.token), {
+      size: 180,
+      ...INVITE_THEMES[theme].qr,
+      medallionGlyph: rv.sealGlyph,
+      medallionFont: rv.sealFont,
+    })
     m.appendChild(canvas)
   })
   wire(el)
@@ -198,7 +210,19 @@ function wire(el) {
     b.addEventListener('click', () => {
       const p = find(b.dataset.dl)
       if (!p) return
-      const canvas = qrCanvas(link(p.token), 600)
+      const s = store.data.inviteCard || {}
+      const theme = INVITE_THEMES[s.inviteTheme] ? s.inviteTheme : 'sage'
+      const th = INVITE_THEMES[theme]
+      const rv = resolveInvite(s)
+      const canvas = qrArtCanvas(link(p.token), {
+        size: 640,
+        dpr: 1,
+        ...th.qr,
+        panel: th.qr.panel || th.ground,
+        panelRadius: 28,
+        medallionGlyph: rv.sealGlyph,
+        medallionFont: rv.sealFont,
+      })
       const a = document.createElement('a')
       a.href = canvas.toDataURL('image/png')
       a.download = `pass-${(p.label || p.token).slice(0, 20).replace(/\s+/g, '-')}.png`
