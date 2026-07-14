@@ -6,8 +6,8 @@ table{border-collapse:collapse;width:100%;font-size:13px}
 .grid.guest{min-width:760px}
 /* Widths are percentages summing to exactly 100 (kebab included) so the fixed
    layout never overflows its container — no stray horizontal scrollbar. */
-.pay .c-cat{width:10%}.pay .c-name{width:14%}.pay .c-contact{width:15%}.pay .c-status{width:11%}
-.pay .c-num{width:7%}.pay .c-due{width:10%}.pay .c-upd{width:13%}.pay .c-kebab{width:6%}
+.pay .c-cat{width:11%}.pay .c-name{width:14%}.pay .c-contact{width:15%}.pay .c-status{width:12%}
+.pay .c-num{width:7%}.pay .c-due{width:9%}.pay .c-upd{width:12%}.pay .c-kebab{width:6%}
 .guest .g-name{width:21%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
 .guest .g-notes{width:14%}.guest .g-pass{width:10%}.guest .g-upd{width:14%}.guest .g-kebab{width:6%}
 th,td{padding:12px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
@@ -35,9 +35,10 @@ td input:focus,td select:not(.stat):focus{border-color:var(--gold);background-co
 td select option{background:var(--card);color:var(--txt)}
 /* Plain selects (category, side): remove the cramped native chevron, draw our
    own with real breathing room so the label is never jammed against it. */
-td select:not(.stat){appearance:none;-webkit-appearance:none;padding-right:24px;
+td select:not(.stat){appearance:none;-webkit-appearance:none;padding-right:20px;
+  text-overflow:ellipsis;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath d='M2 4l3 3 3-3' stroke='%23948b7d' stroke-width='1.4' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 8px center;cursor:pointer}
+  background-repeat:no-repeat;background-position:right 6px center;cursor:pointer}
 td select.cat-select{font-weight:600}
 /* Status: colored pill-select, padded so "Contacted" fits with its chevron. */
 .stat-wrap{position:relative;display:block}
@@ -45,7 +46,7 @@ td select.cat-select{font-weight:600}
   border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg);
   opacity:.5;pointer-events:none}
 td select.stat{appearance:none;-webkit-appearance:none;border:1px solid transparent;border-radius:999px;
-  padding:6px 18px 6px 11px;font-weight:700;font-size:11px;text-align:center;text-align-last:center;cursor:pointer}
+  padding:6px 16px 6px 9px;font-weight:700;font-size:11px;text-align:center;text-align-last:center;cursor:pointer}
 td select.stat:focus{outline:2px solid var(--ring);outline-offset:1px}
 .stat.s-todo{background:rgba(138,123,100,.20);color:var(--faint)}
 .stat.s-contacted{background:rgba(127,180,216,.18);color:var(--blue)}
