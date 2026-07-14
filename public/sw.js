@@ -1,5 +1,5 @@
 // Shell-only cache. The API is always network (never cached) so shared data stays fresh.
-const CACHE = 'wedding-shell-v18'
+const CACHE = 'wedding-shell-v19'
 const SHELL = [
   './',
   './index.html',
@@ -82,7 +82,7 @@ self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url)
   if (e.request.method !== 'GET' || url.pathname.includes('/api/')) return // never cache API
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: 'no-cache' })
       .then((res) => {
         const copy = res.clone()
         caches
