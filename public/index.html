@@ -7,27 +7,27 @@
 <title>Osama and Noor, Wedding Planner</title>
 <link rel="icon" href="images/icon-192.png" />
 <link rel="manifest" href="manifest.webmanifest" />
-<link rel="stylesheet" href="css/base.css?v=21" />
-<link rel="stylesheet" href="css/layout.css?v=21" />
-<link rel="stylesheet" href="css/dashboard.css?v=21" />
-<link rel="stylesheet" href="css/facts.css?v=21" />
-<link rel="stylesheet" href="css/checklist.css?v=21" />
-<link rel="stylesheet" href="css/vendors.css?v=21" />
-<link rel="stylesheet" href="css/guests.css?v=21" />
-<link rel="stylesheet" href="css/catalog.css?v=21" />
-<link rel="stylesheet" href="css/drawer.css?v=21" />
-<link rel="stylesheet" href="css/embeds.css?v=21" />
-<link rel="stylesheet" href="css/notes.css?v=21" />
-<link rel="stylesheet" href="css/dates.css?v=21" />
-<link rel="stylesheet" href="css/boards.css?v=21" />
-<link rel="stylesheet" href="css/lanes.css?v=21" />
-<link rel="stylesheet" href="css/invite.css?v=21" />
-<link rel="stylesheet" href="css/passes.css?v=21" />
-<link rel="stylesheet" href="css/ui.css?v=21" />
-<link rel="stylesheet" href="css/menu.css?v=21" />
-<link rel="stylesheet" href="css/attribution.css?v=21" />
-<link rel="stylesheet" href="css/login.css?v=21" />
-<link rel="stylesheet" href="css/themes.css?v=21" />
+<link rel="stylesheet" href="css/base.css?v=22" />
+<link rel="stylesheet" href="css/layout.css?v=22" />
+<link rel="stylesheet" href="css/dashboard.css?v=22" />
+<link rel="stylesheet" href="css/facts.css?v=22" />
+<link rel="stylesheet" href="css/checklist.css?v=22" />
+<link rel="stylesheet" href="css/vendors.css?v=22" />
+<link rel="stylesheet" href="css/guests.css?v=22" />
+<link rel="stylesheet" href="css/catalog.css?v=22" />
+<link rel="stylesheet" href="css/drawer.css?v=22" />
+<link rel="stylesheet" href="css/embeds.css?v=22" />
+<link rel="stylesheet" href="css/notes.css?v=22" />
+<link rel="stylesheet" href="css/dates.css?v=22" />
+<link rel="stylesheet" href="css/boards.css?v=22" />
+<link rel="stylesheet" href="css/lanes.css?v=22" />
+<link rel="stylesheet" href="css/invite.css?v=22" />
+<link rel="stylesheet" href="css/passes.css?v=22" />
+<link rel="stylesheet" href="css/ui.css?v=22" />
+<link rel="stylesheet" href="css/menu.css?v=22" />
+<link rel="stylesheet" href="css/attribution.css?v=22" />
+<link rel="stylesheet" href="css/login.css?v=22" />
+<link rel="stylesheet" href="css/themes.css?v=22" />
 </head>
 <body>
 <div id="theme-bg"></div>
@@ -112,20 +112,24 @@
 
     <section class="panel" id="tab-vendors">
       <div class="card">
-        <h2>Payments tracker</h2>
-        <p class="hint">Hold the master list and the deposit deadlines. Everything saves to your shared planner.</p>
-        <div class="money-row" id="moneyRow"></div>
-        <div class="toolbar" style="margin-top:14px">
-          <button class="btn sm" id="addVendor">+ Add vendor row</button>
+        <div class="card-head">
+          <div class="ch-text">
+            <h2>Payments tracker</h2>
+            <p class="hint">Hold the master list and the deposit deadlines. Everything saves to your shared planner.</p>
+          </div>
+          <div class="ch-actions">
+            <button class="btn sm" id="addVendor">Add row</button>
+          </div>
         </div>
+        <div class="money-row" id="moneyRow"></div>
         <div class="tablewrap">
           <table class="grid pay">
             <thead><tr>
               <th class="c-cat">Category</th><th class="c-name">Vendor</th>
               <th class="c-contact">Contact</th><th class="c-status">Status</th>
               <th class="c-num">Quote</th><th class="c-num">Deposit</th>
-              <th class="c-num">Balance</th><th class="c-due">Balance due</th>
-              <th class="c-upd">Updated</th><th class="c-del"></th>
+              <th class="c-num">Balance</th><th class="c-due">Balance&nbsp;due</th>
+              <th class="c-upd">Updated</th><th class="c-kebab"></th>
             </tr></thead>
             <tbody id="vendorBody"></tbody>
           </table>
@@ -135,18 +139,22 @@
 
     <section class="panel" id="tab-guests">
       <div class="card">
-        <h2>Guest list &amp; RSVPs</h2>
-        <p class="hint">You chase your side, Noor chases hers. Give the venue a firm headcount by their deadline.</p>
-        <div class="money-row" id="guestStats"></div>
-        <div class="toolbar" style="margin-top:14px">
-          <button class="btn sm" id="addGuest">+ Add guest / party</button>
+        <div class="card-head">
+          <div class="ch-text">
+            <h2>Guest list &amp; RSVPs</h2>
+            <p class="hint">You chase your side, Noor chases hers. Give the venue a firm headcount by their deadline.</p>
+          </div>
+          <div class="ch-actions">
+            <button class="btn sm" id="addGuest">Add guest</button>
+          </div>
         </div>
+        <div class="money-row" id="guestStats"></div>
         <div class="tablewrap">
           <table class="grid guest">
             <thead><tr>
               <th class="g-name">Name / party</th><th class="g-side">Side</th>
               <th class="g-seats">Seats</th><th class="g-rsvp">RSVP</th>
-              <th class="g-notes">Notes</th><th class="g-pass">Entry pass</th><th class="g-upd">Updated</th><th class="g-del"></th>
+              <th class="g-notes">Notes</th><th class="g-pass">Entry&nbsp;pass</th><th class="g-upd">Updated</th><th class="g-kebab"></th>
             </tr></thead>
             <tbody id="guestBody"></tbody>
           </table>
@@ -165,8 +173,8 @@
 <div id="modal-root"></div>
 <div id="toast-root"></div>
 
-<script src="js/vendor/qrcode.js?v=21"></script>
-<script type="module" src="js/main.js?v=21"></script>
+<script src="js/vendor/qrcode.js?v=22"></script>
+<script type="module" src="js/main.js?v=22"></script>
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));

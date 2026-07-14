@@ -2,8 +2,16 @@ import { api } from './api.js'
 import { qrCanvas } from './qr.js'
 import { guestStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
-import { confirmDialog, confirmDelete, toast, undoToast } from './ui.js'
-import { byTag, debounce, escapeAttr, escapeHtml } from './util.js'
+import {
+  confirmDialog,
+  confirmDelete,
+  kebabButton,
+  openKebabMenu,
+  openSheet,
+  toast,
+  undoToast,
+} from './ui.js'
+import { byTag, debounce, escapeAttr } from './util.js'
 
 const guests = () => store.data.guests || (store.data.guests = [])
 const find = (id) => guests().find((g) => String(g.id) === String(id))
@@ -48,11 +56,10 @@ function openGuestPass(g) {
   if (!g.pass) return
   const linkUrl = guestPassLink(g.pass.token)
   const used = g.pass.status === 'redeemed'
-  const ov = document.createElement('div')
-  ov.className = 'gpass-overlay'
-  ov.innerHTML = `<div class="gpass-card" role="dialog" aria-label="Entry pass">
-      <button class="gpass-x" aria-label="Close">&times;</button>
-      <div class="gpass-name">${escapeHtml(g.name || 'Guest')}</div>
+  const sheet = openSheet({
+    title: g.name || 'Guest',
+    size: 'sm',
+    content: `
       <div class="gpass-sub">Single-use entry pass${used ? ' &middot; already checked in' : ''}</div>
       <div class="gpass-qr"></div>
       <div class="gpass-actions">
@@ -60,33 +67,28 @@ function openGuestPass(g) {
         <button class="btn ghost" data-copy>Copy link</button>
         <button class="btn ghost" data-dl>Download QR</button>
         ${used ? '<button class="btn ghost" data-undo>Undo check-in</button>' : ''}
-      </div>
-    </div>`
-  document.body.appendChild(ov)
+      </div>`,
+  })
+  if (!sheet) return
   const canvas = qrCanvas(linkUrl, 240)
   canvas.className = 'qr-canvas'
-  ov.querySelector('.gpass-qr').appendChild(canvas)
+  sheet.body.querySelector('.gpass-qr').appendChild(canvas)
 
-  const close = () => ov.remove()
-  ov.addEventListener('click', (e) => {
-    if (e.target === ov) close()
-  })
-  ov.querySelector('.gpass-x').addEventListener('click', close)
-  ov.querySelector('[data-wa]').addEventListener('click', () => {
+  sheet.body.querySelector('[data-wa]').addEventListener('click', () => {
     window.open(`https://wa.me/?text=${encodeURIComponent(waMessage(g))}`, '_blank')
   })
-  ov.querySelector('[data-copy]').addEventListener('click', () => {
+  sheet.body.querySelector('[data-copy]').addEventListener('click', () => {
     navigator.clipboard?.writeText(linkUrl)
     toast({ type: 'ok', message: 'Pass link copied' })
   })
-  ov.querySelector('[data-dl]').addEventListener('click', () => {
+  sheet.body.querySelector('[data-dl]').addEventListener('click', () => {
     const c = qrCanvas(linkUrl, 600)
     const a = document.createElement('a')
     a.href = c.toDataURL('image/png')
     a.download = `pass-${(g.name || g.pass.token).slice(0, 20).replace(/\s+/g, '-')}.png`
     a.click()
   })
-  ov.querySelector('[data-undo]')?.addEventListener('click', async () => {
+  sheet.body.querySelector('[data-undo]')?.addEventListener('click', async () => {
     const ok = await confirmDialog({
       title: 'Undo check-in?',
       message: 'This pass will work again for a single entry.',
@@ -94,7 +96,7 @@ function openGuestPass(g) {
     })
     if (!ok) return
     g.pass.status = 'unused'
-    close()
+    sheet.close()
     renderGuests()
     try {
       bumpRev(await api.passUnredeem(g.pass.id))
@@ -110,8 +112,8 @@ export function renderGuestStats() {
   if (!el) return
   el.innerHTML = `
     <div class="money"><div class="l">Total invited (seats)</div><div class="v">${s.seats}</div></div>
-    <div class="money"><div class="l">Confirmed coming</div><div class="v" style="color:var(--emerald)">${s.coming}</div></div>
-    <div class="money"><div class="l">Awaiting reply</div><div class="v" style="color:var(--amber)">${s.pending}</div></div>
+    <div class="money"><div class="l">Confirmed coming</div><div class="v pos">${s.coming}</div></div>
+    <div class="money"><div class="l">Awaiting reply</div><div class="v warn">${s.pending}</div></div>
     <div class="money"><div class="l">Your side / Noor's</div><div class="v">${s.you}<small> / ${s.her}</small></div></div>`
 }
 
@@ -133,14 +135,14 @@ export function renderGuests() {
           <option value="her" ${g.side === 'her' ? 'selected' : ''}>Noor's side</option>
           <option value="both" ${g.side === 'both' ? 'selected' : ''}>Both</option></select></td>
         <td data-label="Seats"><input value="${escapeAttr(g.seats)}" data-f="seats" inputmode="numeric" placeholder="1"></td>
-        <td data-label="RSVP"><select data-f="rsvp" class="stat rs-${g.rsvp}">
+        <td data-label="RSVP"><div class="stat-wrap"><select data-f="rsvp" class="stat rs-${g.rsvp}">
           <option value="pending" ${g.rsvp === 'pending' ? 'selected' : ''}>Pending</option>
           <option value="yes" ${g.rsvp === 'yes' ? 'selected' : ''}>Coming</option>
-          <option value="no" ${g.rsvp === 'no' ? 'selected' : ''}>Declined</option></select></td>
+          <option value="no" ${g.rsvp === 'no' ? 'selected' : ''}>Declined</option></select></div></td>
         <td data-label="Notes"><input value="${escapeAttr(g.notes)}" data-f="notes" placeholder="notes"></td>
         <td data-label="Entry pass" class="g-pass-cell">${passCell(g)}</td>
         <td data-label="Updated" class="upd">${byTag(g, meId())}</td>
-        <td class="del-cell"><button class="del" data-del="${g.id}">✕</button></td>
+        <td class="kebab-cell">${kebabButton('Guest actions')}</td>
       </tr>`,
       )
       .join('')
@@ -162,27 +164,24 @@ export function renderGuests() {
     })
   })
 
-  body.querySelectorAll('.del').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const id = e.target.dataset.del
-      const snap = find(id)
-      if (!snap || !(await confirmDelete('this guest'))) return
-      const data = { ...snap }
-      store.data.guests = guests().filter((g) => String(g.id) !== String(id))
-      renderGuests()
-      renderGuestStats()
-      undoToast('Guest deleted', async () => {
-        const r = await api.guest(data)
-        bumpRev(r)
-        guests().push({ ...data, id: r.id })
-        renderGuests()
-        renderGuestStats()
-      })
-      try {
-        bumpRev(await api.guestDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
-      }
+  body.querySelectorAll('.kebab-cell [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = b.closest('tr').dataset.id
+      const g = find(id)
+      openKebabMenu(b, [
+        {
+          label: 'Entry pass',
+          disabled: !g?.pass,
+          onClick: () => g && openGuestPass(g),
+        },
+        {
+          label: 'Delete guest',
+          destructive: true,
+          separatorBefore: true,
+          onClick: () => deleteGuest(id),
+        },
+      ])
     }),
   )
 
@@ -194,6 +193,27 @@ export function renderGuests() {
   )
 
   renderGuestStats()
+}
+
+async function deleteGuest(id) {
+  const snap = find(id)
+  if (!snap || !(await confirmDelete('this guest'))) return
+  const data = { ...snap }
+  store.data.guests = guests().filter((g) => String(g.id) !== String(id))
+  renderGuests()
+  renderGuestStats()
+  undoToast('Guest deleted', async () => {
+    const r = await api.guest(data)
+    bumpRev(r)
+    guests().push({ ...data, id: r.id })
+    renderGuests()
+    renderGuestStats()
+  })
+  try {
+    bumpRev(await api.guestDelete(id))
+  } catch (_) {
+    /* next poll reconciles */
+  }
 }
 
 export function initGuestControls() {

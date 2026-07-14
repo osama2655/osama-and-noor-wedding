@@ -2,12 +2,12 @@
 table{border-collapse:collapse;width:100%;font-size:13px}
 /* Fixed layout so columns always fit the card (no right-edge cut-off); scrolls only below min-width, cards below 560px */
 .grid{table-layout:fixed}
-.grid.pay{min-width:800px}
-.grid.guest{min-width:680px}
-.pay .c-cat{width:14%}.pay .c-name{width:14%}.pay .c-contact{width:13%}.pay .c-status{width:12%}
-.pay .c-num{width:7%}.pay .c-due{width:11%}.pay .c-upd{width:9%}.pay .c-del{width:4%}
-.guest .g-name{width:20%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
-.guest .g-notes{width:15%}.guest .g-pass{width:12%}.guest .g-upd{width:12%}.guest .g-del{width:6%}
+.grid.pay{min-width:880px}
+.grid.guest{min-width:720px}
+.pay .c-cat{width:13%}.pay .c-name{width:14%}.pay .c-contact{width:13%}.pay .c-status{width:11%}
+.pay .c-num{width:7%}.pay .c-due{width:10%}.pay .c-upd{width:13%}.pay .c-kebab{width:48px}
+.guest .g-name{width:22%}.guest .g-side{width:13%}.guest .g-seats{width:8%}.guest .g-rsvp{width:14%}
+.guest .g-notes{width:15%}.guest .g-pass{width:11%}.guest .g-upd{width:13%}.guest .g-kebab{width:48px}
 th,td{padding:10px 10px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
 th{background:var(--card2);color:var(--faint);font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700}
 tbody tr{transition:background var(--dur-1) var(--ease)}
@@ -19,9 +19,13 @@ td input,td select{width:100%;background:transparent;border:1px solid var(--fiel
 td input:focus,td select:not(.stat):focus{border-color:var(--gold);background:var(--card2);outline:none}
 td select option{background:var(--card);color:var(--txt)}
 td select.cat-select{font-weight:600}
-/* Status as a readable colored pill-select */
+/* Status as a readable colored pill-select with a chevron affordance */
+.stat-wrap{position:relative;display:block}
+.stat-wrap::after{content:"";position:absolute;right:9px;top:calc(50% - 3px);width:5px;height:5px;
+  border-right:1.6px solid currentColor;border-bottom:1.6px solid currentColor;transform:rotate(45deg);
+  opacity:.5;pointer-events:none}
 td select.stat{appearance:none;-webkit-appearance:none;border:1px solid transparent;border-radius:999px;
-  padding:5px 10px;font-weight:700;font-size:11px;text-align:center;text-align-last:center;cursor:pointer}
+  padding:5px 20px 5px 12px;font-weight:700;font-size:11px;text-align:center;text-align-last:center;cursor:pointer}
 td select.stat:focus{outline:2px solid var(--ring);outline-offset:1px}
 .stat.s-todo{background:rgba(138,123,100,.20);color:var(--faint)}
 .stat.s-contacted{background:rgba(127,180,216,.18);color:var(--blue)}
@@ -39,6 +43,14 @@ td select.stat:focus{outline:2px solid var(--ring);outline-offset:1px}
 .s-paid{background:rgba(63,174,130,.28);color:var(--emerald)}
 .del{background:none;border:none;color:var(--red);cursor:pointer;font-size:16px;line-height:1}
 
+/* Dialable contact: input + tel: shortcut inline (the one row shortcut allowed) */
+.vendor-contact{display:flex;align-items:center;gap:6px;flex:1}
+.vendor-call{flex:none;text-decoration:none;font-size:15px;line-height:1}
+
+/* Kebab column: the row's action menu, right-aligned in the last cell */
+.kebab-cell{text-align:right;white-space:nowrap;padding-right:6px}
+.kebab-cell .kebab{color:var(--muted)}
+
 /* Mobile: each table row becomes a stacked card (no horizontal scroll-within-scroll) */
 @media (max-width: 560px) {
   .tablewrap { border: none; overflow: visible; }
@@ -52,7 +64,9 @@ td select.stat:focus{outline:2px solid var(--ring);outline-offset:1px}
   tr td:last-child { border-bottom: none; }
   td::before { content: attr(data-label); color: var(--faint); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; font-weight: 700; flex: 0 0 auto; }
   td input, td select { width: auto; flex: 1; text-align: right; }
+  .stat-wrap { flex: 1; }
+  .stat-wrap .stat { width: 100%; }
   td.upd { justify-content: flex-end; }
-  td.del-cell { justify-content: flex-end; }
-  td.del-cell::before { content: ""; }
+  td.kebab-cell { justify-content: flex-end; padding-right: 0; }
+  td.kebab-cell::before { content: ""; }
 }

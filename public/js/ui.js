@@ -1,9 +1,10 @@
 import { escapeAttr, escapeHtml } from './util.js'
 
 // ---------------------------------------------------------------------------
-// Overlay system. Three layers, bottom to top: the Sheet (#sheet-root, z 190),
-// confirm/prompt modals (#modal-root, z 200) which may stack over a sheet, and
-// the kebab menu (positioned fixed, z 120, closes on any outside interaction).
+// Overlay system. Layers, bottom to top: the Sheet (#sheet-root, z 190),
+// the kebab menu (position:fixed, z 195, so it clears a sheet it was opened
+// from), and confirm/prompt modals (#modal-root, z 200) which top everything.
+// The kebab closes on any outside interaction.
 // The 5s sync poll defers full re-renders while any of these is open; every
 // close dispatches 'overlay:closed' so the deferred render can flush.
 // ---------------------------------------------------------------------------

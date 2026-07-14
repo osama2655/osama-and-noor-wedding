@@ -3,7 +3,12 @@ import { STATUS } from './content.js'
 import { renderDash } from './dashboard.js'
 import { moneyTotals } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
-import { confirmDelete, undoToast } from './ui.js'
+import {
+  confirmDelete,
+  kebabButton,
+  openKebabMenu,
+  undoToast,
+} from './ui.js'
 import { byTag, debounce, escapeAttr, escapeHtml, fmt } from './util.js'
 
 const vendors = () => store.data.vendors || (store.data.vendors = [])
@@ -58,7 +63,7 @@ const telHref = (contact) => String(contact || '').replace(/\s+/g, '')
 function contactCell(v) {
   const input = `<input value="${escapeAttr(v.contact)}" data-f="contact" placeholder="Phone / handle">`
   if (!looksLikePhone(v.contact)) return input
-  return `<div class="vendor-contact" style="display:flex;align-items:center;gap:6px;flex:1">${input}<a class="vendor-call" href="tel:${escapeAttr(telHref(v.contact))}" title="Call ${escapeAttr(v.contact)}" aria-label="Call ${escapeAttr(v.contact)}" style="flex:none;text-decoration:none;font-size:15px;line-height:1">📞</a></div>`
+  return `<div class="vendor-contact">${input}<a class="vendor-call" href="tel:${escapeAttr(telHref(v.contact))}" title="Call ${escapeAttr(v.contact)}" aria-label="Call ${escapeAttr(v.contact)}">📞</a></div>`
 }
 
 const pushVendor = debounce(async (id) => {
@@ -76,10 +81,10 @@ export function renderMoney() {
   const el = document.getElementById('moneyRow')
   if (!el) return
   el.innerHTML = `
-    <div class="money"><div class="l">Vendors booked</div><div class="v" style="color:var(--emerald)">${m.booked}<small>/${vendors().length}</small></div></div>
+    <div class="money"><div class="l">Vendors booked</div><div class="v pos">${m.booked}<small>/${vendors().length}</small></div></div>
     <div class="money"><div class="l">Total quoted</div><div class="v">BD ${fmt(m.quote)}</div></div>
-    <div class="money"><div class="l">Deposits paid</div><div class="v" style="color:var(--emerald)">BD ${fmt(m.deposit)}</div></div>
-    <div class="money"><div class="l">Balance due</div><div class="v" style="color:var(--amber)">BD ${fmt(m.balance)}</div></div>`
+    <div class="money"><div class="l">Deposits paid</div><div class="v pos">BD ${fmt(m.deposit)}</div></div>
+    <div class="money"><div class="l">Balance due</div><div class="v warn">BD ${fmt(m.balance)}</div></div>`
 }
 
 export function renderVendors() {
@@ -97,18 +102,18 @@ export function renderVendors() {
         <td data-label="Category"><select data-f="category" class="cat-select">${catOptions(v.category)}</select></td>
         <td data-label="Vendor"><input value="${escapeAttr(v.name)}" data-f="name" placeholder="Name / IG"></td>
         <td data-label="Contact">${contactCell(v)}</td>
-        <td data-label="Status"><select data-f="status" class="stat s-${v.status}">${Object.keys(STATUS_SHORT)
+        <td data-label="Status"><div class="stat-wrap"><select data-f="status" class="stat s-${v.status}">${Object.keys(STATUS_SHORT)
           .map(
             (k) =>
               `<option value="${k}" ${v.status === k ? 'selected' : ''} title="${escapeAttr(STATUS[k])}">${STATUS_SHORT[k]}</option>`,
           )
-          .join('')}</select></td>
+          .join('')}</select></div></td>
         <td data-label="Quote"><input value="${escapeAttr(v.quote)}" data-f="quote" inputmode="decimal" placeholder="0"></td>
         <td data-label="Deposit"><input value="${escapeAttr(v.deposit)}" data-f="deposit" inputmode="decimal" placeholder="0"></td>
         <td data-label="Balance"><input value="${escapeAttr(v.balance)}" data-f="balance" inputmode="decimal" placeholder="0"></td>
         <td data-label="Balance due"><input value="${escapeAttr(v.balance_due)}" data-f="balance_due" type="text" placeholder="date" onfocus="(this.type='date')" onblur="if(!this.value)this.type='text'"></td>
         <td data-label="Updated" class="upd">${byTag(v, meId())}</td>
-        <td class="del-cell"><button class="del" title="Delete" data-del="${v.id}">✕</button></td>
+        <td class="kebab-cell">${kebabButton('Row actions')}</td>
       </tr>`,
       )
       .join('')
@@ -134,33 +139,44 @@ export function renderVendors() {
     })
   })
 
-  body.querySelectorAll('.del').forEach((b) =>
-    b.addEventListener('click', async (e) => {
-      const id = e.target.dataset.del
-      const snap = find(id)
-      if (!snap || !(await confirmDelete('this row'))) return
-      const data = { ...snap }
-      store.data.vendors = vendors().filter((v) => String(v.id) !== String(id))
-      renderVendors()
-      renderMoney()
-      renderDash()
-      undoToast('Row deleted', async () => {
-        const r = await api.vendor(data)
-        bumpRev(r)
-        vendors().push({ ...data, id: r.id })
-        renderVendors()
-        renderMoney()
-        renderDash()
-      })
-      try {
-        bumpRev(await api.vendorDelete(id))
-      } catch (_) {
-        /* next poll reconciles */
-      }
+  body.querySelectorAll('.kebab-cell [data-kebab]').forEach((b) =>
+    b.addEventListener('click', (e) => {
+      e.stopPropagation()
+      const id = b.closest('tr').dataset.id
+      openKebabMenu(b, [
+        {
+          label: 'Delete row',
+          destructive: true,
+          onClick: () => deleteVendor(id),
+        },
+      ])
     }),
   )
 
   renderMoney()
+}
+
+async function deleteVendor(id) {
+  const snap = find(id)
+  if (!snap || !(await confirmDelete('this row'))) return
+  const data = { ...snap }
+  store.data.vendors = vendors().filter((v) => String(v.id) !== String(id))
+  renderVendors()
+  renderMoney()
+  renderDash()
+  undoToast('Row deleted', async () => {
+    const r = await api.vendor(data)
+    bumpRev(r)
+    vendors().push({ ...data, id: r.id })
+    renderVendors()
+    renderMoney()
+    renderDash()
+  })
+  try {
+    bumpRev(await api.vendorDelete(id))
+  } catch (_) {
+    /* next poll reconciles */
+  }
 }
 
 export function initVendorControls() {

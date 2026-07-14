@@ -11,14 +11,8 @@
 .gp-btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 .gp-none{color:var(--faint);font-size:12px}
 
-.gpass-overlay{position:fixed;inset:0;z-index:400;display:flex;align-items:center;justify-content:center;
-  padding:20px;background:rgba(0,0,0,.55);animation:gpass-fade var(--dur-3) var(--ease)}
-@keyframes gpass-fade{from{opacity:0}to{opacity:1}}
-.gpass-card{position:relative;width:min(340px,100%);background:var(--card);border:1px solid var(--line);
-  border-radius:var(--r-4);padding:24px 22px;text-align:center;box-shadow:var(--shadow)}
-.gpass-x{position:absolute;top:8px;right:12px;background:none;border:none;color:var(--muted);font-size:22px;line-height:1;cursor:pointer}
-.gpass-name{font-family:Georgia,"Times New Roman",serif;font-size:var(--fs-h1);color:var(--txt)}
-.gpass-sub{color:var(--faint);font-size:var(--fs-xs);margin-top:2px}
+/* Entry-pass content, rendered inside the shared Sheet (openSheet, size sm) */
+.gpass-sub{color:var(--faint);font-size:var(--fs-xs);text-align:center}
 .gpass-qr{display:flex;justify-content:center;margin:16px 0}
 .gpass-qr .qr-canvas{width:min(240px,60vw);height:auto;border-radius:var(--r-2);background:#fff;padding:10px}
 .gpass-actions{display:flex;flex-direction:column;gap:8px}

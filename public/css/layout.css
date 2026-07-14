@@ -90,6 +90,8 @@ h2.section-h{font-size:15px;letter-spacing:.14em;text-transform:uppercase;color:
 .money{background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px 16px;flex:1;min-width:150px}
 .money .l{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint)}
 .money .v{font-size:22px;font-weight:800;margin-top:3px;font-variant-numeric:tabular-nums}
+.money .v.pos{color:var(--emerald)}
+.money .v.warn{color:var(--amber)}
 .money .v small{font-size:13px;color:var(--muted);font-weight:600}
 
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}

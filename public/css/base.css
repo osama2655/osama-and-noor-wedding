@@ -13,7 +13,7 @@
   --ease:cubic-bezier(.2,.8,.2,1); --dur-1:120ms; --dur-2:160ms; --dur-3:220ms; --dur-4:320ms;
   --ring:var(--gold); --btn-bg:var(--gold); --on-primary:#1a1206;
   --field-rest:color-mix(in srgb, var(--line) 65%, transparent);
-  --z-nav:40; --z-menu:120; --z-tabbar:140; --z-toast:150; --z-sheet:190; --z-modal:200; --z-boot:300;
+  --z-nav:40; --z-tabbar:140; --z-toast:150; --z-sheet:190; --z-menu:195; --z-modal:200; --z-boot:300;
   --hit:44px; --row-h:48px; --control-h:36px;
   --backdrop:rgba(0,0,0,.5);
   --red-bg:color-mix(in srgb, var(--red) 12%, transparent);
