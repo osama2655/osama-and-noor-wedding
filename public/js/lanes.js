@@ -1,5 +1,6 @@
 import { api } from './api.js'
 import { OWNERS } from './content.js'
+import { makeSortable } from './drag-sort.js'
 import { bumpRev, meId, store } from './store.js'
 import {
   confirmDelete,
@@ -8,7 +9,7 @@ import {
   openKebabMenu,
   undoToast,
 } from './ui.js'
-import { debounce, escapeAttr, reorderBySort } from './util.js'
+import { debounce, dragHandle, escapeAttr, reorderBySort } from './util.js'
 
 const TAG_KEYS = ['you', 'men', 'her', 'hall']
 const lanes = () => store.data.lanes || (store.data.lanes = [])
@@ -39,7 +40,8 @@ const pushItem = debounce(async (lid, iid) => {
 }, 500)
 
 function itemRow(it) {
-  return `<li class="li-row ${it.done ? 'done' : ''}" data-id="${it.id}">
+  return `<li class="li-row sortable ${it.done ? 'done' : ''}" data-id="${it.id}" data-sort-id="${it.id}">
+      ${dragHandle()}
       <input type="checkbox" class="cbx" data-done ${it.done ? 'checked' : ''}>
       <input class="li-label inline-edit" data-f="label" value="${escapeAttr(it.label)}" placeholder="Add a task">
       ${kebabButton('Task actions')}
@@ -198,6 +200,25 @@ function moveItem(lid, iid, dir) {
   if (ok) renderLanes()
 }
 
+// Apply a drag-reordered set of item ids (one lane, new top-to-bottom order).
+function reorderItems(lid, ids) {
+  const l = findL(lid)
+  if (!l) return
+  const items = l.items || (l.items = [])
+  items.sort((a, b) => ids.indexOf(String(a.id)) - ids.indexOf(String(b.id)))
+  items.forEach((it, idx) => {
+    const s = idx + 1
+    if (it.sort !== s) {
+      it.sort = s
+      api
+        .laneItem({ ...it, laneId: Number(lid) })
+        .then(bumpRev)
+        .catch(() => {})
+    }
+  })
+  renderLanes()
+}
+
 function wire(el) {
   el.querySelector('#addLane')?.addEventListener('click', addLane)
   el.querySelector('#addLaneEmpty')?.addEventListener('click', addLane)
@@ -296,4 +317,10 @@ function wire(el) {
       ])
     }),
   )
+
+  // Drag-to-reorder tasks within each lane.
+  el.querySelectorAll('.lane[data-id]').forEach((laneEl) => {
+    const ul = laneEl.querySelector('ul.checks')
+    if (ul) makeSortable(ul, (ids) => reorderItems(laneEl.dataset.id, ids))
+  })
 }

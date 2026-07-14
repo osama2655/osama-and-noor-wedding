@@ -8,7 +8,8 @@ import {
   openKebabMenu,
   undoToast,
 } from './ui.js'
-import { byTag, debounce, escapeAttr, reorderBySort } from './util.js'
+import { makeSortable } from './drag-sort.js'
+import { byTag, debounce, dragHandle, escapeAttr, reorderBySort } from './util.js'
 
 const dates = () => store.data.dates || (store.data.dates = [])
 const find = (id) => dates().find((d) => String(d.id) === String(id))
@@ -50,7 +51,8 @@ function longDate(iso) {
 
 function dateRow(d) {
   const cd = countdownLabel(d.date)
-  return `<div class="dt-row ${d.date && daysUntil(d.date) < 0 ? 'past' : ''}" data-id="${d.id}">
+  return `<div class="dt-row sortable ${d.date && daysUntil(d.date) < 0 ? 'past' : ''}" data-id="${d.id}" data-sort-id="${d.id}">
+      ${dragHandle()}
       <div class="dt-main">
         <input class="dt-label inline-edit" data-f="label" value="${escapeAttr(d.label)}" placeholder="Label, e.g. Milcha">
         <input class="dt-date inline-edit" data-f="date" type="date" value="${escapeAttr(d.date)}">
@@ -153,6 +155,20 @@ export function renderDates() {
     reorderBySort(dates(), id, dir, (d) =>
       api.importantDate(d).then(bumpRev).catch(() => {}),
     ) && renderDates()
+
+  const reorderDates = (ids) => {
+    const list = dates()
+    list.sort((a, b) => ids.indexOf(String(a.id)) - ids.indexOf(String(b.id)))
+    list.forEach((d, idx) => {
+      const s = idx + 1
+      if (d.sort !== s) {
+        d.sort = s
+        api.importantDate(d).then(bumpRev).catch(() => {})
+      }
+    })
+    renderDates()
+  }
+  makeSortable(el.querySelector('.dt-list'), reorderDates)
 
   el.querySelectorAll('.dt-row [data-kebab]').forEach((b) =>
     b.addEventListener('click', (e) => {

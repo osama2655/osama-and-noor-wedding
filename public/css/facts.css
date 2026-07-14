@@ -1,24 +1,27 @@
 .facts { display: flex; flex-direction: column; margin-top: 10px; }
-.fact { display: grid; grid-template-columns: 130px 1fr var(--control-h); gap: 8px; align-items: start; padding: 6px 0; border-bottom: 1px solid var(--line); min-height: var(--row-h); }
+.fact { display: grid; grid-template-columns: 22px 130px 1fr var(--control-h); gap: 8px; align-items: start; padding: 6px 0; border-bottom: 1px solid var(--line); min-height: var(--row-h); }
 .fact:last-child { border-bottom: none; }
+.fact .drag-handle { align-self: center; }
 .fact-k { color: var(--gold); font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: .08em; padding-top: 10px; }
 .fact-v { font-size: 14.5px; resize: none; overflow: hidden; min-height: 36px; line-height: 1.5; }
 .fact .kebab { align-self: center; }
 
 .open-list { display: flex; flex-direction: column; margin-top: 10px; }
-.open-item { display: grid; grid-template-columns: auto 1fr 1.4fr var(--control-h); gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); min-height: var(--row-h); }
+.open-item { display: grid; grid-template-columns: 22px auto 1fr 1.4fr var(--control-h); gap: 8px; align-items: center; padding: 6px 0; border-bottom: 1px solid var(--line); min-height: var(--row-h); }
 .open-item:last-child { border-bottom: none; }
 .open-owner { border: none; border-radius: var(--r-pill); padding: 4px 8px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; font-family: inherit; cursor: pointer; }
 .open-title { font-weight: 600; font-size: 13.5px; }
 .open-detail { color: var(--muted); font-size: 13px; }
 
 @media (max-width: 560px) {
-  .fact { grid-template-columns: 1fr var(--control-h); gap: 2px 6px; }
-  .fact-k { grid-column: 1; padding-top: 6px; }
-  .fact .kebab { grid-row: 1; grid-column: 2; }
+  .fact { grid-template-columns: 22px 1fr var(--control-h); gap: 2px 6px; }
+  .fact .drag-handle { grid-row: 1; grid-column: 1; }
+  .fact-k { grid-column: 2; padding-top: 6px; }
+  .fact .kebab { grid-row: 1; grid-column: 3; }
   .fact-v { grid-column: 1 / -1; }
-  .open-item { grid-template-columns: 1fr var(--control-h); gap: 4px 6px; }
-  .open-owner { grid-column: 1; justify-self: start; }
-  .open-item .kebab { grid-row: 1; grid-column: 2; }
+  .open-item { grid-template-columns: 22px 1fr var(--control-h); gap: 4px 6px; }
+  .open-item .drag-handle { grid-row: 1; grid-column: 1; }
+  .open-owner { grid-column: 2; justify-self: start; }
+  .open-item .kebab { grid-row: 1; grid-column: 3; }
   .open-title, .open-detail { grid-column: 1 / -1; }
 }

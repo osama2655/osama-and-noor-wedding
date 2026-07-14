@@ -8,7 +8,14 @@ import {
   openKebabMenu,
   undoToast,
 } from './ui.js'
-import { debounce, escapeAttr, escapeHtml, reorderBySort } from './util.js'
+import { makeSortable } from './drag-sort.js'
+import {
+  debounce,
+  dragHandle,
+  escapeAttr,
+  escapeHtml,
+  reorderBySort,
+} from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
 const ownerClass = (o) =>
@@ -44,7 +51,8 @@ const autoGrow = (ta) => {
 }
 
 function factRow(f) {
-  return `<div class="fact" data-id="${f.id}">
+  return `<div class="fact sortable" data-id="${f.id}" data-sort-id="${f.id}">
+      ${dragHandle()}
       <input class="fact-k inline-edit" data-f="label" value="${escapeAttr(f.label)}" placeholder="Label">
       <textarea class="fact-v inline-edit" data-f="value" rows="1" placeholder="Value">${escapeHtml(f.value || '')}</textarea>
       ${kebabButton('Fact actions')}
@@ -52,7 +60,8 @@ function factRow(f) {
 }
 
 function openRow(o) {
-  return `<div class="open-item" data-id="${o.id}">
+  return `<div class="open-item sortable" data-id="${o.id}" data-sort-id="${o.id}">
+      ${dragHandle()}
       <select class="open-owner t-${ownerClass(o.owner)}" data-f="owner">${OWNER_KEYS.map((k) => `<option value="${k}" ${o.owner === k ? 'selected' : ''}>${OWNERS[k]}</option>`).join('')}</select>
       <input class="open-title inline-edit" data-f="title" value="${escapeAttr(o.title)}" placeholder="Title">
       <input class="open-detail inline-edit" data-f="detail" value="${escapeAttr(o.detail)}" placeholder="Detail">
@@ -191,6 +200,19 @@ const moveOpen = (id, dir) =>
     api.openItem(o).then(bumpRev).catch(() => {}),
   ) && renderFacts()
 
+// Apply a drag-reordered id list (new top-to-bottom order) to sort + persist.
+function reorderList(list, ids, save) {
+  list.sort((a, b) => ids.indexOf(String(a.id)) - ids.indexOf(String(b.id)))
+  list.forEach((x, idx) => {
+    const s = idx + 1
+    if (x.sort !== s) {
+      x.sort = s
+      save(x).then(bumpRev).catch(() => {})
+    }
+  })
+  renderFacts()
+}
+
 function wire(el) {
   el.querySelector('#addFact')?.addEventListener('click', () => addFact(el))
   el.querySelector('#addFactEmpty')?.addEventListener('click', () => addFact(el))
@@ -263,6 +285,14 @@ function wire(el) {
         },
       ])
     }),
+  )
+
+  // Drag-to-reorder both lists.
+  makeSortable(el.querySelector('.facts'), (ids) =>
+    reorderList(facts(), ids, (f) => api.fact(f)),
+  )
+  makeSortable(el.querySelector('.open-list'), (ids) =>
+    reorderList(opens(), ids, (o) => api.openItem(o)),
   )
 }
 
