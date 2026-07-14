@@ -44,5 +44,12 @@
 .cd-file-name { color: var(--txt); font-size: var(--fs-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cd-file-size { color: var(--faint); font-size: 11px; flex: none; }
 .cd-upload { margin-top: 10px; display: inline-flex; }
+.cd-upload.busy { opacity: .6; pointer-events: none; }
+
+/* Upload progress bar */
+.cd-progress { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+.cd-progress-track { flex: 1; height: 8px; border-radius: var(--r-pill); background: var(--card2); border: 1px solid var(--line); overflow: hidden; }
+.cd-progress-track span { display: block; height: 100%; width: 0; background: var(--gold); border-radius: var(--r-pill); transition: width var(--dur-2) var(--ease); }
+.cd-progress-pct { flex: none; font-size: 11px; font-weight: 700; color: var(--muted); font-variant-numeric: tabular-nums; min-width: 68px; text-align: right; }
 .cd-hint { color: var(--faint); font-size: 11px; margin-top: 8px; }
 .cd-empty { color: var(--faint); font-size: 13px; padding: 6px 0; }

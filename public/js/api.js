@@ -53,28 +53,41 @@ export const api = {
   catalogFileDelete: (id) => req('catalog_file_delete', 'POST', { id }),
   catalogFileUrl: (id) =>
     `${BASE}?action=catalog_file&id=${encodeURIComponent(id)}`,
-  catalogFileUpload: async (catalogId, file) => {
-    const fd = new FormData()
-    fd.append('catalogId', String(catalogId))
-    fd.append('file', file)
-    const res = await fetch(`${BASE}?action=catalog_file_upload`, {
-      method: 'POST',
-      credentials: 'same-origin',
-      body: fd,
-    })
-    let data = {}
-    try {
-      data = await res.json()
-    } catch (_) {
-      /* empty body */
-    }
-    if (!res.ok) {
-      const err = new Error(data.error || `upload failed (${res.status})`)
-      err.code = res.status
-      throw err
-    }
-    return data
-  },
+  // XHR (not fetch) so we can report real upload progress. onProgress receives
+  // a 0..1 fraction, or null once the bytes are sent and the server is working.
+  catalogFileUpload: (catalogId, file, onProgress) =>
+    new Promise((resolve, reject) => {
+      const fd = new FormData()
+      fd.append('catalogId', String(catalogId))
+      fd.append('file', file)
+      const xhr = new XMLHttpRequest()
+      xhr.open('POST', `${BASE}?action=catalog_file_upload`)
+      xhr.withCredentials = true
+      xhr.upload.addEventListener('progress', (e) => {
+        if (onProgress && e.lengthComputable) onProgress(e.loaded / e.total)
+      })
+      xhr.upload.addEventListener('load', () => onProgress?.(null))
+      xhr.addEventListener('load', () => {
+        let data = {}
+        try {
+          data = JSON.parse(xhr.responseText)
+        } catch (_) {
+          /* empty body */
+        }
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve(data)
+        } else {
+          const err = new Error(data.error || `upload failed (${xhr.status})`)
+          err.code = xhr.status
+          reject(err)
+        }
+      })
+      xhr.addEventListener('error', () =>
+        reject(new Error('Upload failed. Check your connection.')),
+      )
+      xhr.addEventListener('abort', () => reject(new Error('Upload cancelled.')))
+      xhr.send(fd)
+    }),
   note: (n) => req('note', 'POST', n),
   noteDelete: (id) => req('note_delete', 'POST', { id }),
   importantDate: (d) => req('important_date', 'POST', d),

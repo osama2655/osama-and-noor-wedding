@@ -522,11 +522,12 @@ function handle_invite_info(): void
 }
 
 const REMARK_MAX = 1000;
-const UPLOAD_MAX_BYTES = 20 * 1024 * 1024; // 20 MB per file
+const UPLOAD_MAX_BYTES = 120 * 1024 * 1024; // 120 MB per file
 const UPLOAD_DIR = __DIR__ . '/../../uploads'; // above the web root, never served directly
 const UPLOAD_EXT = [
     'pdf', 'ppt', 'pptx', 'key', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'txt',
     'png', 'jpg', 'jpeg', 'gif', 'webp', 'heic', 'zip',
+    'mp4', 'mov', 'm4v', 'webm', // walkthrough videos, at the 120 MB ceiling
 ];
 
 function catalog_exists(int $id): bool
@@ -585,7 +586,7 @@ function handle_catalog_file_upload(): void
         json_out(['error' => 'no file'], 400);
     }
     if ((int) $f['size'] > UPLOAD_MAX_BYTES) {
-        json_out(['error' => 'file too large (max 20 MB)'], 400);
+        json_out(['error' => 'file too large (max 120 MB)'], 400);
     }
     $orig = mb_substr((string) ($f['name'] ?? 'file'), 0, 255);
     $ext = strtolower((string) pathinfo($orig, PATHINFO_EXTENSION));

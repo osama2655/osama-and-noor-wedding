@@ -182,7 +182,11 @@ function filesSec(row) {
         <span id="cd-upload-label">Upload a file</span>
         <input type="file" id="cd-file-input" hidden>
       </label>
-      <div class="cd-hint">PDF, PowerPoint, Word, images. Up to 20 MB each.</div>
+      <div class="cd-progress" id="cd-progress" hidden>
+        <div class="cd-progress-track"><span id="cd-progress-fill"></span></div>
+        <span class="cd-progress-pct" id="cd-progress-pct">0%</span>
+      </div>
+      <div class="cd-hint">PDF, slides, docs, images, video. Up to 120 MB each.</div>
     </div>`
 }
 
@@ -465,9 +469,34 @@ function wireFiles(item, onChange, paint) {
     const file = fileInput.files?.[0]
     if (!file) return
     const label = root.querySelector('#cd-upload-label')
-    if (label) label.textContent = 'Uploading...'
+    const prog = root.querySelector('#cd-progress')
+    const fill = root.querySelector('#cd-progress-fill')
+    const pct = root.querySelector('#cd-progress-pct')
+    const upBtn = root.querySelector('.cd-upload')
+
+    // Instant client-side guard so a too-big file fails before it uploads.
+    if (file.size > 120 * 1024 * 1024) {
+      toast({ type: 'err', message: 'That file is over 120 MB.' })
+      fileInput.value = ''
+      return
+    }
+
+    upBtn?.classList.add('busy')
+    if (label) label.textContent = 'Uploading…'
+    if (prog) prog.hidden = false
+    const onProgress = (f) => {
+      if (f == null) {
+        if (fill) fill.style.width = '100%'
+        if (pct) pct.textContent = 'Processing…'
+      } else {
+        const p = Math.round(f * 100)
+        if (fill) fill.style.width = `${p}%`
+        if (pct) pct.textContent = `${p}%`
+      }
+    }
+
     try {
-      const r = await api.catalogFileUpload(item.id, file)
+      const r = await api.catalogFileUpload(item.id, file, onProgress)
       bumpRev(r)
       const row = liveRow(item.id)
       if (row) {
@@ -483,7 +512,10 @@ function wireFiles(item, onChange, paint) {
       paint()
       onChange?.()
     } catch (err) {
-      if (label) label.textContent = err.message || 'Upload failed'
+      if (prog) prog.hidden = true
+      upBtn?.classList.remove('busy')
+      if (label) label.textContent = 'Upload a file'
+      toast({ type: 'err', message: err.message || 'Upload failed' })
     }
   })
 
