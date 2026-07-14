@@ -11,8 +11,9 @@
 .gp-btn:focus-visible{outline:2px solid var(--ring);outline-offset:2px}
 .gp-none{color:var(--faint);font-size:12px}
 
-/* Entry-pass content, rendered inside the shared Sheet (openSheet, size sm) */
+/* Entry-pass / RSVP-link content, rendered inside the shared Sheet (size sm) */
 .gpass-sub{color:var(--faint);font-size:var(--fs-xs);text-align:center}
+.gpass-msg{margin-top:10px;padding:10px 12px;background:var(--card2);border:1px solid var(--line);border-radius:var(--r-2);color:var(--txt);font-size:var(--fs-sm);font-style:italic;text-align:center}
 .gpass-qr{display:flex;justify-content:center;margin:16px 0}
 .gpass-qr .qr-canvas{width:min(240px,60vw);height:auto;border-radius:var(--r-2);background:#fff;padding:10px}
 .gpass-actions{display:flex;flex-direction:column;gap:8px}

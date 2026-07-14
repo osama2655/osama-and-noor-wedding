@@ -11,7 +11,7 @@ import {
   toast,
   undoToast,
 } from './ui.js'
-import { byTag, debounce, escapeAttr } from './util.js'
+import { byTag, debounce, escapeAttr, escapeHtml } from './util.js'
 
 const guests = () => store.data.guests || (store.data.guests = [])
 const find = (id) => guests().find((g) => String(g.id) === String(id))
@@ -30,6 +30,10 @@ const pushGuest = debounce(async (id) => {
 // scanner redeems the same pass.html?token= link exactly once.
 const guestPassLink = (token) => `${location.origin}/pass.html?token=${token}`
 
+// Per-guest RSVP link. Keyed by the guest's own token; the reply writes back to
+// this party's row (rsvp / confirmed count / message).
+const guestRsvpLink = (token) => `${location.origin}/rsvp.html?token=${token}`
+
 const wedDateLabel = () => {
   const d = store.data.wedDate
   const dt = d ? new Date(`${d}T00:00:00`) : null
@@ -45,6 +49,9 @@ const wedDateLabel = () => {
 
 const waMessage = (g) =>
   `Hi ${g.name || 'there'}! Here is your personal entry pass for Osama & Noor's wedding, ${wedDateLabel()}. Show this QR at the door, it works once: ${guestPassLink(g.pass.token)}`
+
+const inviteMessage = (g) =>
+  `Hi ${g.name || 'there'}! You're invited to Osama & Noor's wedding, ${wedDateLabel()}. Please let us know if you can make it: ${guestRsvpLink(g.token)}`
 
 function passCell(g) {
   if (!g.pass) return '<span class="gp-none">saving…</span>'
@@ -103,6 +110,44 @@ function openGuestPass(g) {
     } catch (_) {
       /* next poll reconciles */
     }
+  })
+}
+
+// Share a guest party's personal RSVP link (copy / WhatsApp / QR).
+function openGuestInvite(g) {
+  if (!g.token) return
+  const linkUrl = guestRsvpLink(g.token)
+  const replied = !!g.repliedAt
+  const answer =
+    g.rsvp === 'yes' ? 'Coming' : g.rsvp === 'no' ? 'Declined' : 'Pending'
+  const statusLine = replied
+    ? `Replied &middot; ${answer}`
+    : 'Not replied yet'
+  const sheet = openSheet({
+    title: g.name || 'Guest',
+    size: 'sm',
+    content: `
+      <div class="gpass-sub">Personal RSVP link &middot; ${statusLine}</div>
+      ${replied && g.message ? `<div class="gpass-msg">&ldquo;${escapeHtml(g.message)}&rdquo;</div>` : ''}
+      <div class="gpass-qr"></div>
+      <div class="gpass-actions">
+        <button class="btn" data-wa>Send on WhatsApp</button>
+        <button class="btn ghost" data-copy>Copy link</button>
+      </div>`,
+  })
+  if (!sheet) return
+  const canvas = qrCanvas(linkUrl, 200)
+  canvas.className = 'qr-canvas'
+  sheet.body.querySelector('.gpass-qr').appendChild(canvas)
+  sheet.body.querySelector('[data-wa]').addEventListener('click', () => {
+    window.open(
+      `https://wa.me/?text=${encodeURIComponent(inviteMessage(g))}`,
+      '_blank',
+    )
+  })
+  sheet.body.querySelector('[data-copy]').addEventListener('click', () => {
+    navigator.clipboard?.writeText(linkUrl)
+    toast({ type: 'ok', message: 'RSVP link copied' })
   })
 }
 
@@ -170,6 +215,11 @@ export function renderGuests() {
       const id = b.closest('tr').dataset.id
       const g = find(id)
       openKebabMenu(b, [
+        {
+          label: 'RSVP link',
+          disabled: !g?.token,
+          onClick: () => g && openGuestInvite(g),
+        },
         {
           label: 'Entry pass',
           disabled: !g?.pass,
