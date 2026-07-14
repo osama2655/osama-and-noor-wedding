@@ -34,6 +34,7 @@
 .rsvp-card h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 400; margin: 8px 0 2px; font-size: 40px; }
 .rsvp-card h1 .amp { color: var(--gold); font-style: italic; padding: 0 .12em; }
 .rsvp-date { color: var(--muted); font-size: 14px; margin: 0 0 22px; }
+.rsvp-note { color: var(--emerald); font-size: 13px; margin: -12px 0 18px; }
 #rsvpForm { display: flex; flex-direction: column; gap: 12px; text-align: left; }
 #rsvpForm input, #rsvpForm select, #rsvpForm textarea { background: var(--card2); border: 1px solid var(--line); color: var(--txt); border-radius: 12px; padding: 12px 14px; font: inherit; font-size: 15px; }
 #rsvpForm input:focus, #rsvpForm select:focus, #rsvpForm textarea:focus { border-color: var(--gold); outline: none; }

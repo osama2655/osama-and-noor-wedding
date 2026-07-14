@@ -109,8 +109,10 @@ function handle_guest(): void
         )->execute($args);
         $id = (int) $b['id'];
     } else {
+        // New parties mint a unique RSVP token (their own reply link) up front.
         db()->prepare(
-            'INSERT INTO guests(name, side, seats, rsvp, notes, updated_by, updated_at) VALUES(?, ?, ?, ?, ?, ?, NOW())'
+            'INSERT INTO guests(name, side, seats, rsvp, notes, token, updated_by, updated_at)
+             VALUES(?, ?, ?, ?, ?, LOWER(HEX(RANDOM_BYTES(16))), ?, NOW())'
         )->execute($args);
         $id = (int) db()->lastInsertId();
     }
@@ -439,38 +441,84 @@ function handle_rsvp_delete(): void
     json_out(['rev' => bump_rev((int) $u['id'])]);
 }
 
-// PUBLIC. Guests submit an RSVP by invite token. No session; the token is the authorization.
+// PUBLIC. Submit an RSVP by token. No session; the token is the authorization.
+// A GUEST token writes back to that guest party (confirmed count capped at the
+// seats the couple allotted). A legacy generic INVITE token still records an
+// rsvp row AND folds the reply into a new guest party so it joins the one list.
 function handle_rsvp_submit(): void
 {
     usleep(250000);
     $token = (string) ($_GET['token'] ?? '');
+    $b = body();
+    $side = in_array($b['side'] ?? '', GUEST_SIDES, true) ? $b['side'] : 'both';
+    $attending = in_array($b['attending'] ?? '', ['yes', 'no'], true) ? $b['attending'] : 'yes';
+    $head = max(1, min(20, (int) ($b['headcount'] ?? 1)));
+    $name = mb_substr((string) ($b['name'] ?? ''), 0, 191);
+    $msg = mb_substr((string) ($b['message'] ?? ''), 0, 500);
+    $rsvp = $attending === 'yes' ? 'yes' : 'no';
+
+    // Guest token: write back to that party's row.
+    $g = db()->prepare('SELECT id, seats FROM guests WHERE token = ? LIMIT 1');
+    $g->execute([$token]);
+    if ($row = $g->fetch()) {
+        // A "yes" firms the confirmed count, capped at the allotted seats; a "no"
+        // leaves the allotment untouched (rsvp='no' excludes it from headcount).
+        $seats = $attending === 'yes'
+            ? max(1, min((int) $row['seats'], $head))
+            : (int) $row['seats'];
+        db()->prepare('UPDATE guests SET rsvp=?, seats=?, message=?, replied_at=NOW() WHERE id=?')
+            ->execute([$rsvp, $seats, $msg, (int) $row['id']]);
+        bump_rev(0);
+        json_out(['ok' => true]);
+    }
+
+    // Legacy generic invite link.
     $st = db()->prepare('SELECT id FROM invites WHERE token = ? AND active = 1');
     $st->execute([$token]);
     $inv = $st->fetch();
     if (!$inv) {
         json_out(['error' => 'not found'], 404);
     }
-    $b = body();
-    $side = in_array($b['side'] ?? '', GUEST_SIDES, true) ? $b['side'] : 'both';
-    $attending = in_array($b['attending'] ?? '', ['yes', 'no'], true) ? $b['attending'] : 'yes';
-    $head = max(1, min(20, (int) ($b['headcount'] ?? 1)));
     db()->prepare('INSERT INTO rsvps (invite_id, name, side, headcount, attending, message, created_at) VALUES(?, ?, ?, ?, ?, ?, NOW())')
-        ->execute([(int) $inv['id'], mb_substr((string) ($b['name'] ?? ''), 0, 191), $side, $head, $attending, mb_substr((string) ($b['message'] ?? ''), 0, 500)]);
+        ->execute([(int) $inv['id'], $name, $side, $head, $attending, $msg]);
+    // Fold the reply into a guest party so every reply lands in the one list.
+    db()->prepare(
+        "INSERT INTO guests (name, side, seats, rsvp, notes, message, replied_at, token, updated_at)
+         VALUES (?, ?, ?, ?, '', ?, NOW(), LOWER(HEX(RANDOM_BYTES(16))), NOW())"
+    )->execute([$name !== '' ? $name : 'Guest', $side, $head, $rsvp, $msg]);
     bump_rev(0);
     json_out(['ok' => true]);
 }
 
-// PUBLIC. Minimal invite info for the guest RSVP page.
+// PUBLIC. Info for the RSVP page. A guest token prefills that party's own reply
+// (name, allotted seats, side, current answer); a legacy invite token returns
+// its label. `kind` tells the page which form to render.
 function handle_invite_info(): void
 {
     $token = (string) ($_GET['token'] ?? '');
+    $wed = setting_get('wedDate') ?: '2026-08-14';
+
+    $g = db()->prepare('SELECT name, side, seats, rsvp, message FROM guests WHERE token = ? LIMIT 1');
+    $g->execute([$token]);
+    if ($row = $g->fetch()) {
+        json_out([
+            'kind' => 'guest',
+            'name' => $row['name'],
+            'side' => $row['side'],
+            'seats' => (int) $row['seats'],
+            'rsvp' => $row['rsvp'],
+            'message' => $row['message'],
+            'wedDate' => $wed,
+        ]);
+    }
+
     $st = db()->prepare('SELECT label, active FROM invites WHERE token = ?');
     $st->execute([$token]);
     $inv = $st->fetch();
     if (!$inv || !$inv['active']) {
         json_out(['error' => 'not found'], 404);
     }
-    json_out(['label' => $inv['label'], 'active' => (bool) $inv['active'], 'wedDate' => setting_get('wedDate') ?: '2026-08-14']);
+    json_out(['kind' => 'invite', 'label' => $inv['label'], 'active' => (bool) $inv['active'], 'wedDate' => $wed]);
 }
 
 const REMARK_MAX = 1000;
