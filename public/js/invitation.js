@@ -170,6 +170,7 @@ function build(el) {
             <button data-invb-state="valid" class="active">سارية</button>
             <button data-invb-state="redeemed">مستخدمة</button>
             <button data-invb-state="invalid">غير صالحة</button>
+            <button data-invb-state="whatsapp">واتساب 4:5</button>
           </div>
           <div id="invbCard"></div>
           <div class="invb-preview-foot">
@@ -207,9 +208,42 @@ function refreshBar(el) {
   }
 }
 
+let exportSeq = 0
+
+// The exact 1080x1350 PNG a guest receives on WhatsApp, rendered live.
+async function renderWhatsappPreview(el, mount) {
+  const seq = ++exportSeq
+  if (!mount.querySelector('img')) {
+    mount.innerHTML = '<div class="invb-export-pending">rendering the WhatsApp card…</div>'
+  }
+  try {
+    const mod = await import('./invite-export.js')
+    const canvas = await mod.drawInviteCanvas({
+      theme: draft.inviteTheme,
+      settings: draft,
+      wedDate: store.data.wedDate || WED_DEFAULT,
+      guestName: 'اسم الضيف',
+      tokenUrl: passLink(),
+    })
+    if (seq !== exportSeq || previewState !== 'whatsapp') return
+    const img = new Image()
+    img.className = 'invb-export-img'
+    img.alt = 'WhatsApp invitation card preview'
+    img.src = canvas.toDataURL('image/png')
+    mount.replaceChildren(img)
+  } catch (_) {
+    if (seq === exportSeq && previewState === 'whatsapp')
+      mount.innerHTML = '<div class="invb-export-pending">could not render the card</div>'
+  }
+}
+
 function renderPreview(el) {
   const mount = el.querySelector('#invbCard')
   if (!mount) return
+  if (previewState === 'whatsapp') {
+    renderWhatsappPreview(el, mount)
+    return
+  }
   const theme = INVITE_THEMES[draft.inviteTheme] ? draft.inviteTheme : 'sage'
   const card = buildInviteCard({
     theme,

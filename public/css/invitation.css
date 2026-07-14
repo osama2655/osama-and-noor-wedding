@@ -53,3 +53,7 @@
 .invb-states button:hover { color: var(--txt); }
 .invb-states button.active { background: var(--gold); color: var(--on-primary); }
 .invb-preview-foot { display: flex; gap: 8px; }
+
+/* WhatsApp export preview: the real 1080x1350 composite, scaled down */
+.invb-export-img { width: 100%; max-width: 400px; border-radius: 14px; display: block; box-shadow: 0 14px 40px rgba(0, 0, 0, .35); }
+.invb-export-pending { width: 100%; max-width: 400px; aspect-ratio: 4 / 5; border-radius: 14px; background: var(--card2); border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--faint); font-size: 12.5px; }
