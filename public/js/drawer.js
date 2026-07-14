@@ -555,9 +555,42 @@ async function markFemaleConfirmed(item, onChange, paint) {
   }
 }
 
-// Create a Payments row pre-filled from this listing and link the two together.
+// Bridge a listing into the Payments tracker. If a Payments row already names
+// this vendor (a manually-typed row), LINK that one — don't create a duplicate.
+// Otherwise create a fresh pre-filled row. Either way the two end up linked.
 async function addToPayments(item, paint) {
   const row = liveRow(item.id) || item
+  const wantName = (row.name || '').trim().toLowerCase()
+  const existing = (store.data.vendors || []).find(
+    (v) =>
+      !v.catalogId && wantName && (v.name || '').trim().toLowerCase() === wantName,
+  )
+
+  const done = (linked) => {
+    toast({
+      type: 'ok',
+      message: linked ? 'Linked to your Payments row' : 'Added to Payments tracker',
+    })
+    paint()
+    renderVendors()
+    renderMoney()
+    renderDash()
+  }
+
+  if (existing) {
+    existing.catalogId = item.id
+    existing.by = 'You'
+    existing.byId = meId()
+    existing.at = new Date().toISOString()
+    done(true)
+    try {
+      bumpRev(await api.vendor({ ...existing, catalog_id: item.id }))
+    } catch (_) {
+      /* next poll reconciles */
+    }
+    return
+  }
+
   const data = {
     category: PAY_CATEGORY[row.category] || '',
     name: row.name || 'Untitled listing',
@@ -587,11 +620,7 @@ async function addToPayments(item, paint) {
       byId: meId(),
       at: new Date().toISOString(),
     })
-    toast({ type: 'ok', message: 'Added to Payments tracker' })
-    paint()
-    renderVendors()
-    renderMoney()
-    renderDash()
+    done(false)
   } catch (_) {
     toast({ type: 'err', message: 'Could not add to Payments' })
   }
