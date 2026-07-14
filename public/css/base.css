@@ -59,6 +59,20 @@ a:hover{text-decoration:underline}
 /* List row meta cluster: tags + attribution live right of the content, never beneath it. */
 .lmeta{display:flex;align-items:center;gap:8px;flex:none;max-width:220px;overflow:hidden;white-space:nowrap}
 
+/* Drag-to-reorder grip (see drag-sort.js). Faint at rest, grabbable, and
+   touch-action:none so a touch drag reorders instead of scrolling the page. */
+.drag-handle{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;width:22px;height:30px;padding:0;
+  border:none;background:none;color:var(--line2);cursor:grab;touch-action:none;border-radius:6px;
+  transition:color var(--dur-1) var(--ease),background var(--dur-1) var(--ease)}
+.drag-handle svg{fill:currentColor}
+.drag-handle:hover{color:var(--muted);background:var(--card2)}
+.drag-handle:focus-visible{outline:2px solid var(--ring);outline-offset:1px}
+.drag-spacer{flex:0 0 auto;width:22px}
+.sortable{touch-action:pan-y}
+.sortable.dragging{opacity:.96;background:var(--card2);box-shadow:0 8px 24px rgba(0,0,0,.22);border-radius:10px;position:relative;z-index:3}
+body.drag-active{cursor:grabbing;user-select:none;-webkit-user-select:none}
+body.drag-active .drag-handle{cursor:grabbing}
+
 .boot{position:fixed;inset:0;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:var(--sp-5);
   background:var(--bg);transition:opacity var(--dur-4) var(--ease)}
 .boot.boot-hide{opacity:0;pointer-events:none}

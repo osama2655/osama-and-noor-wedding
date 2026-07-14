@@ -1,6 +1,7 @@
 import { api } from './api.js'
 import { CHECKLIST, OWNERS } from './content.js'
 import { renderDash, renderOverall } from './dashboard.js'
+import { makeSortable } from './drag-sort.js'
 import { weekStats } from './stats.js'
 import { bumpRev, meId, store } from './store.js'
 import {
@@ -9,7 +10,7 @@ import {
   openKebabMenu,
   undoToast,
 } from './ui.js'
-import { byTag, debounce, escapeAttr, escapeHtml } from './util.js'
+import { byTag, debounce, dragHandle, escapeAttr, escapeHtml } from './util.js'
 
 const OWNER_KEYS = ['you', 'men', 'her', 'hall']
 const ownerLabel = (o) => OWNERS[o] || ''
@@ -74,6 +75,7 @@ function staticRow(w, i) {
   const who = on ? byTag(e, meId()) : ''
   const text = overrideText(key, it[0])
   return `<li class="${on ? 'done' : ''}" data-key="${key}">
+      <span class="drag-spacer" aria-hidden="true"></span>
       <input type="checkbox" class="cbx ${w.gate ? 'gold' : ''}" data-key="${key}" ${on ? 'checked' : ''}>
       <span class="txt"><textarea class="co-text inline-edit" data-okey="${key}" rows="1">${escapeHtml(text)}</textarea></span>
       ${metaCluster(it[1], who)}
@@ -86,7 +88,8 @@ function customRow(w, c) {
   const e = store.data.checks?.[key]
   const on = !!e?.done
   const who = on ? byTag(e, meId()) : ''
-  return `<li class="ci ${on ? 'done' : ''}" data-ci="${c.id}">
+  return `<li class="ci sortable ${on ? 'done' : ''}" data-ci="${c.id}" data-sort-id="${c.id}">
+      ${dragHandle()}
       <input type="checkbox" class="cbx ${w.gate ? 'gold' : ''}" data-key="${key}" ${on ? 'checked' : ''}>
       <span class="txt">
         <input class="ci-text inline-edit" data-f="text" value="${escapeAttr(c.text)}" placeholder="Add your own task">
@@ -199,6 +202,29 @@ async function deleteCustom(id) {
   } catch (_) {
     /* next poll reconciles */
   }
+}
+
+// Apply a drag-reordered list of custom-item ids (one phase, new top-to-bottom
+// order) to their sort fields and persist each that changed.
+function reorderCustom(ids) {
+  const items = store.data.checkItems || []
+  ids.forEach((idStr, idx) => {
+    const it = items.find((c) => c.id === Number(idStr))
+    const s = idx + 1
+    if (it && it.sort !== s) {
+      it.sort = s
+      api
+        .checkItem(it)
+        .then(bumpRev)
+        .catch(() => {})
+    }
+  })
+  items.sort(
+    (a, cc) =>
+      String(a.phase).localeCompare(String(cc.phase)) ||
+      (a.sort || 0) - (cc.sort || 0),
+  )
+  refresh()
 }
 
 // Reorder a custom item within its phase; built-in rows keep the plan's order.
@@ -338,6 +364,11 @@ function wire(el) {
         },
       ])
     }),
+  )
+
+  // Drag-to-reorder custom items within each phase.
+  el.querySelectorAll('.card[data-phase] ul.checks').forEach((ul) =>
+    makeSortable(ul, reorderCustom),
   )
 
   // Phase-header kebab: restore removed rows.

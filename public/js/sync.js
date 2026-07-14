@@ -1,4 +1,5 @@
 import { api } from './api.js'
+import { isDragging } from './drag-sort.js'
 import { setData, store } from './store.js'
 import { isOverlayOpen } from './ui.js'
 
@@ -7,7 +8,7 @@ let started = false
 // Re-render, but never clobber an open overlay (sheet/menu/confirm) or a field
 // the user is actively editing. Defer to the overlay's close or the field's blur.
 function safeRender(renderAll) {
-  if (isOverlayOpen()) {
+  if (isOverlayOpen() || isDragging()) {
     window.addEventListener('overlay:closed', () => safeRender(renderAll), {
       once: true,
     })

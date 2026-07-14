@@ -72,6 +72,10 @@ export function reorderBySort(list, id, dir, persist) {
 export const reorderBtns = (id) =>
   `<span class="reorder"><button class="reord" type="button" data-up="${id}" title="Move up" aria-label="Move up">&#9650;</button><button class="reord" type="button" data-down="${id}" title="Move down" aria-label="Move down">&#9660;</button></span>`
 
+// Grip that starts a drag-reorder (see drag-sort.js makeSortable). Six-dot glyph.
+export const dragHandle = () =>
+  `<button class="drag-handle" type="button" aria-label="Drag to reorder" title="Drag to reorder"><svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true"><circle cx="6" cy="4" r="1.3"/><circle cx="10" cy="4" r="1.3"/><circle cx="6" cy="8" r="1.3"/><circle cx="10" cy="8" r="1.3"/><circle cx="6" cy="12" r="1.3"/><circle cx="10" cy="12" r="1.3"/></svg></button>`
+
 // Wire the up/down controls inside `root`. getList(button) returns the array the row lives in;
 // persist(item) saves one item; rerender() repaints after the move.
 export function wireReorder(root, getList, persist, rerender) {
