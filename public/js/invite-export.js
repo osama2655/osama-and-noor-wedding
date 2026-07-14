@@ -42,15 +42,18 @@ export async function prewarm(theme, settings) {
   const jobs = fontProbes(t, r).map(([f, probe]) =>
     document.fonts?.load ? document.fonts.load(f, probe).catch(() => {}) : null,
   )
+  // Plain onload, never HTMLImageElement.decode(): decode() can stall forever
+  // on detached images while the renderer is busy (Chromium quirk), and
+  // drawImage decodes on demand anyway.
   if (t.art && !artCache.has(t.art)) {
-    const img = new Image()
-    img.src = t.art
     artCache.set(
       t.art,
-      img
-        .decode()
-        .then(() => img)
-        .catch(() => null),
+      new Promise((resolve) => {
+        const img = new Image()
+        img.onload = () => resolve(img)
+        img.onerror = () => resolve(null)
+        img.src = t.art
+      }),
     )
   }
   // The explicit per-face loads above are the readiness guarantee. Never await
